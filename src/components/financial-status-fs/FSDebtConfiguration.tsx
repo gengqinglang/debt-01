@@ -591,7 +591,7 @@ const LoanFormCard: React.FC<{
                 <div className="grid grid-cols-2 gap-4 mt-5">
                   <div className="space-y-2 min-w-0">
                     <Label className="text-xs font-medium">
-                      商业贷款开始日期 <span className="text-red-500">*</span>
+                      贷款开始日期 <span className="text-red-500">*</span>
                     </Label>
                     <Popover open={commercialStartDateOpen} onOpenChange={setCommercialStartDateOpen}>
                       <PopoverTrigger asChild>
@@ -603,43 +603,36 @@ const LoanFormCard: React.FC<{
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {loan.commercialStartDate ? loan.commercialStartDate : "选择日期"}
+                          {loan.commercialStartDate ? format(new Date(loan.commercialStartDate), "yyyy-MM-dd") : "选择日期"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
-                        <div className="p-3">
-                          <Select 
-                            value={loan.commercialStartDate} 
-                            onValueChange={(value) => {
-                              updateLoan(loan.id, 'commercialStartDate', value);
-                              setCommercialStartDateOpen(false);
-                            }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="选择年月" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 61 }, (_, i) => {
-                                const year = 2024 - i;
-                                return Array.from({ length: 12 }, (_, j) => {
-                                  const month = 12 - j;
-                                  const value = `${year}-${month.toString().padStart(2, '0')}`;
-                                  return (
-                                    <SelectItem key={value} value={value}>
-                                      {value}
-                                    </SelectItem>
-                                  );
-                                });
-                              }).flat()}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        <Calendar
+                          mode="single"
+                          selected={loan.commercialStartDate ? new Date(loan.commercialStartDate) : undefined}
+                          onSelect={(date) => {
+                            updateLoan(loan.id, 'commercialStartDate', date ? format(date, "yyyy-MM-dd") : '');
+                            setCommercialStartDateOpen(false);
+                          }}
+                          initialFocus
+                          captionLayout="dropdown"
+                          fromYear={1990}
+                          toYear={2050}
+                          locale={zhCN}
+                          classNames={{ 
+                            caption_label: "hidden", 
+                            nav: "hidden",
+                            caption_dropdowns: "flex justify-between w-full",
+                            dropdown: "min-w-[120px] w-[120px]"
+                          }}
+                          className={cn("p-3 pointer-events-auto w-full")}
+                       />
                       </PopoverContent>
                     </Popover>
                   </div>
                   <div className="space-y-2 min-w-0">
                     <Label className="text-xs font-medium">
-                      商业贷款结束日期 <span className="text-red-500">*</span>
+                      贷款结束日期 <span className="text-red-500">*</span>
                     </Label>
                     <Popover open={commercialEndDateOpen} onOpenChange={setCommercialEndDateOpen}>
                       <PopoverTrigger asChild>
@@ -651,37 +644,30 @@ const LoanFormCard: React.FC<{
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {loan.commercialEndDate ? loan.commercialEndDate : "选择日期"}
+                          {loan.commercialEndDate ? format(new Date(loan.commercialEndDate), "yyyy-MM-dd") : "选择日期"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
-                        <div className="p-3">
-                          <Select 
-                            value={loan.commercialEndDate} 
-                            onValueChange={(value) => {
-                              updateLoan(loan.id, 'commercialEndDate', value);
-                              setCommercialEndDateOpen(false);
-                            }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="选择年月" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 61 }, (_, i) => {
-                                const year = 2025 + i;
-                                return Array.from({ length: 12 }, (_, j) => {
-                                  const month = j + 1;
-                                  const value = `${year}-${month.toString().padStart(2, '0')}`;
-                                  return (
-                                    <SelectItem key={value} value={value}>
-                                      {value}
-                                    </SelectItem>
-                                  );
-                                });
-                              }).flat()}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        <Calendar
+                          mode="single"
+                          selected={loan.commercialEndDate ? new Date(loan.commercialEndDate) : undefined}
+                          onSelect={(date) => {
+                            updateLoan(loan.id, 'commercialEndDate', date ? format(date, "yyyy-MM-dd") : '');
+                            setCommercialEndDateOpen(false);
+                          }}
+                          initialFocus
+                          captionLayout="dropdown"
+                          fromYear={1990}
+                          toYear={2050}
+                          locale={zhCN}
+                          classNames={{ 
+                            caption_label: "hidden", 
+                            nav: "hidden",
+                            caption_dropdowns: "flex justify-between w-full",
+                            dropdown: "min-w-[120px] w-[120px]"
+                          }}
+                          className={cn("p-3 pointer-events-auto w-full")}
+                       />
                       </PopoverContent>
                     </Popover>
                   </div>
@@ -829,7 +815,7 @@ const LoanFormCard: React.FC<{
                 <div className="grid grid-cols-2 gap-4 mt-5">
                   <div className="space-y-2 min-w-0">
                     <Label className="text-xs font-medium">
-                      公积金贷款开始日期 <span className="text-red-500">*</span>
+                      贷款开始日期 <span className="text-red-500">*</span>
                     </Label>
                     <Popover open={providentStartDateOpen} onOpenChange={setProvidentStartDateOpen}>
                       <PopoverTrigger asChild>
@@ -841,43 +827,36 @@ const LoanFormCard: React.FC<{
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {loan.providentStartDate ? loan.providentStartDate : "选择日期"}
+                          {loan.providentStartDate ? format(new Date(loan.providentStartDate), "yyyy-MM-dd") : "选择日期"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
-                        <div className="p-3">
-                          <Select 
-                            value={loan.providentStartDate} 
-                            onValueChange={(value) => {
-                              updateLoan(loan.id, 'providentStartDate', value);
-                              setProvidentStartDateOpen(false);
-                            }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="选择年月" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 61 }, (_, i) => {
-                                const year = 2024 - i;
-                                return Array.from({ length: 12 }, (_, j) => {
-                                  const month = 12 - j;
-                                  const value = `${year}-${month.toString().padStart(2, '0')}`;
-                                  return (
-                                    <SelectItem key={value} value={value}>
-                                      {value}
-                                    </SelectItem>
-                                  );
-                                });
-                              }).flat()}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        <Calendar
+                          mode="single"
+                          selected={loan.providentStartDate ? new Date(loan.providentStartDate) : undefined}
+                          onSelect={(date) => {
+                            updateLoan(loan.id, 'providentStartDate', date ? format(date, "yyyy-MM-dd") : '');
+                            setProvidentStartDateOpen(false);
+                          }}
+                          initialFocus
+                          captionLayout="dropdown"
+                          fromYear={1990}
+                          toYear={2050}
+                          locale={zhCN}
+                          classNames={{ 
+                            caption_label: "hidden", 
+                            nav: "hidden",
+                            caption_dropdowns: "flex justify-between w-full",
+                            dropdown: "min-w-[120px] w-[120px]"
+                          }}
+                          className={cn("p-3 pointer-events-auto w-full")}
+                       />
                       </PopoverContent>
                     </Popover>
                   </div>
                   <div className="space-y-2 min-w-0">
                     <Label className="text-xs font-medium">
-                      公积金贷款结束日期 <span className="text-red-500">*</span>
+                      贷款结束日期 <span className="text-red-500">*</span>
                     </Label>
                     <Popover open={providentEndDateOpen} onOpenChange={setProvidentEndDateOpen}>
                       <PopoverTrigger asChild>
@@ -889,37 +868,30 @@ const LoanFormCard: React.FC<{
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {loan.providentEndDate ? loan.providentEndDate : "选择日期"}
+                          {loan.providentEndDate ? format(new Date(loan.providentEndDate), "yyyy-MM-dd") : "选择日期"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
-                        <div className="p-3">
-                          <Select 
-                            value={loan.providentEndDate} 
-                            onValueChange={(value) => {
-                              updateLoan(loan.id, 'providentEndDate', value);
-                              setProvidentEndDateOpen(false);
-                            }}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="选择年月" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 61 }, (_, i) => {
-                                const year = 2025 + i;
-                                return Array.from({ length: 12 }, (_, j) => {
-                                  const month = j + 1;
-                                  const value = `${year}-${month.toString().padStart(2, '0')}`;
-                                  return (
-                                    <SelectItem key={value} value={value}>
-                                      {value}
-                                    </SelectItem>
-                                  );
-                                });
-                              }).flat()}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        <Calendar
+                          mode="single"
+                          selected={loan.providentEndDate ? new Date(loan.providentEndDate) : undefined}
+                          onSelect={(date) => {
+                            updateLoan(loan.id, 'providentEndDate', date ? format(date, "yyyy-MM-dd") : '');
+                            setProvidentEndDateOpen(false);
+                          }}
+                          initialFocus
+                          captionLayout="dropdown"
+                          fromYear={1990}
+                          toYear={2050}
+                          locale={zhCN}
+                          classNames={{ 
+                            caption_label: "hidden", 
+                            nav: "hidden",
+                            caption_dropdowns: "flex justify-between w-full",
+                            dropdown: "min-w-[120px] w-[120px]"
+                          }}
+                          className={cn("p-3 pointer-events-auto w-full")}
+                       />
                       </PopoverContent>
                     </Popover>
                   </div>
