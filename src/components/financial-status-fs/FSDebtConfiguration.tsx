@@ -525,24 +525,26 @@ const LoanFormCard: React.FC<{
               </div>
             )}
 
-            {/* 月供金额单独占一行，与上方网格宽度一致 */}
-            <div className="mt-5">
-              <div className="space-y-2">
-                <div className="rounded-lg p-3 bg-white border border-cyan-500">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                      <span className="text-sm font-medium">月供金额</span>
-                    </div>
-                    <div className="text-right" style={{ color: '#01BCD6' }}>
-                      <div className="text-lg font-semibold">
-                        ¥{Math.round(calculateMonthlyPayment(loan)).toLocaleString()}
+            {/* 公积金贷款单贷月供金额 */}
+            {loan.loanType === 'provident' && (
+              <div className="mt-5">
+                <div className="space-y-2">
+                  <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                        <span className="text-sm font-medium">月供金额</span>
+                      </div>
+                      <div className="text-right" style={{ color: '#01BCD6' }}>
+                        <div className="text-lg font-semibold">
+                          ¥{Math.round(calculateMonthlyPayment(loan)).toLocaleString()}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* 组合贷款：商业贷款部分 */}
             {loan.loanType === 'combination' && (
