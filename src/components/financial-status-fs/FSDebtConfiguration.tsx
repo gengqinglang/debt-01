@@ -222,7 +222,29 @@ const LoanFormCard: React.FC<{
                 <Label className="text-xs font-medium">
                   贷款类型 <span className="text-red-500">*</span>
                 </Label>
-                <Select value={loan.loanType} onValueChange={(value) => updateLoan(loan.id, 'loanType', value)}>
+                <Select value={loan.loanType} onValueChange={(value) => {
+                  const today = new Date().toISOString().split('T')[0];
+                  if (value === 'combination') {
+                    // 设置组合贷款的默认值
+                    updateLoan(loan.id, 'loanType', value);
+                    updateLoan(loan.id, 'commercialStartDate', today);
+                    updateLoan(loan.id, 'commercialEndDate', today);
+                    updateLoan(loan.id, 'commercialPaymentMethod', 'equal-payment');
+                    updateLoan(loan.id, 'commercialRateType', 'floating');
+                    updateLoan(loan.id, 'providentStartDate', today);
+                    updateLoan(loan.id, 'providentEndDate', today);
+                    updateLoan(loan.id, 'providentPaymentMethod', 'equal-payment');
+                  } else {
+                    updateLoan(loan.id, 'loanType', value);
+                    // 为非组合贷款设置默认值
+                    if (value === 'commercial') {
+                      updateLoan(loan.id, 'rateType', 'floating');
+                      updateLoan(loan.id, 'paymentMethod', 'equal-payment');
+                    } else if (value === 'provident') {
+                      updateLoan(loan.id, 'paymentMethod', 'equal-payment');
+                    }
+                  }
+                }}>
                   <SelectTrigger className="h-9 text-sm w-full">
                     <SelectValue placeholder="选择类型" />
                   </SelectTrigger>
