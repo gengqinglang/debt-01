@@ -498,7 +498,7 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                         </div>
                         <div className="text-right" style={{ color: '#01BCD6' }}>
                           <div className="text-lg font-semibold">
-                            {monthlyPayment !== null ? `¥${Math.round(monthlyPayment).toLocaleString()}` : '请补全必填项'}
+                            {monthlyPayment !== null ? `¥${Math.round(monthlyPayment).toLocaleString()}` : '--'}
                           </div>
                         </div>
                       </div>
