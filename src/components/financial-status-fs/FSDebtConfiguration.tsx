@@ -555,7 +555,7 @@ const LoanFormCard: React.FC<{
               <>
                 {/* 商业贷款标题 */}
                 <div className="mt-6 mb-4 flex items-center">
-                  <div className="h-4 w-1 bg-blue-500 mr-2"></div>
+                  <div className="h-4 w-1 mr-2" style={{ backgroundColor: '#01BCD6' }}></div>
                   <h5 className="text-sm font-semibold text-gray-900">商业贷款部分</h5>
                 </div>
 
