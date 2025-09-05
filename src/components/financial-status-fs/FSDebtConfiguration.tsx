@@ -1374,7 +1374,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     return !!(
       loan.propertyName?.trim() &&
       loan.loanType &&
-      loan.loanAmount?.trim() &&
+      // 移除 loan.loanAmount?.trim() && // 贷款原始金额变为非必填
       loan.remainingPrincipal?.trim() &&
       loan.loanStartDate &&
       loan.loanEndDate &&
@@ -1388,7 +1388,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   const isCommercialLoanComplete = (loan: LoanInfo): boolean => {
     return !!(
       loan.propertyName?.trim() &&
-      loan.commercialLoanAmount?.trim() &&
+      // 移除 loan.commercialLoanAmount?.trim() && // 商业贷款金额变为非必填
       loan.commercialRemainingPrincipal?.trim() &&
       loan.commercialStartDate &&
       loan.commercialEndDate &&
@@ -1401,7 +1401,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   // 公积金贷款完整性检查
   const isProvidentLoanComplete = (loan: LoanInfo): boolean => {
     return !!(
-      loan.providentLoanAmount?.trim() &&
+      // 移除 loan.providentLoanAmount?.trim() && // 公积金贷款金额变为非必填
       loan.providentRemainingPrincipal?.trim() &&
       loan.providentStartDate &&
       loan.providentEndDate &&
