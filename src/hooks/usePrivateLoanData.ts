@@ -11,12 +11,13 @@ const getTodayDate = (): string => {
 
 export interface PrivateLoanInfo {
   id: string;
-  name?: string; // 民间借贷名称（非必输）
+  name?: string; // 出借人名称（非必输）
   loanAmount: string; // 剩余贷款本金（万元）
-  startDate: string; // 贷款结束日期（到日）
+  startDate: string; // 贷款开始时间（到日）
+  endDate?: string; // 贷款结束日期（到日，等额本息/等额本金时必需）
   annualRate: string; // 年化利率（%）
-  rateFen: string; // 分（如：1）
-  rateLi: string; // 厘（如：3）
+  rateFen: string; // 分利率
+  rateLi: string; // 厘利率
   repaymentMethod: string; // 还款方式
 }
 
@@ -29,6 +30,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
           name: '',
           loanAmount: '', 
           startDate: getTodayDate(),
+          endDate: getTodayDate(),
           annualRate: '',
           rateFen: '',
           rateLi: '',
@@ -41,7 +43,8 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
     const todayDate = getTodayDate();
     setPrivateLoans(prev => prev.map(loan => ({
       ...loan,
-      startDate: loan.startDate || todayDate
+      startDate: loan.startDate || todayDate,
+      endDate: loan.endDate || todayDate
     })));
   }, []);
 
@@ -52,6 +55,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
       name: '',
       loanAmount: '',
       startDate: todayDate,
+      endDate: todayDate,
       annualRate: '',
       rateFen: '',
       rateLi: '',
@@ -108,19 +112,29 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
     }));
   }, [calculateAnnualRate]);
 
-  // 检查民间借贷信息是否完整
+  // 检查民间贷信息是否完整
   const isPrivateLoanComplete = useCallback((privateLoan: PrivateLoanInfo): boolean => {
-    // 检查分、厘至少有一个输入且大于0
-    const hasFenRate = privateLoan.rateFen && parseFloat(privateLoan.rateFen) > 0;
-    const hasLiRate = privateLoan.rateLi && parseFloat(privateLoan.rateLi) > 0;
-    
-    return Boolean(
+    // 基础必填字段
+    const hasBasicFields = Boolean(
       privateLoan.loanAmount && 
       parseFloat(privateLoan.loanAmount) > 0 &&
       privateLoan.startDate &&
-      (hasFenRate || hasLiRate) && // 分、厘任选其一即可
       privateLoan.repaymentMethod
     );
+
+    // 利率字段检查
+    const hasValidRate = Boolean(
+      (privateLoan.annualRate && parseFloat(privateLoan.annualRate) > 0) ||
+      (privateLoan.rateFen && parseFloat(privateLoan.rateFen) > 0) ||
+      (privateLoan.rateLi && parseFloat(privateLoan.rateLi) > 0)
+    );
+
+    // 等额本息/等额本金需要额外的结束日期
+    if (privateLoan.repaymentMethod === 'equal-payment' || privateLoan.repaymentMethod === 'equal-principal') {
+      return hasBasicFields && hasValidRate && Boolean(privateLoan.endDate);
+    }
+
+    return hasBasicFields && hasValidRate;
   }, []);
 
   // 计算汇总数据
@@ -148,6 +162,33 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
       
       // 根据还款方式计算月供
       switch (loan.repaymentMethod) {
+        case 'equal-payment': // 等额本息
+          if (loan.endDate && loan.startDate) {
+            const startDate = new Date(loan.startDate);
+            const endDate = new Date(loan.endDate);
+            const termMonths = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+            if (annualRate > 0 && termMonths > 0) {
+              const monthlyRate = annualRate / 12;
+              const monthlyPayment = principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths) / 
+                                    (Math.pow(1 + monthlyRate, termMonths) - 1);
+              totalMonthlyPayment += monthlyPayment;
+            } else {
+              totalMonthlyPayment += principal / termMonths;
+            }
+          }
+          break;
+        case 'equal-principal': // 等额本金
+          if (loan.endDate && loan.startDate) {
+            const startDate = new Date(loan.startDate);
+            const endDate = new Date(loan.endDate);
+            const termMonths = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+            if (termMonths > 0) {
+              const monthlyPrincipal = principal / termMonths;
+              const firstMonthInterest = principal * (annualRate / 12);
+              totalMonthlyPayment += monthlyPrincipal + firstMonthInterest; // 使用首期月供
+            }
+          }
+          break;
         case 'interest-first': // 先息后本
           totalMonthlyPayment += principal * (annualRate / 12); // 只计算利息
           break;
