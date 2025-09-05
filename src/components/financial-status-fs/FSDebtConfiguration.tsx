@@ -1261,14 +1261,18 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
 
     let rate = 0;
     if (loan.rateType === 'fixed') {
-      rate = parseFloat(loan.fixedRate || '0') / 100;
+      const fixed = parseFloat(loan.fixedRate || '');
+      rate = isFinite(fixed) && fixed > 0
+        ? fixed / 100
+        : ((loan.loanType === 'provident' ? currentLPR_5Year : currentLPR_5YearPlus) / 100);
     } else {
       const baseLPR = loan.loanType === 'provident' ? currentLPR_5Year : currentLPR_5YearPlus;
-      const adjustment = parseFloat(loan.floatingRateAdjustment || '0') / 100;
-      rate = baseLPR / 100 + adjustment; // 修复：LPR先除以100再加调整
+      const adjustmentBP = parseFloat(loan.floatingRateAdjustment || '0');
+      const adjustment = isFinite(adjustmentBP) ? adjustmentBP / 10000 : 0; // BP 转为小数
+      rate = baseLPR / 100 + adjustment;
     }
 
-    if (rate <= 0) return 0;
+    if (!isFinite(rate) || rate <= 0) return 0;
 
     const monthlyRate = rate / 12;
     
@@ -1300,13 +1304,15 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
 
     let rate = 0;
     if (loan.commercialRateType === 'fixed') {
-      rate = parseFloat(loan.commercialFixedRate || '0') / 100;
+      const fixed = parseFloat(loan.commercialFixedRate || '');
+      rate = isFinite(fixed) && fixed > 0 ? fixed / 100 : currentLPR_5YearPlus / 100;
     } else {
-      const adjustment = parseFloat(loan.commercialFloatingRateAdjustment || '0') / 100;
-      rate = (currentLPR_5YearPlus + adjustment) / 100;
+      const adjustmentBP = parseFloat(loan.commercialFloatingRateAdjustment || '0');
+      const adjustment = isFinite(adjustmentBP) ? adjustmentBP / 10000 : 0; // BP 转为小数
+      rate = currentLPR_5YearPlus / 100 + adjustment;
     }
 
-    if (rate <= 0) return 0;
+    if (!isFinite(rate) || rate <= 0) return 0;
 
     const monthlyRate = rate / 12;
     
@@ -1332,8 +1338,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     const principal = parseFloat(loan.providentRemainingPrincipal || '0') * 10000;
     if (!principal || principal <= 0) return 0;
 
-    const rate = parseFloat(loan.providentRate || '0') / 100;
-    if (rate <= 0) return 0;
+    let rate = parseFloat(loan.providentRate || '');
+    rate = isFinite(rate) && rate > 0 ? rate / 100 : currentLPR_5Year / 100;
 
     const monthlyRate = rate / 12;
     
