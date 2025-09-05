@@ -407,12 +407,12 @@ const LoanFormCard: React.FC<{
                     className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 pt-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="fixed" id={`fixed-${loan.id}`} />
-                      <Label htmlFor={`fixed-${loan.id}`} className="text-xs whitespace-nowrap">固定利率</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="floating" id={`floating-${loan.id}`} />
                       <Label htmlFor={`floating-${loan.id}`} className="text-xs whitespace-nowrap">浮动利率</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="fixed" id={`fixed-${loan.id}`} />
+                      <Label htmlFor={`fixed-${loan.id}`} className="text-xs whitespace-nowrap">固定利率</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -726,12 +726,12 @@ const LoanFormCard: React.FC<{
                       className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 pt-2"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="fixed" id={`commercial-fixed-${loan.id}`} />
-                        <Label htmlFor={`commercial-fixed-${loan.id}`} className="text-xs whitespace-nowrap">固定利率</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="floating" id={`commercial-floating-${loan.id}`} />
                         <Label htmlFor={`commercial-floating-${loan.id}`} className="text-xs whitespace-nowrap">浮动利率</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="fixed" id={`commercial-fixed-${loan.id}`} />
+                        <Label htmlFor={`commercial-fixed-${loan.id}`} className="text-xs whitespace-nowrap">固定利率</Label>
                       </div>
                     </RadioGroup>
                   </div>
