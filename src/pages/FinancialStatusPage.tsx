@@ -271,17 +271,6 @@ const FinancialStatusPage = () => {
              style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
           <div className="flex gap-2">
             <Button 
-              onClick={goToPreviousStep}
-              className="flex-1 py-2 text-gray-700 font-bold rounded-2xl text-xs shadow-lg transform hover:scale-[1.02] transition-all duration-300 border border-gray-300 bg-white hover:bg-gray-50"
-              variant="outline"
-            >
-              <span className="flex items-center justify-center gap-2">
-                <ArrowLeft className="w-3 h-3" />
-                上一步
-              </span>
-            </Button>
-            
-            <Button 
               onClick={goToNext}
               className="flex-1 py-2 text-gray-900 font-bold rounded-2xl text-xs shadow-xl transform hover:scale-[1.02] transition-all duration-300 border-0 bg-gradient-to-r from-[#B3EBEF] to-[#8FD8DC] hover:from-[#A0E2E6] hover:to-[#7BC9CE]"
             >
