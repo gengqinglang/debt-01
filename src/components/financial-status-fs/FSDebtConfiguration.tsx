@@ -531,20 +531,6 @@ const LoanFormCard: React.FC<{
                     <>
                       <div className="space-y-2 min-w-0">
                         <Label className="text-xs font-medium">
-                          LPR基准(%)
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            type="text"
-                            value={`${currentLPR_5Year}`}
-                            readOnly
-                            className="h-9 text-sm pr-7 bg-gray-50"
-                          />
-                          <Percent className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
-                        </div>
-                      </div>
-                      <div className="space-y-2 min-w-0">
-                        <Label className="text-xs font-medium">
                           加点数值(BP) <span className="text-red-500">*</span>
                         </Label>
                         <Input
