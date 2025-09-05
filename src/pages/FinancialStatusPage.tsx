@@ -199,9 +199,10 @@ const FinancialStatusPage = () => {
     <div className="min-h-screen bg-[#F4FDFD] flex flex-col">
       <div className="relative flex flex-col bg-white/90 backdrop-blur-xl flex-1">
         {/* 标题区域 */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#B3EBEF]/20 via-white/60 to-[#B3EBEF]/20 -mx-2">
-          <div className="relative py-6 text-center flex flex-col justify-center" style={{ minHeight: '80px' }}>
-            {/* 债务汇总卡片 - 移动到header内部 */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#B3EBEF]/20 via-white/60 to-[#B3EBEF]/20 -mx-2">
+            <div className="relative py-6 text-center flex flex-col justify-center" style={{ minHeight: '80px' }}>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">家庭债务梳理</h1>
+              {/* 债务汇总卡片 - 移动到header内部 */}
             <div className="px-3">
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 rounded-lg p-3 border border-[#B3EBEF]/30">
