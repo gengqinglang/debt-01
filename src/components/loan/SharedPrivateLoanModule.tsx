@@ -78,6 +78,8 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
               <SelectContent className="bg-white z-50">
                 <SelectItem value="interest-first">先息后本</SelectItem>
                 <SelectItem value="lump-sum">一次性还本付息</SelectItem>
+                <SelectItem value="equal-payment">等额本息</SelectItem>
+                <SelectItem value="equal-principal">等额本金</SelectItem>
               </SelectContent>
             </Select>
           </div>
