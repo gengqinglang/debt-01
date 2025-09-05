@@ -315,18 +315,19 @@ const LoanFormCard: React.FC<{
                           updateLoan(loan.id, 'loanStartDate', date ? format(date, "yyyy-MM-dd") : '');
                           setStartDateOpen(false);
                          }}
-                          disabled={(date) => {
-                            const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                            const today = new Date();
-                            const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                            const minDate = new Date(todayDate);
-                            minDate.setFullYear(minDate.getFullYear() - 50);
-                            return d < minDate || d > todayDate;
-                          }} // 贷款开始日期：今天-50年 到 今天
+                         disabled={(date) => {
+                           // 更严格的日期比较，确保不能选择未来日期
+                           const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                           const today = new Date();
+                           const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                           const minDate = new Date(todayDate.getTime());
+                           minDate.setFullYear(minDate.getFullYear() - 50);
+                           return selectedDate.getTime() < minDate.getTime() || selectedDate.getTime() > todayDate.getTime();
+                         }} // 贷款开始日期：今天-50年 到 今天（不能选未来）
                          initialFocus
                          captionLayout="dropdown"
-                         fromYear={1990}
-                         toYear={2050}
+                         fromYear={1975}
+                         toYear={new Date().getFullYear()}
                          locale={zhCN}
                          classNames={{ 
                            caption_label: "hidden", 
@@ -364,18 +365,19 @@ const LoanFormCard: React.FC<{
                             updateLoan(loan.id, 'loanEndDate', date ? format(date, "yyyy-MM-dd") : '');
                             setEndDateOpen(false);
                           }}
-                          disabled={(date) => {
-                            const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                            const today = new Date();
-                            const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                            const maxDate = new Date(todayDate);
-                            maxDate.setFullYear(maxDate.getFullYear() + 50);
-                            return d < todayDate || d > maxDate; // 可选范围：今天 到 今天+50年
-                          }}
+                           disabled={(date) => {
+                             // 贷款结束日期：今天 到 今天+50年
+                             const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                             const today = new Date();
+                             const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                             const maxDate = new Date(todayDate.getTime());
+                             maxDate.setFullYear(maxDate.getFullYear() + 50);
+                             return selectedDate.getTime() < todayDate.getTime() || selectedDate.getTime() > maxDate.getTime();
+                           }} // 贷款结束日期：今天 到 今天+50年
                            initialFocus
                            captionLayout="dropdown"
-                           fromYear={1990}
-                           toYear={2050}
+                           fromYear={new Date().getFullYear()}
+                           toYear={new Date().getFullYear() + 50}
                            locale={zhCN}
                            classNames={{ 
                              caption_label: "hidden", 
@@ -627,18 +629,19 @@ const LoanFormCard: React.FC<{
                             setCommercialStartDateOpen(false);
                           }}
                            disabled={(date) => {
-                             const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                             // 更严格的日期比较，确保不能选择未来日期
+                             const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
                              const today = new Date();
                              const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                             const minDate = new Date(todayDate);
+                             const minDate = new Date(todayDate.getTime());
                              minDate.setFullYear(minDate.getFullYear() - 50);
-                             return d < minDate || d > todayDate;
-                           }} // 贷款开始日期：今天-50年 到 今天
-                          initialFocus
-                          captionLayout="dropdown"
-                          fromYear={1990}
-                          toYear={2050}
-                          locale={zhCN}
+                             return selectedDate.getTime() < minDate.getTime() || selectedDate.getTime() > todayDate.getTime();
+                           }} // 贷款开始日期：今天-50年 到 今天（不能选未来）
+                           initialFocus
+                           captionLayout="dropdown"
+                           fromYear={1975}
+                           toYear={new Date().getFullYear()}
+                           locale={zhCN}
                           classNames={{ 
                             caption_label: "hidden", 
                             nav: "hidden",
@@ -676,18 +679,19 @@ const LoanFormCard: React.FC<{
                             setCommercialEndDateOpen(false);
                           }}
                            disabled={(date) => {
-                             const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                             // 贷款结束日期：今天 到 今天+50年
+                             const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
                              const today = new Date();
                              const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                             const maxDate = new Date(todayDate);
+                             const maxDate = new Date(todayDate.getTime());
                              maxDate.setFullYear(maxDate.getFullYear() + 50);
-                             return d < todayDate || d > maxDate; // 可选范围：今天 到 今天+50年
-                           }}
-                          initialFocus
-                          captionLayout="dropdown"
-                          fromYear={1990}
-                          toYear={2050}
-                          locale={zhCN}
+                             return selectedDate.getTime() < todayDate.getTime() || selectedDate.getTime() > maxDate.getTime();
+                           }} // 贷款结束日期：今天 到 今天+50年
+                           initialFocus
+                           captionLayout="dropdown"
+                           fromYear={new Date().getFullYear()}
+                           toYear={new Date().getFullYear() + 50}
+                           locale={zhCN}
                           classNames={{ 
                             caption_label: "hidden", 
                             nav: "hidden",
@@ -867,18 +871,19 @@ const LoanFormCard: React.FC<{
                             setProvidentStartDateOpen(false);
                           }}
                            disabled={(date) => {
-                             const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                             // 更严格的日期比较，确保不能选择未来日期
+                             const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
                              const today = new Date();
                              const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                             const minDate = new Date(todayDate);
+                             const minDate = new Date(todayDate.getTime());
                              minDate.setFullYear(minDate.getFullYear() - 50);
-                             return d < minDate || d > todayDate;
-                           }} // 贷款开始日期：今天-50年 到 今天
-                          initialFocus
-                          captionLayout="dropdown"
-                          fromYear={1990}
-                          toYear={2050}
-                          locale={zhCN}
+                             return selectedDate.getTime() < minDate.getTime() || selectedDate.getTime() > todayDate.getTime();
+                           }} // 贷款开始日期：今天-50年 到 今天（不能选未来）
+                           initialFocus
+                           captionLayout="dropdown"
+                           fromYear={1975}
+                           toYear={new Date().getFullYear()}
+                           locale={zhCN}
                           classNames={{ 
                             caption_label: "hidden", 
                             nav: "hidden",
@@ -916,18 +921,19 @@ const LoanFormCard: React.FC<{
                             setProvidentEndDateOpen(false);
                           }}
                            disabled={(date) => {
-                             const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                             // 贷款结束日期：今天 到 今天+50年
+                             const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
                              const today = new Date();
                              const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                             const maxDate = new Date(todayDate);
+                             const maxDate = new Date(todayDate.getTime());
                              maxDate.setFullYear(maxDate.getFullYear() + 50);
-                             return d < todayDate || d > maxDate; // 可选范围：今天 到 今天+50年
-                           }}
-                          initialFocus
-                          captionLayout="dropdown"
-                          fromYear={1990}
-                          toYear={2050}
-                          locale={zhCN}
+                             return selectedDate.getTime() < todayDate.getTime() || selectedDate.getTime() > maxDate.getTime();
+                           }} // 贷款结束日期：今天 到 今天+50年
+                           initialFocus
+                           captionLayout="dropdown"
+                           fromYear={new Date().getFullYear()}
+                           toYear={new Date().getFullYear() + 50}
+                           locale={zhCN}
                           classNames={{ 
                             caption_label: "hidden", 
                             nav: "hidden",
