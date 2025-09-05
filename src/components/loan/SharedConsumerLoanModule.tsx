@@ -487,15 +487,22 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                 className="h-9 text-sm mt-1"
               />
 
-              {requiredFilled && (
-                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-blue-800">
-                      {consumerLoan.repaymentMethod === 'equal-payment' ? '等额本息月供' : '等额本金首期月供'}
-                    </span>
-                    <span className="text-lg font-bold text-blue-900">
-                      {monthlyPayment !== null ? formatAmount(monthlyPayment) : '请调整开始/结束日期'}
-                    </span>
+              {(consumerLoan.repaymentMethod === 'equal-payment' || consumerLoan.repaymentMethod === 'equal-principal') && (
+                <div className="mt-5">
+                  <div className="space-y-2">
+                    <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                          <span className="text-sm font-medium">月供金额</span>
+                        </div>
+                        <div className="text-right" style={{ color: '#01BCD6' }}>
+                          <div className="text-lg font-semibold">
+                            {monthlyPayment !== null ? `¥${Math.round(monthlyPayment).toLocaleString()}` : '请补全必填项'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
