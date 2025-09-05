@@ -531,19 +531,26 @@ const LoanFormCard: React.FC<{
                     <>
                       <div className="space-y-2 min-w-0">
                         <Label className="text-xs font-medium">
-                          加点数值(BP) <span className="text-red-500">*</span>
+                          利率加减点(基点BP) <span className="text-red-500">*</span>
                         </Label>
-                        <Input
-                          type="text"
-                          placeholder="如：0 或 -31"
+                        <input
+                          id={`rate-${loan.id}`}
+                          type="number"
+                          step="1"
+                          placeholder="如：-30(减30个基点) 或 +50(加50个基点)"
                           value={loan.floatingRateAdjustment}
-                          onChange={(e) => updateLoan(loan.id, 'floatingRateAdjustment', e.target.value)}
-                          className="h-9 text-sm"
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '' || /^-?\d+$/.test(value)) {
+                              updateLoan(loan.id, 'floatingRateAdjustment', value);
+                            }
+                          }}
+                          className="h-9 w-full min-w-0 box-border rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         />
-                      </div>
-                    </>
-                  )}
-                </div>
+                       </div>
+                     </>
+                   )}
+                 </div>
                 
                 {/* 月供金额单独占一行，与上方网格宽度一致 */}
                 <div className="mt-5">
