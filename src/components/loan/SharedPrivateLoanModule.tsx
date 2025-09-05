@@ -117,18 +117,27 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={privateLoan.startDate ? new Date(privateLoan.startDate) : undefined}
-                      onSelect={(date) => {
-                        updatePrivateLoan(privateLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
-                        setEndDateOpen(false);
-                      }}
-                      initialFocus
-                      captionLayout="dropdown"
-                      fromYear={1990}
-                      toYear={2050}
-                      locale={zhCN}
+                     <Calendar
+                       mode="single"
+                       selected={privateLoan.startDate ? new Date(privateLoan.startDate) : undefined}
+                       onSelect={(date) => {
+                         updatePrivateLoan(privateLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
+                         setEndDateOpen(false);
+                       }}
+                       disabled={(date) => {
+                         // 贷款结束日期：今天 到 今天+50年
+                         const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                         const today = new Date();
+                         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                         const maxDate = new Date(todayDate.getTime());
+                         maxDate.setFullYear(maxDate.getFullYear() + 50);
+                         return selectedDate.getTime() < todayDate.getTime() || selectedDate.getTime() > maxDate.getTime();
+                       }}
+                       initialFocus
+                       captionLayout="dropdown"
+                       fromYear={new Date().getFullYear()}
+                       toYear={new Date().getFullYear() + 50}
+                       locale={zhCN}
                       classNames={{ 
                         caption_label: "hidden", 
                         nav: "hidden",

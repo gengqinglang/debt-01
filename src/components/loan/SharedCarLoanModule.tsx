@@ -182,18 +182,27 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={carLoan.startDateMonth ? new Date(carLoan.startDateMonth) : undefined}
-                      onSelect={(date) => {
-                        updateCarLoan(carLoan.id, 'startDateMonth', date ? format(date, "yyyy-MM-dd") : '');
-                        setStartDateOpen(false);
-                      }}
-                      initialFocus
-                      captionLayout="dropdown"
-                      fromYear={1990}
-                      toYear={2050}
-                      locale={zhCN}
+                     <Calendar
+                       mode="single"
+                       selected={carLoan.startDateMonth ? new Date(carLoan.startDateMonth) : undefined}
+                       onSelect={(date) => {
+                         updateCarLoan(carLoan.id, 'startDateMonth', date ? format(date, "yyyy-MM-dd") : '');
+                         setStartDateOpen(false);
+                       }}
+                       disabled={(date) => {
+                         // 贷款开始日期：今天-50年 到 今天（不能选择未来日期）
+                         const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                         const today = new Date();
+                         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                         const minDate = new Date(todayDate.getTime());
+                         minDate.setFullYear(minDate.getFullYear() - 50);
+                         return selectedDate.getTime() < minDate.getTime() || selectedDate.getTime() > todayDate.getTime();
+                       }}
+                       initialFocus
+                       captionLayout="dropdown"
+                       fromYear={1975}
+                       toYear={new Date().getFullYear()}
+                       locale={zhCN}
                       classNames={{ 
                         caption_label: "hidden", 
                         nav: "hidden",
@@ -223,18 +232,27 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={carLoan.endDateMonth ? new Date(carLoan.endDateMonth) : undefined}
-                      onSelect={(date) => {
-                        updateCarLoan(carLoan.id, 'endDateMonth', date ? format(date, "yyyy-MM-dd") : '');
-                        setEndDateOpen(false);
-                      }}
-                      initialFocus
-                      captionLayout="dropdown"
-                      fromYear={1990}
-                      toYear={2050}
-                      locale={zhCN}
+                     <Calendar
+                       mode="single"
+                       selected={carLoan.endDateMonth ? new Date(carLoan.endDateMonth) : undefined}
+                       onSelect={(date) => {
+                         updateCarLoan(carLoan.id, 'endDateMonth', date ? format(date, "yyyy-MM-dd") : '');
+                         setEndDateOpen(false);
+                       }}
+                       disabled={(date) => {
+                         // 贷款结束日期：今天 到 今天+50年
+                         const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                         const today = new Date();
+                         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                         const maxDate = new Date(todayDate.getTime());
+                         maxDate.setFullYear(maxDate.getFullYear() + 50);
+                         return selectedDate.getTime() < todayDate.getTime() || selectedDate.getTime() > maxDate.getTime();
+                       }}
+                       initialFocus
+                       captionLayout="dropdown"
+                       fromYear={new Date().getFullYear()}
+                       toYear={new Date().getFullYear() + 50}
+                       locale={zhCN}
                       classNames={{ 
                         caption_label: "hidden", 
                         nav: "hidden",
