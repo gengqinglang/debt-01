@@ -315,6 +315,7 @@ const LoanFormCard: React.FC<{
                           updateLoan(loan.id, 'loanStartDate', date ? format(date, "yyyy-MM-dd") : '');
                           setStartDateOpen(false);
                         }}
+                        disabled={(date) => date > new Date()} // 不能晚于当天
                         initialFocus
                         captionLayout="dropdown"
                         fromYear={1990}
@@ -349,26 +350,32 @@ const LoanFormCard: React.FC<{
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={loan.loanEndDate ? new Date(loan.loanEndDate) : undefined}
-                        onSelect={(date) => {
-                          updateLoan(loan.id, 'loanEndDate', date ? format(date, "yyyy-MM-dd") : '');
-                          setEndDateOpen(false);
-                        }}
-                        initialFocus
-                        captionLayout="dropdown"
-                        fromYear={1990}
-                        toYear={2050}
-                          locale={zhCN}
-                          classNames={{ 
-                            caption_label: "hidden", 
-                            nav: "hidden",
-                            caption_dropdowns: "flex justify-between w-full",
-                            dropdown: "min-w-[120px] w-[120px]"
+                        <Calendar
+                          mode="single"
+                          selected={loan.loanEndDate ? new Date(loan.loanEndDate) : undefined}
+                          onSelect={(date) => {
+                            updateLoan(loan.id, 'loanEndDate', date ? format(date, "yyyy-MM-dd") : '');
+                            setEndDateOpen(false);
                           }}
-                          className={cn("p-3 pointer-events-auto w-full")}
-                      />
+                          disabled={(date) => {
+                            const today = new Date();
+                            const maxDate = new Date();
+                            maxDate.setFullYear(maxDate.getFullYear() + 50);
+                            return date < today || date > maxDate; // 最早是当天，最晚是当天+50年
+                          }}
+                          initialFocus
+                          captionLayout="dropdown"
+                          fromYear={1990}
+                          toYear={2050}
+                            locale={zhCN}
+                            classNames={{ 
+                              caption_label: "hidden", 
+                              nav: "hidden",
+                              caption_dropdowns: "flex justify-between w-full",
+                              dropdown: "min-w-[120px] w-[120px]"
+                            }}
+                            className={cn("p-3 pointer-events-auto w-full")}
+                        />
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -610,6 +617,7 @@ const LoanFormCard: React.FC<{
                             updateLoan(loan.id, 'commercialStartDate', date ? format(date, "yyyy-MM-dd") : '');
                             setCommercialStartDateOpen(false);
                           }}
+                          disabled={(date) => date > new Date()} // 不能晚于当天
                           initialFocus
                           captionLayout="dropdown"
                           fromYear={1990}
@@ -650,6 +658,12 @@ const LoanFormCard: React.FC<{
                           onSelect={(date) => {
                             updateLoan(loan.id, 'commercialEndDate', date ? format(date, "yyyy-MM-dd") : '');
                             setCommercialEndDateOpen(false);
+                          }}
+                          disabled={(date) => {
+                            const today = new Date();
+                            const maxDate = new Date();
+                            maxDate.setFullYear(maxDate.getFullYear() + 50);
+                            return date < today || date > maxDate; // 最早是当天，最晚是当天+50年
                           }}
                           initialFocus
                           captionLayout="dropdown"
@@ -834,6 +848,7 @@ const LoanFormCard: React.FC<{
                             updateLoan(loan.id, 'providentStartDate', date ? format(date, "yyyy-MM-dd") : '');
                             setProvidentStartDateOpen(false);
                           }}
+                          disabled={(date) => date > new Date()} // 不能晚于当天
                           initialFocus
                           captionLayout="dropdown"
                           fromYear={1990}
@@ -874,6 +889,12 @@ const LoanFormCard: React.FC<{
                           onSelect={(date) => {
                             updateLoan(loan.id, 'providentEndDate', date ? format(date, "yyyy-MM-dd") : '');
                             setProvidentEndDateOpen(false);
+                          }}
+                          disabled={(date) => {
+                            const today = new Date();
+                            const maxDate = new Date();
+                            maxDate.setFullYear(maxDate.getFullYear() + 50);
+                            return date < today || date > maxDate; // 最早是当天，最晚是当天+50年
                           }}
                           initialFocus
                           captionLayout="dropdown"
