@@ -10,6 +10,7 @@ import { BusinessLoanInfo } from '@/hooks/useBusinessLoanData';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, formatAmount } from '@/lib/loanCalculations';
 
 interface BusinessLoanCardProps {
   businessLoan: BusinessLoanInfo;
@@ -28,6 +29,29 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
 }) => {
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
+  
+  // 等额本息/等额本金 月供计算
+  const { requiredFilled, monthlyPayment } = (() => {
+    if (businessLoan.repaymentMethod !== 'equal-payment' && businessLoan.repaymentMethod !== 'equal-principal') {
+      return { requiredFilled: false, monthlyPayment: null as number | null };
+    }
+    const principalWan = parseFloat(businessLoan.remainingPrincipal || '');
+    const annualRatePct = parseFloat(businessLoan.annualRate || '');
+    const hasDates = Boolean(businessLoan.startDate && businessLoan.endDate);
+    const hasPrincipal = !isNaN(principalWan) && principalWan > 0;
+    const hasRate = !isNaN(annualRatePct) && annualRatePct > 0;
+    const requiredFilled = hasDates && hasPrincipal && hasRate;
+    if (!requiredFilled) return { requiredFilled, monthlyPayment: null };
+
+    const principal = principalWan * 10000;
+    const annualRate = annualRatePct / 100;
+    const termMonths = calculateLoanTermMonths(businessLoan.startDate, businessLoan.endDate);
+    if (termMonths <= 0) return { requiredFilled, monthlyPayment: null };
+    const monthly = businessLoan.repaymentMethod === 'equal-payment'
+      ? calculateEqualPaymentMonthly(principal, annualRate, termMonths)
+      : calculateEqualPrincipalFirstMonthly(principal, annualRate, termMonths);
+    return { requiredFilled, monthlyPayment: monthly };
+  })();
   
   return (
     <div className="rounded-lg py-6 px-3 bg-white" style={{ border: '2px solid #CAF4F7' }}>
@@ -323,6 +347,19 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                 className="h-9 text-sm mt-1"
               />
             </div>
+
+            {(businessLoan.repaymentMethod === 'equal-payment' || businessLoan.repaymentMethod === 'equal-principal') && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-blue-800">
+                    {businessLoan.repaymentMethod === 'equal-payment' ? '等额本息月供' : '等额本金首期月供'}
+                  </span>
+                  <span className="text-lg font-bold text-blue-900">
+                    {monthlyPayment !== null ? formatAmount(monthlyPayment) : '请补全必填项'}
+                  </span>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
