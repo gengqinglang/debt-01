@@ -148,30 +148,32 @@ const LoanFormCard: React.FC<{
               <Progress value={stats?.timeProgress || 0} className="h-2" />
             </div>
 
-            {/* 本金进度 */}
-            <div>
-              <div className="grid grid-cols-3 gap-3 mb-2">
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 mb-1">已还本金</div>
-                  <div className="text-sm font-semibold text-gray-900">
-                    {((stats?.paidPrincipal || 0) / 10000).toFixed(1)}万元
+            {/* 本金进度 - 只有输入了原始金额才显示 */}
+            {stats?.hasOriginalAmount && (
+              <div>
+                <div className="grid grid-cols-3 gap-3 mb-2">
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-1">已还本金</div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {((stats?.paidPrincipal || 0) / 10000).toFixed(1)}万元
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-1">待还本金</div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {(((stats?.totalPrincipal || 0) - (stats?.paidPrincipal || 0)) / 10000).toFixed(1)}万元
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-gray-500 mb-1">进度</div>
+                    <div className="text-sm font-semibold" style={{ color: '#01BCD6' }}>
+                      {stats?.principalProgress?.toFixed(1) || '0.0'}%
+                    </div>
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 mb-1">待还本金</div>
-                  <div className="text-sm font-semibold text-gray-900">
-                    {(((stats?.totalPrincipal || 0) - (stats?.paidPrincipal || 0)) / 10000).toFixed(1)}万元
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 mb-1">进度</div>
-                  <div className="text-sm font-semibold" style={{ color: '#01BCD6' }}>
-                    {stats?.principalProgress?.toFixed(1) || '0.0'}%
-                  </div>
-                </div>
+                <Progress value={stats?.principalProgress || 0} className="h-2" />
               </div>
-              <Progress value={stats?.principalProgress || 0} className="h-2" />
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -262,7 +264,7 @@ const LoanFormCard: React.FC<{
               <div className="grid grid-cols-2 gap-4 mt-5">
                 <div className="space-y-2 min-w-0">
                   <Label className="text-xs font-medium">
-                    贷款原始金额(万元) <span className="text-red-500">*</span>
+                    贷款原始金额(万元)
                   </Label>
                   <Input
                     type="text"
@@ -577,7 +579,7 @@ const LoanFormCard: React.FC<{
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2 min-w-0">
                     <Label className="text-xs font-medium">
-                      商业贷款金额(万元) <span className="text-red-500">*</span>
+                      商业贷款金额(万元)
                     </Label>
                     <Input
                       type="text"
@@ -819,7 +821,7 @@ const LoanFormCard: React.FC<{
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2 min-w-0">
                     <Label className="text-xs font-medium">
-                      公积金贷款金额(万元) <span className="text-red-500">*</span>
+                      公积金贷款金额(万元)
                     </Label>
                     <Input
                       type="text"
@@ -1628,14 +1630,17 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       : 0;
     const timeProgress = totalMonths > 0 ? (paidMonths / totalMonths) * 100 : 0;
 
-    // 本金相关（单位：元）
+    // 本金相关（单位：元）- 检查是否有原始金额
     let totalPrincipal = 0;
+    let hasOriginalAmount = false;
     if (loan.loanType === 'combination') {
       const commercial = parseFloat(loan.commercialLoanAmount || '0') * 10000;
       const provident = parseFloat(loan.providentLoanAmount || '0') * 10000;
       totalPrincipal = commercial + provident;
+      hasOriginalAmount = !!(loan.commercialLoanAmount?.trim() || loan.providentLoanAmount?.trim());
     } else {
       totalPrincipal = parseFloat(loan.loanAmount || '0') * 10000;
+      hasOriginalAmount = !!(loan.loanAmount?.trim());
     }
     let remainingPrincipal = 0;
     if (loan.loanType === 'combination') {
@@ -1659,6 +1664,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       paidPrincipal,
       principalProgress,
       currentMonthlyPayment,
+      hasOriginalAmount: hasOriginalAmount // 修复：明确赋值
     };
   };
   return (
