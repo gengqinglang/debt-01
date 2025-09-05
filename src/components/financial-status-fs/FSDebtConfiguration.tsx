@@ -1089,8 +1089,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   const skipExistingSyncRef = useRef(false);
 
   // LPR 利率常量
-  const currentLPR_5Year = 3.60; // 5年期LPR（公积金）
-  const currentLPR_5YearPlus = 3.85; // 5年期以上LPR（商业）
+  const currentLPR_5Year = 3.50; // 5年期LPR（公积金）
+  const currentLPR_5YearPlus = 3.50; // 5年期以上LPR（商业）
 
   // Check if data has changed since last confirmation
   useEffect(() => {
@@ -1265,16 +1265,17 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     } else {
       const baseLPR = loan.loanType === 'provident' ? currentLPR_5Year : currentLPR_5YearPlus;
       const adjustment = parseFloat(loan.floatingRateAdjustment || '0') / 100;
-      rate = (baseLPR + adjustment) / 100;
+      rate = baseLPR / 100 + adjustment; // 修复：LPR先除以100再加调整
     }
 
     if (rate <= 0) return 0;
 
     const monthlyRate = rate / 12;
     
-    // 计算剩余期数
+    // 计算剩余期数 - 修复日期处理
+    if (!loan.loanEndDate) return 0;
     const currentDate = new Date();
-    const endDate = new Date(loan.loanEndDate + '-01');
+    const endDate = new Date(loan.loanEndDate);
     const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
                                    (endDate.getMonth() - currentDate.getMonth()));
 
@@ -1336,8 +1337,9 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
 
     const monthlyRate = rate / 12;
     
+    if (!loan.providentEndDate) return 0;
     const currentDate = new Date();
-    const endDate = new Date((loan.providentEndDate || '') + '-01');
+    const endDate = new Date(loan.providentEndDate);
     const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
                                    (endDate.getMonth() - currentDate.getMonth()));
 
