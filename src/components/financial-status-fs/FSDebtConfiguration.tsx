@@ -525,53 +525,6 @@ const LoanFormCard: React.FC<{
               </div>
             )}
 
-            {/* 第五行：利率具体值（公积金贷款单贷） */}
-            {loan.loanType === 'provident' && (
-              <>
-                <div className="grid grid-cols-2 gap-4 mt-5">
-                  {loan.rateType === 'fixed' ? (
-                    <div className="space-y-2 min-w-0">
-                      <Label className="text-xs font-medium">
-                        固定利率(%) <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          placeholder="如：3.25"
-                          value={loan.fixedRate}
-                          onChange={(e) => updateLoan(loan.id, 'fixedRate', e.target.value)}
-                          className="h-9 text-sm pr-7"
-                        />
-                        <Percent className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                     </>
-                   )}
-                  </div>
-                 
-                {/* 月供金额单独占一行，与上方网格宽度一致 */}
-                <div className="mt-5">
-                  <div className="space-y-2">
-                    <div className="rounded-lg p-3 bg-white border border-cyan-500">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                          <span className="text-sm font-medium">月供金额</span>
-                        </div>
-                        <div className="text-right" style={{ color: '#01BCD6' }}>
-                          <div className="text-lg font-semibold">
-                            ¥{Math.round(calculateMonthlyPayment(loan)).toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-               </>
-            )}
-
             {/* 组合贷款：商业贷款部分 */}
             {loan.loanType === 'combination' && (
               <>
