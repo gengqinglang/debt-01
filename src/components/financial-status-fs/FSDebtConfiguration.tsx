@@ -1316,8 +1316,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
 
     const monthlyRate = rate / 12;
     
+    if (!loan.commercialEndDate) return 0;
     const currentDate = new Date();
-    const endDate = new Date((loan.commercialEndDate || '') + '-01');
+    const endDate = new Date(loan.commercialEndDate);
+    if (isNaN(endDate.getTime())) return 0;
     const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
                                    (endDate.getMonth() - currentDate.getMonth()));
 
