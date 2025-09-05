@@ -56,6 +56,7 @@ const normalizeLoan = (loan: LoanInfo): LoanInfo => {
     // 组合贷款公积金贷款默认值
     providentStartDate: loan.providentStartDate || today,
     providentEndDate: loan.providentEndDate || today,
+    providentPaymentMethod: loan.providentPaymentMethod || 'equal-payment',
   };
 };
 
@@ -172,6 +173,21 @@ export const useLoanData = (options: UseLoanDataOptions = { persist: true }) => 
       paymentMethod: 'equal-payment', // 默认等额本息
       loanAmount: '',
       remainingPrincipal: '',
+      // 组合贷款默认值
+      commercialLoanAmount: '',
+      commercialStartDate: today, // 默认今天
+      commercialEndDate: today, // 默认今天
+      commercialPaymentMethod: 'equal-payment', // 默认等额本息
+      commercialRateType: 'floating', // 默认浮动利率
+      commercialFixedRate: '',
+      commercialFloatingRateAdjustment: '',
+      commercialRemainingPrincipal: '',
+      providentLoanAmount: '',
+      providentStartDate: today, // 默认今天
+      providentEndDate: today, // 默认今天
+      providentPaymentMethod: 'equal-payment', // 默认等额本息
+      providentRate: '',
+      providentRemainingPrincipal: '',
     };
     setLoans(prevLoans => [...prevLoans, newLoan]);
   };
