@@ -528,8 +528,8 @@ const LoanFormCard: React.FC<{
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-2 mt-5">
-                      <div className="space-y-2">
+                    <>
+                      <div className="space-y-2 min-w-0">
                         <Label className="text-xs font-medium">
                           利率加减点(基点BP) <span className="text-red-500">*</span>
                         </Label>
@@ -547,10 +547,10 @@ const LoanFormCard: React.FC<{
                           }}
                           className="h-9 w-full min-w-0 box-border rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         />
-                      </div>
-                    </div>
-                  )}
-                </div>
+                       </div>
+                     </>
+                   )}
+                 </div>
                 
                 {/* 月供金额单独占一行，与上方网格宽度一致 */}
                 <div className="mt-5">
