@@ -314,12 +314,12 @@ const LoanFormCard: React.FC<{
                         onSelect={(date) => {
                           updateLoan(loan.id, 'loanStartDate', date ? format(date, "yyyy-MM-dd") : '');
                           setStartDateOpen(false);
-                        }}
-                        disabled={(date) => date > new Date()} // 不能晚于当天
-                        initialFocus
-                        captionLayout="dropdown"
-                        fromYear={1990}
-                        toYear={2050}
+                         }}
+                         disabled={(date) => date > new Date()} // 不能晚于当天
+                         initialFocus
+                         captionLayout="dropdown"
+                         fromYear={1990}
+                         toYear={2050}
                          locale={zhCN}
                          classNames={{ 
                            caption_label: "hidden", 
@@ -363,18 +363,18 @@ const LoanFormCard: React.FC<{
                             maxDate.setFullYear(maxDate.getFullYear() + 50);
                             return date < today || date > maxDate; // 最早是当天，最晚是当天+50年
                           }}
-                          initialFocus
-                          captionLayout="dropdown"
-                          fromYear={1990}
-                          toYear={2050}
-                            locale={zhCN}
-                            classNames={{ 
-                              caption_label: "hidden", 
-                              nav: "hidden",
-                              caption_dropdowns: "flex justify-between w-full",
-                              dropdown: "min-w-[120px] w-[120px]"
-                            }}
-                            className={cn("p-3 pointer-events-auto w-full")}
+                           initialFocus
+                           captionLayout="dropdown"
+                           fromYear={1990}
+                           toYear={2050}
+                           locale={zhCN}
+                           classNames={{ 
+                             caption_label: "hidden", 
+                             nav: "hidden",
+                             caption_dropdowns: "flex justify-between w-full",
+                             dropdown: "min-w-[120px] w-[120px]"
+                           }}
+                           className={cn("p-3 pointer-events-auto w-full")}
                         />
                     </PopoverContent>
                   </Popover>
