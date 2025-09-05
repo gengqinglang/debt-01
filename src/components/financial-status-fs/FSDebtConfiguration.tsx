@@ -487,22 +487,18 @@ const LoanFormCard: React.FC<{
                 </div>
                 <div className="space-y-2 min-w-0">
                   <Label className="text-xs font-medium">
-                    利率类型 <span className="text-red-500">*</span>
+                    利率 <span className="text-red-500">*</span>
                   </Label>
-                  <RadioGroup
-                    value={loan.rateType}
-                    onValueChange={(value) => updateLoan(loan.id, 'rateType', value)}
-                    className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 pt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="fixed" id={`fixed-provident-${loan.id}`} />
-                      <Label htmlFor={`fixed-provident-${loan.id}`} className="text-xs whitespace-nowrap">固定利率</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="floating" id={`floating-provident-${loan.id}`} />
-                      <Label htmlFor={`floating-provident-${loan.id}`} className="text-xs whitespace-nowrap">浮动利率</Label>
-                    </div>
-                  </RadioGroup>
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="如：3.25"
+                      value={loan.fixedRate || ''}
+                      onChange={(e) => updateLoan(loan.id, 'fixedRate', e.target.value)}
+                      className="h-9 text-sm pr-7"
+                    />
+                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-400">%</span>
+                  </div>
                 </div>
               </div>
             )}
