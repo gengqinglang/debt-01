@@ -691,7 +691,7 @@ const LoanFormCard: React.FC<{
                 <div className="grid grid-cols-2 gap-4 mt-5">
                   <div className="space-y-2 min-w-0">
                     <Label className="text-xs font-medium">
-                      商业还款方式 <span className="text-red-500">*</span>
+                      还款方式 <span className="text-red-500">*</span>
                     </Label>
                     <RadioGroup
                       value={loan.commercialPaymentMethod}
@@ -710,26 +710,31 @@ const LoanFormCard: React.FC<{
                   </div>
                   <div className="space-y-2 min-w-0">
                     <Label className="text-xs font-medium">
-                      商业利率类型 <span className="text-red-500">*</span>
+                      利率类型 <span className="text-red-500">*</span>
                     </Label>
-                    <Select value={loan.commercialRateType} onValueChange={(value) => updateLoan(loan.id, 'commercialRateType', value)}>
-                      <SelectTrigger className="h-9 text-sm w-full">
-                        <SelectValue placeholder="选择利率类型" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="fixed">固定利率</SelectItem>
-                        <SelectItem value="floating">浮动利率</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <RadioGroup
+                      value={loan.commercialRateType}
+                      onValueChange={(value) => updateLoan(loan.id, 'commercialRateType', value)}
+                      className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 pt-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="fixed" id={`commercial-fixed-${loan.id}`} />
+                        <Label htmlFor={`commercial-fixed-${loan.id}`} className="text-xs whitespace-nowrap">固定利率</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="floating" id={`commercial-floating-${loan.id}`} />
+                        <Label htmlFor={`commercial-floating-${loan.id}`} className="text-xs whitespace-nowrap">浮动利率</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </div>
 
                 {/* 商业贷款利率具体值 */}
-                <div className="grid grid-cols-2 gap-4 mt-5">
-                  {loan.commercialRateType === 'fixed' ? (
+                {loan.commercialRateType === 'fixed' ? (
+                  <div className="grid grid-cols-2 gap-4 mt-5">
                     <div className="space-y-2 min-w-0">
                       <Label className="text-xs font-medium">
-                        商业固定利率(%) <span className="text-red-500">*</span>
+                        固定利率(%) <span className="text-red-500">*</span>
                       </Label>
                       <div className="relative">
                         <Input
@@ -742,45 +747,39 @@ const LoanFormCard: React.FC<{
                         <Percent className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
                       </div>
                     </div>
-                  ) : (
-                    <>
-                      <div className="space-y-2 min-w-0">
-                        <Label className="text-xs font-medium">
-                          LPR基准(%)
-                        </Label>
-                        <div className="relative">
-                          <Input
-                            type="text"
-                            value={`${currentLPR_5YearPlus}`}
-                            readOnly
-                            className="h-9 text-sm pr-7 bg-gray-50"
-                          />
-                          <Percent className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
-                        </div>
-                      </div>
-                      <div className="space-y-2 min-w-0">
-                        <Label className="text-xs font-medium">
-                          商业加点数值(BP) <span className="text-red-500">*</span>
-                        </Label>
-                        <Input
-                          type="text"
-                          placeholder="如：0 或 -10"
-                          value={loan.commercialFloatingRateAdjustment}
-                          onChange={(e) => updateLoan(loan.id, 'commercialFloatingRateAdjustment', e.target.value)}
-                          className="h-9 text-sm"
-                        />
-                      </div>
-                    </>
-                  )}
-                  <div className="space-y-2 min-w-0">
-                    <Label className="text-xs font-medium">
-                      商业当前月供 <span className="text-gray-500">(自动计算)</span>
-                    </Label>
-                    <div className="rounded-lg p-3" style={{ backgroundColor: '#CAF4F7' }}>
+                  </div>
+                ) : (
+                  <div className="space-y-2 mt-5">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        利率加减点(基点BP) <span className="text-red-500">*</span>
+                      </Label>
+                      <input
+                        id={`commercial-rate-${loan.id}`}
+                        type="number"
+                        step="1"
+                        placeholder="如：-30(减30个基点) 或 +50(加50个基点)"
+                        value={loan.commercialFloatingRateAdjustment}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '' || /^-?\d+$/.test(value)) {
+                            updateLoan(loan.id, 'commercialFloatingRateAdjustment', value);
+                          }
+                        }}
+                        className="h-9 w-full min-w-0 box-border rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {/* 月供金额单独占一行，与上方网格宽度一致 */}
+                <div className="mt-3">
+                  <div className="space-y-2">
+                    <div className="rounded-lg p-3 bg-white border border-cyan-500">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                          <span className="text-sm font-medium">商贷月供</span>
+                          <span className="text-sm font-medium">月供金额</span>
                         </div>
                         <div className="text-right" style={{ color: '#01BCD6' }}>
                           <div className="text-lg font-semibold">
