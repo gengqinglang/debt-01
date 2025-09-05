@@ -4,7 +4,30 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Check, PiggyBank, TrendingUp, PieChart, Building, Home, Car, BarChart3 } from 'lucide-react';
-import { AssetInfo } from '@/pages/AssetPage';
+
+// 资产信息类型定义
+export interface AssetInfo {
+  id: string;
+  type: string;
+  name: string;
+  amount: number;
+  monthlyGrowth?: number;
+  maturityDate?: string;
+  interestRate?: number;
+  isRisky?: boolean;
+  // 通用字段
+  maturityMonth?: string;
+  // 房产特有字段
+  propertyName?: string;
+  marketValue?: number;
+  maintenanceCost?: number;
+  // 车特有字段
+  carName?: string;
+  // 理财/基金特有字段
+  canRedeemAnytime?: string;
+  // 存款特有字段
+  depositType?: string;
+}
 
 interface AssetCategoryEditorProps {
   category: any;
@@ -313,8 +336,12 @@ const AssetCategoryEditor: React.FC<AssetCategoryEditorProps> = ({
         }
         return entry.amount > 0;
       })
-      .map(entry => ({
-        id: Date.now().toString() + Math.random(),
+      .map((entry, idx) => ({
+        id: Date.now().toString() + Math.random() + idx,
+        type: category.type,
+        name: category.type === 'property' ? entry.propertyName : 
+              category.type === 'car' ? entry.carName : 
+              category.name,
         categoryId: category.id,
         amount: (category.type === 'property' || category.type === 'car') ? (entry.marketValue || 0) : entry.amount,
         maturityMonth: entry.maturityMonth,

@@ -177,6 +177,8 @@ const FinancialStatusPage = () => {
     }
   };
 
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const goToNext = () => {
     // 保存确认的债务数据到localStorage，包含详细贷款数据（按确认状态，而不是按金额过滤）
     const confirmedDebts = debts.filter(debt => configConfirmed[debt.type]);
@@ -184,7 +186,9 @@ const FinancialStatusPage = () => {
 
     console.log('Saving confirmed_debts to localStorage (by confirmed flag):', confirmedDebts);
 
-    navigate('/who-are-you');
+    // 显示保存成功提示
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
   };
 
   const getCurrentData = () => {
@@ -281,8 +285,8 @@ const FinancialStatusPage = () => {
               className="flex-1 py-2 text-gray-900 font-bold rounded-2xl text-xs shadow-xl transform hover:scale-[1.02] transition-all duration-300 border-0 bg-gradient-to-r from-[#B3EBEF] to-[#8FD8DC] hover:from-[#A0E2E6] hover:to-[#7BC9CE]"
             >
               <span className="flex items-center justify-center gap-2">
-                负债录入完毕，下一步
-                <ArrowRight className="w-3 h-3" />
+                {showSuccess ? '保存成功！' : '保存负债信息'}
+                {!showSuccess && <ArrowRight className="w-3 h-3" />}
               </span>
             </Button>
           </div>
