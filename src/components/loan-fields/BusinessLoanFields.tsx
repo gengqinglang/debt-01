@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { BusinessLoanInfo } from '@/hooks/useBusinessLoanData';
+import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, formatAmount } from '@/lib/loanCalculations';
 
 interface BusinessLoanFieldsProps {
   businessLoan: BusinessLoanInfo;
@@ -22,6 +23,33 @@ export const BusinessLoanFields: React.FC<BusinessLoanFieldsProps> = ({
 }) => {
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
+
+  // 计算月供
+  const calculateMonthlyPayment = (): number | null => {
+    if (!businessLoan.loanAmount || !businessLoan.endDate || !businessLoan.annualRate) {
+      return null;
+    }
+
+    const principal = parseFloat(businessLoan.loanAmount) * 10000; // 万元转元
+    const annualRate = parseFloat(businessLoan.annualRate) / 100;
+    const startDate = businessLoan.startDate || new Date().toISOString().split('T')[0];
+    const termMonths = calculateLoanTermMonths(startDate, businessLoan.endDate);
+
+    if (principal <= 0 || annualRate < 0 || termMonths <= 0) {
+      return null;
+    }
+
+    switch (businessLoan.repaymentMethod) {
+      case 'equal-payment':
+        return calculateEqualPaymentMonthly(principal, annualRate, termMonths);
+      case 'equal-principal':
+        return calculateEqualPrincipalFirstMonthly(principal, annualRate, termMonths);
+      default:
+        return null;
+    }
+  };
+
+  const monthlyPayment = calculateMonthlyPayment();
 
   return (
     <div className="space-y-4">
@@ -332,6 +360,19 @@ export const BusinessLoanFields: React.FC<BusinessLoanFieldsProps> = ({
               />
             </div>
           </div>
+          {/* 月供显示 */}
+          {(businessLoan.repaymentMethod === 'equal-payment' || businessLoan.repaymentMethod === 'equal-principal') && monthlyPayment && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-blue-800">
+                  {businessLoan.repaymentMethod === 'equal-payment' ? '等额本息月供' : '等额本金首期月供'}
+                </span>
+                <span className="text-lg font-bold text-blue-900">
+                  {formatAmount(monthlyPayment)}
+                </span>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
