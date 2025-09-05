@@ -552,7 +552,7 @@ const LoanFormCard: React.FC<{
                   </div>
                  
                 {/* 月供金额单独占一行，与上方网格宽度一致 */}
-                <div className="mt-3">
+                <div className="mt-5">
                   <div className="space-y-2">
                     <div className="rounded-lg p-3 bg-white border border-cyan-500">
                       <div className="flex items-center justify-between">
@@ -781,7 +781,7 @@ const LoanFormCard: React.FC<{
                 )}
                 
                 {/* 月供金额单独占一行，与上方网格宽度一致 */}
-                <div className="mt-3">
+                <div className="mt-5">
                   <div className="space-y-2">
                     <div className="rounded-lg p-3 bg-white border border-cyan-500">
                       <div className="flex items-center justify-between">
@@ -958,7 +958,7 @@ const LoanFormCard: React.FC<{
                 </div>
                 
                 {/* 月供金额单独占一行，与上方网格宽度一致 */}
-                <div className="mt-3">
+                <div className="mt-5">
                   <div className="space-y-2">
                     <div className="rounded-lg p-3 bg-white border border-cyan-500">
                       <div className="flex items-center justify-between">
