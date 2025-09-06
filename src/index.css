@@ -148,8 +148,7 @@
   }
 
   html, body {
-    /* Prevent horizontal layout shifts from scrollbar appearance/disappearance */
-    scrollbar-gutter: stable both-edges;
+    /* Removed scrollbar-gutter to prevent mobile H5 UI issues */
   }
 
   body {
