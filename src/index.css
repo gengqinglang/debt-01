@@ -345,6 +345,11 @@
   }
 }
 
+/* Stable scrollbar gutter utility */
+.stable-gutter {
+  scrollbar-gutter: stable both-edges;
+}
+
 /* Calendar Styling */
 .rdp {
   --rdp-cell-size: 36px;
