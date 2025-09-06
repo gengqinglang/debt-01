@@ -52,6 +52,31 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
       : calculateEqualPrincipalFirstMonthly(principal, annualRate, termMonths);
     return { requiredFilled, monthlyPayment: monthly };
   })();
+
+  // 先息后本/一次性还本付息 待还利息计算
+  const pendingInterest = (() => {
+    if (businessLoan.repaymentMethod !== 'interest-first' && businessLoan.repaymentMethod !== 'lump-sum') {
+      return null;
+    }
+    const principalWan = parseFloat(businessLoan.loanAmount || '');
+    const annualRatePct = parseFloat(businessLoan.annualRate || '');
+    const hasEndDate = Boolean(businessLoan.startDate); // 使用 startDate 作为结束日期
+    const hasPrincipal = !isNaN(principalWan) && principalWan > 0;
+    const hasRate = !isNaN(annualRatePct) && annualRatePct > 0;
+    
+    if (!hasPrincipal || !hasRate || !hasEndDate) return null;
+    
+    const principal = principalWan * 10000;
+    const annualRate = annualRatePct / 100;
+    
+    // 经营贷只有先息后本和一次性还本付息，都使用 startDate 作为结束日期
+    const today = new Date();
+    const endDate = new Date(businessLoan.startDate || '');
+    const diffTime = endDate.getTime() - today.getTime();
+    const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    const yearlyInterest = principal * annualRate;
+    return (yearlyInterest * diffDays) / 365;
+  })();
   
   return (
     <div className="rounded-lg py-6 px-3 bg-white" style={{ border: '2px solid #CAF4F7' }}>
@@ -190,6 +215,25 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                 onChange={(e) => updateBusinessLoan(businessLoan.id, 'annualRate', e.target.value)}
                 className="h-9 text-sm mt-1"
               />
+            </div>
+            
+            {/* 待还利息栏位 */}
+            <div className="mt-5">
+              <div className="space-y-2">
+                <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                      <span className="text-sm font-medium">待还利息</span>
+                    </div>
+                    <div className="text-right" style={{ color: '#01BCD6' }}>
+                      <div className="text-lg font-semibold">
+                        {pendingInterest !== null ? `¥${Math.round(pendingInterest).toLocaleString()}` : '--'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </>
         ) : (
