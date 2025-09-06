@@ -70,13 +70,9 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
     const annualRate = annualRatePct / 100;
     
     if (consumerLoan.repaymentMethod === 'interest-first') {
-      // 先息后本：从今天到结束日期的利息
-      const today = new Date();
-      const endDate = new Date(consumerLoan.endDate);
-      const diffTime = endDate.getTime() - today.getTime();
-      const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-      const yearlyInterest = principal * annualRate;
-      return (yearlyInterest * diffDays) / 365;
+      // 先息后本：每月利息
+      const monthlyInterest = (principal * annualRate) / 12;
+      return monthlyInterest;
     } else {
       // 一次性还本付息：从开始日期到结束日期的利息
       const startDate = new Date(consumerLoan.startDate || '');
@@ -234,7 +230,7 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                      <span className="text-sm font-medium">待还利息</span>
+                      <span className="text-sm font-medium">{consumerLoan.repaymentMethod === 'interest-first' ? '每月利息' : '待还利息'}</span>
                     </div>
                     <div className="text-right" style={{ color: '#01BCD6' }}>
                       <div className="text-lg font-semibold">
@@ -393,7 +389,7 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                      <span className="text-sm font-medium">待还利息</span>
+                       <span className="text-sm font-medium">待还利息</span>
                     </div>
                     <div className="text-right" style={{ color: '#01BCD6' }}>
                       <div className="text-lg font-semibold">

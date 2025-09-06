@@ -69,13 +69,19 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
     const principal = principalWan * 10000;
     const annualRate = annualRatePct / 100;
     
-    // 经营贷只有先息后本和一次性还本付息，都使用 startDate 作为结束日期
-    const today = new Date();
-    const endDate = new Date(businessLoan.startDate || '');
-    const diffTime = endDate.getTime() - today.getTime();
-    const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-    const yearlyInterest = principal * annualRate;
-    return (yearlyInterest * diffDays) / 365;
+    if (businessLoan.repaymentMethod === 'interest-first') {
+      // 先息后本：每月利息
+      const monthlyInterest = (principal * annualRate) / 12;
+      return monthlyInterest;
+    } else {
+      // 一次性还本付息：从今天到结束日期的利息
+      const today = new Date();
+      const endDate = new Date(businessLoan.startDate || '');
+      const diffTime = endDate.getTime() - today.getTime();
+      const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+      const yearlyInterest = principal * annualRate;
+      return (yearlyInterest * diffDays) / 365;
+    }
   })();
   
   return (
@@ -224,7 +230,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                      <span className="text-sm font-medium">待还利息</span>
+                      <span className="text-sm font-medium">{businessLoan.repaymentMethod === 'interest-first' ? '每月利息' : '待还利息'}</span>
                     </div>
                     <div className="text-right" style={{ color: '#01BCD6' }}>
                       <div className="text-lg font-semibold">
