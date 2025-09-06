@@ -401,3 +401,28 @@
 .rdp[data-mode="single"] .rdp-caption_label {
   display: none;
 }
+
+/* Debug: Highlight scrollbars to visualize layout shifts */
+.debug-scrollbar {
+  /* Firefox */
+  scrollbar-width: thick;
+  scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+}
+
+/* WebKit browsers */
+.debug-scrollbar::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+.debug-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-left: 2px solid hsl(var(--primary));
+}
+.debug-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 8px;
+  border: 3px solid hsl(var(--muted));
+}
+.debug-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.85);
+}
