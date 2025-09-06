@@ -343,6 +343,11 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
+
+  /* Stable scrollbar gutter to prevent layout shifts */
+  .stable-gutter {
+    scrollbar-gutter: stable both-edges;
+  }
 }
 
 /* Calendar Styling */

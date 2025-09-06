@@ -247,7 +247,7 @@ const LoanFormCard: React.FC<{
                     }
                   }
                 }}>
-                  <SelectTrigger className="h-9 text-sm w-full">
+                  <SelectTrigger className="h-9 text-sm w-full focus:ring-0 focus:ring-offset-0">
                     <SelectValue placeholder="选择类型" />
                   </SelectTrigger>
                   <SelectContent>
