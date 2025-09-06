@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 // 按需加载，避免首屏加载超大组件
 const FSDebtConfiguration = lazy(() => import('./FSDebtConfiguration'));
 const AssetConfiguration = lazy(() => import('../financial-status/AssetConfiguration'));
@@ -29,6 +29,21 @@ const FinancialConfigurationFlow: React.FC<FinancialConfigurationFlowProps> = ({
 }) => {
   const isCurrentCategoryConfirmed = configConfirmed[currentCategory?.id];
 
+  // 延迟挂载重组件，避免首屏构建超时
+  const [deferReady, setDeferReady] = useState(false);
+  useEffect(() => {
+    const handle: any = (window as any).requestIdleCallback
+      ? (window as any).requestIdleCallback(() => setDeferReady(true), { timeout: 800 })
+      : window.setTimeout(() => setDeferReady(true), 300);
+    return () => {
+      if ((window as any).cancelIdleCallback && typeof handle === 'number') {
+        (window as any).cancelIdleCallback(handle);
+      } else {
+        clearTimeout(handle as number);
+      }
+    };
+  }, []);
+
   return (
     <div className="flex-1 flex flex-col">
 
@@ -40,24 +55,29 @@ const FinancialConfigurationFlow: React.FC<FinancialConfigurationFlowProps> = ({
             <h2 className="text-xl font-bold text-gray-900">{currentCategory?.name}信息</h2>
           </div>
 
-          <Suspense fallback={<div className="p-4 text-center text-gray-500">模块加载中…</div>}>
-            {currentStep === 1 ? (
-              <FSDebtConfiguration
-                category={currentCategory}
-                onConfirm={onConfigConfirm}
-                onDataChange={onDataChange}
-                isConfirmed={isCurrentCategoryConfirmed}
-                existingData={existingData}
-              />
-            ) : (
-              <AssetConfiguration
-                category={currentCategory}
-                onConfirm={onConfigConfirm}
-                isConfirmed={isCurrentCategoryConfirmed}
-                existingData={existingData}
-              />
-            )}
-          </Suspense>
+          {/* 配置表单 */}
+          {deferReady ? (
+            <Suspense fallback={<div className="p-4 text-center text-gray-500">模块加载中…</div>}>
+              {currentStep === 1 ? (
+                <FSDebtConfiguration
+                  category={currentCategory}
+                  onConfirm={onConfigConfirm}
+                  onDataChange={onDataChange}
+                  isConfirmed={isCurrentCategoryConfirmed}
+                  existingData={existingData}
+                />
+              ) : (
+                <AssetConfiguration
+                  category={currentCategory}
+                  onConfirm={onConfigConfirm}
+                  isConfirmed={isCurrentCategoryConfirmed}
+                  existingData={existingData}
+                />
+              )}
+            </Suspense>
+          ) : (
+            <div className="p-4 text-center text-gray-500">模块准备中…</div>
+          )}
         </div>
       </div>
     </div>
