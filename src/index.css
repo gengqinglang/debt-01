@@ -147,6 +147,11 @@
     @apply border-border;
   }
 
+  html, body {
+    /* Prevent horizontal layout shifts from scrollbar appearance/disappearance */
+    scrollbar-gutter: stable both-edges;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
