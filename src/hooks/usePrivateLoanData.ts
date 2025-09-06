@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths } from '@/lib/loanCalculations';
 
 // Helper function to get today's date in yyyy-MM-dd format
 const getTodayDate = (): string => {
@@ -13,7 +14,8 @@ export interface PrivateLoanInfo {
   id: string;
   name?: string; // 民间借贷名称（非必输）
   loanAmount: string; // 剩余贷款本金（万元）
-  startDate: string; // 贷款结束日期（到日）
+  startDate: string; // 贷款开始日期（到日）
+  endDate?: string; // 贷款结束日期（到日）- 新增，用于等额本息/等额本金
   annualRate: string; // 年化利率（%）
   rateFen: string; // 分（如：1）
   rateLi: string; // 厘（如：3）
@@ -29,6 +31,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
           name: '',
           loanAmount: '', 
           startDate: getTodayDate(),
+          endDate: '',
           annualRate: '',
           rateFen: '',
           rateLi: '',
@@ -52,6 +55,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
       name: '',
       loanAmount: '',
       startDate: todayDate,
+      endDate: '',
       annualRate: '',
       rateFen: '',
       rateLi: '',
@@ -114,13 +118,20 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
     const hasFenRate = privateLoan.rateFen && parseFloat(privateLoan.rateFen) > 0;
     const hasLiRate = privateLoan.rateLi && parseFloat(privateLoan.rateLi) > 0;
     
-    return Boolean(
+    // 基本字段检查
+    const basicComplete = Boolean(
       privateLoan.loanAmount && 
       parseFloat(privateLoan.loanAmount) > 0 &&
-      privateLoan.startDate &&
       (hasFenRate || hasLiRate) && // 分、厘任选其一即可
       privateLoan.repaymentMethod
     );
+    
+    // 如果是等额本息或等额本金，还需要检查结束日期
+    if (privateLoan.repaymentMethod === 'equal-payment' || privateLoan.repaymentMethod === 'equal-principal') {
+      return basicComplete && Boolean(privateLoan.endDate);
+    }
+    
+    return basicComplete;
   }, []);
 
   // 计算汇总数据
@@ -153,6 +164,26 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
           break;
         case 'lump-sum': // 一次性还本付息
           totalMonthlyPayment += 0; // 到期一次性还款，月供为0
+          break;
+        case 'equal-payment': // 等额本息
+          if (loan.endDate) {
+            const startDate = loan.startDate || getTodayDate();
+            const termMonths = calculateLoanTermMonths(startDate, loan.endDate);
+            if (termMonths > 0) {
+              const monthlyPayment = calculateEqualPaymentMonthly(principal, annualRate, termMonths);
+              totalMonthlyPayment += monthlyPayment;
+            }
+          }
+          break;
+        case 'equal-principal': // 等额本金
+          if (loan.endDate) {
+            const startDate = loan.startDate || getTodayDate();
+            const termMonths = calculateLoanTermMonths(startDate, loan.endDate);
+            if (termMonths > 0) {
+              const firstMonthlyPayment = calculateEqualPrincipalFirstMonthly(principal, annualRate, termMonths);
+              totalMonthlyPayment += firstMonthlyPayment;
+            }
+          }
           break;
         default:
           totalMonthlyPayment += principal * (annualRate / 12); // 默认先息后本
