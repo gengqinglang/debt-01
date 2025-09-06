@@ -1,6 +1,7 @@
-import React from 'react';
-import FSDebtConfiguration from './FSDebtConfiguration';
-import AssetConfiguration from '../financial-status/AssetConfiguration';
+import React, { lazy, Suspense } from 'react';
+// 按需加载，避免首屏加载超大组件
+const FSDebtConfiguration = lazy(() => import('./FSDebtConfiguration'));
+const AssetConfiguration = lazy(() => import('../financial-status/AssetConfiguration'));
 
 
 interface FinancialConfigurationFlowProps {
@@ -32,30 +33,31 @@ const FinancialConfigurationFlow: React.FC<FinancialConfigurationFlowProps> = ({
     <div className="flex-1 flex flex-col">
 
       {/* 配置内容 */}
-      <div className="flex-1 py-1 overflow-y-auto pb-28">
+      <div className="flex-1 py-1 overflow-y-auto pb-28" style={{ contentVisibility: 'auto', containIntrinsicSize: '1000px' }}>
         <div className="max-w-2xl mx-auto mt-4">
           {/* 标题部分 */}
           <div className="text-center mb-3">
             <h2 className="text-xl font-bold text-gray-900">{currentCategory?.name}信息</h2>
           </div>
 
-          {/* 配置表单 */}
-          {currentStep === 1 ? (
-            <FSDebtConfiguration
-              category={currentCategory}
-              onConfirm={onConfigConfirm}
-              onDataChange={onDataChange}
-              isConfirmed={isCurrentCategoryConfirmed}
-              existingData={existingData}
-            />
-          ) : (
-            <AssetConfiguration
-              category={currentCategory}
-              onConfirm={onConfigConfirm}
-              isConfirmed={isCurrentCategoryConfirmed}
-              existingData={existingData}
-            />
-          )}
+          <Suspense fallback={<div className="p-4 text-center text-gray-500">模块加载中…</div>}>
+            {currentStep === 1 ? (
+              <FSDebtConfiguration
+                category={currentCategory}
+                onConfirm={onConfigConfirm}
+                onDataChange={onDataChange}
+                isConfirmed={isCurrentCategoryConfirmed}
+                existingData={existingData}
+              />
+            ) : (
+              <AssetConfiguration
+                category={currentCategory}
+                onConfirm={onConfigConfirm}
+                isConfirmed={isCurrentCategoryConfirmed}
+                existingData={existingData}
+              />
+            )}
+          </Suspense>
         </div>
       </div>
     </div>
