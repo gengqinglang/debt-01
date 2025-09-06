@@ -32,7 +32,7 @@ const FinancialConfigurationFlow: React.FC<FinancialConfigurationFlowProps> = ({
     <div className="flex-1 flex flex-col">
 
       {/* 配置内容 */}
-      <div className="flex-1 py-1 overflow-y-auto pb-28">
+      <div className="flex-1 py-1 overflow-y-auto pb-28" style={{ scrollbarGutter: 'stable both-edges' }}>
         <div className="max-w-2xl mx-auto mt-4">
           {/* 标题部分 */}
           <div className="text-center mb-3">
