@@ -196,7 +196,7 @@ const FinancialStatusPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4FDFD] flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-[#F4FDFD] flex flex-col">
       <div className="relative flex flex-col bg-white/90 backdrop-blur-xl flex-1">
         {/* 标题区域 */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#B3EBEF]/20 via-white/60 to-[#B3EBEF]/20 -mx-2">
