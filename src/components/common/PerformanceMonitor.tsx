@@ -11,7 +11,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ children
 
   useEffect(() => {
     // 性能监控 - 只在开发环境启用
-    if (import.meta.env.MODE !== 'development') {
+    if (process.env.NODE_ENV !== 'development') {
       return;
     }
 

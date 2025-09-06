@@ -11,7 +11,7 @@ export const MemoryMonitor: React.FC<MemoryMonitorProps> = ({ children }) => {
 
   useEffect(() => {
     // 只在开发环境和内存监控需要时启用
-    if (import.meta.env.MODE !== 'development' || !('memory' in performance)) {
+    if (process.env.NODE_ENV !== 'development' || !('memory' in performance)) {
       return;
     }
 
