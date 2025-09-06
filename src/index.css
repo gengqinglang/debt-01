@@ -421,7 +421,8 @@
 }
 .debug-scrollbar::-webkit-scrollbar-track {
   background: hsl(var(--muted));
-  border-left: 2px solid hsl(var(--primary));
+  /* Use inset box-shadow instead of border to avoid affecting layout width */
+  box-shadow: inset 2px 0 0 hsl(var(--primary));
 }
 .debug-scrollbar::-webkit-scrollbar-thumb {
   background: hsl(var(--primary));
