@@ -196,8 +196,8 @@ const FinancialStatusPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4FDFD] flex flex-col">
-      <div className="relative flex flex-col bg-white/90 backdrop-blur-xl flex-1">
+    <div className="min-h-screen bg-[#F4FDFD] flex flex-col pb-20">
+      <div className="relative flex flex-col bg-white/90 backdrop-blur-xl flex-1 pb-4">
         {/* 标题区域 */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#B3EBEF]/20 via-white/60 to-[#B3EBEF]/20 -mx-2">
             <div className="relative py-6 text-center flex flex-col justify-center" style={{ minHeight: '80px' }}>
