@@ -1401,64 +1401,81 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   // 房贷实时数据更新
   useEffect(() => {
     if (category.type === 'mortgage' && onDataChange && loans.length > 0) {
-      let completeLoanCount = 0;
+      let validLoanCount = 0; // 放宽条件：以是否填写“剩余本金”作为有效笔数标准
       let totalRemainingPrincipal = 0;
       let totalMonthlyPayment = 0;
       let maxRemainingMonths = 0;
+
+      const currentDate = new Date();
+
+      const getParsedEndDate = (dateStr?: string) => {
+        if (!dateStr) return null;
+        const normalized = dateStr.includes('-') && dateStr.split('-').length === 2
+          ? `${dateStr}-01`
+          : dateStr;
+        const d = new Date(normalized);
+        return isNaN(d.getTime()) ? null : d;
+      };
       
       loans.forEach(loan => {
-        if (isLoanComplete(loan)) {
-          completeLoanCount++;
-          
-          // Calculate remaining principal in 万元
-          if (loan.loanType === 'combination') {
-            const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0') / 10000;
-            const providentRemaining = parseFloat(loan.providentRemainingPrincipal || '0') / 10000;
-            totalRemainingPrincipal += commercialRemaining + providentRemaining;
-          } else {
-            const remaining = parseFloat(String(loan.remainingPrincipal || '0').replace(/[,\\s]/g, '')) / 10000;
-            totalRemainingPrincipal += remaining;
+        if (loan.loanType === 'combination') {
+          const commercialRemainingWan = parseFloat(loan.commercialRemainingPrincipal || '0');
+          const providentRemainingWan = parseFloat(loan.providentRemainingPrincipal || '0');
+          const remainingWan = (isFinite(commercialRemainingWan) ? commercialRemainingWan : 0)
+                             + (isFinite(providentRemainingWan) ? providentRemainingWan : 0);
+          if (remainingWan > 0) {
+            validLoanCount++;
+            totalRemainingPrincipal += remainingWan;
+
+            // 月供尽力计算（字段不全则为0，不影响笔数统计）
+            const mp = calculateMonthlyPayment(loan);
+            if (isFinite(mp) && mp > 0) totalMonthlyPayment += mp;
+
+            // 剩余期数尽力计算（取两个子贷中更晚的结束时间）
+            const cEnd = getParsedEndDate(loan.commercialEndDate);
+            const pEnd = getParsedEndDate(loan.providentEndDate);
+            const endDate = cEnd && pEnd ? (cEnd > pEnd ? cEnd : pEnd) : (cEnd || pEnd);
+            if (endDate) {
+              const rm = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 +
+                                   (endDate.getMonth() - currentDate.getMonth()));
+              maxRemainingMonths = Math.max(maxRemainingMonths, rm);
+            }
           }
-          
-          // Calculate monthly payment in 元
-          totalMonthlyPayment += calculateMonthlyPayment(loan);
-          
-          // Calculate remaining months
-          let startDate, endDate;
-          if (loan.loanType === 'combination') {
-            startDate = new Date((loan.commercialStartDate || '') + '-01');
-            endDate = new Date((loan.commercialEndDate || '') + '-01');
-          } else {
-            startDate = new Date(loan.loanStartDate + '-01');
-            endDate = new Date(loan.loanEndDate + '-01');
+        } else {
+          const remainingWan = parseFloat(String(loan.remainingPrincipal || '0').replace(/[\,\s]/g, '')) / 10000;
+          if (isFinite(remainingWan) && remainingWan > 0) {
+            validLoanCount++;
+            totalRemainingPrincipal += remainingWan;
+
+            const mp = calculateMonthlyPayment(loan);
+            if (isFinite(mp) && mp > 0) totalMonthlyPayment += mp;
+
+            const endDate = getParsedEndDate(loan.loanEndDate);
+            if (endDate) {
+              const rm = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 +
+                                   (endDate.getMonth() - currentDate.getMonth()));
+              maxRemainingMonths = Math.max(maxRemainingMonths, rm);
+            }
           }
-          
-          const currentDate = new Date();
-          const remainingMonths = (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
-                                 (endDate.getMonth() - currentDate.getMonth());
-          
-          maxRemainingMonths = Math.max(maxRemainingMonths, Math.max(0, remainingMonths));
         }
       });
-      
-      // 如果有完成的贷款，计算并发送实时数据
-      if (completeLoanCount > 0) {
-        // 计算待还利息（万元）
-        const totalRemainingInterest = totalMonthlyPayment * maxRemainingMonths / 10000 - totalRemainingPrincipal;
-        
-        // 通知父组件实时数据变化
-        const liveData = {
-          count: completeLoanCount,
+
+      // 如果有有效的贷款，计算并发送实时数据（允许月供/期数为0）
+      if (validLoanCount > 0) {
+        const totalRemainingInterest = (isFinite(totalMonthlyPayment) && totalMonthlyPayment > 0 && maxRemainingMonths > 0)
+          ? (totalMonthlyPayment * maxRemainingMonths) / 10000 - totalRemainingPrincipal
+          : 0;
+
+        onDataChange(category.id, {
+          count: validLoanCount,
           remainingPrincipal: totalRemainingPrincipal,
           remainingInterest: Math.max(0, totalRemainingInterest),
           monthlyPayment: totalMonthlyPayment,
           remainingMonths: maxRemainingMonths
-        };
-        
-        onDataChange(category.id, liveData);
+        });
       }
     }
-  }, [loans, category.type, category.id, onDataChange, isLoanComplete, calculateMonthlyPayment]);
+  }, [loans, category.type, category.id, onDataChange, calculateMonthlyPayment]);
   
   // 车贷实时数据更新
   useEffect(() => {
