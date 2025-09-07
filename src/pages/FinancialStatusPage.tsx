@@ -124,24 +124,41 @@ const FinancialStatusPage = () => {
 
   const currentCategory = debtCategories[currentIndex];
 
+  // 安全地获取聚合数据
+  const getAggregate = (categoryId: string) => {
+    const liveNormalizedData = liveData[categoryId];
+    if (liveNormalizedData?.aggregate && !configConfirmed[categoryId]) {
+      return liveNormalizedData.aggregate;
+    }
+    
+    // 如果已确认但没有实时数据，从confirmed debt数据生成标准化格式
+    const confirmedDebt = debts.find(d => d.id === categoryId);
+    if (confirmedDebt && configConfirmed[categoryId]) {
+      return {
+        count: confirmedDebt.amount > 0 ? 1 : 0,
+        amountWan: confirmedDebt.amount,
+        monthlyPaymentYuan: (confirmedDebt.monthlyPayment || 0) * 10000,
+        remainingMonths: 0 // 简化处理
+      };
+    }
+    
+    return { count: 0, amountWan: 0, monthlyPaymentYuan: 0, remainingMonths: 0 };
+  };
+
   // 计算债务汇总（优先使用实时数据）
   const calculateTotalDebt = () => {
-    const confirmedDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
-    const mortgageLiveData = liveData['mortgage'];
-    if (mortgageLiveData && !configConfirmed['mortgage']) {
-      return confirmedDebt + mortgageLiveData.aggregate.amountWan;
-    }
-    return confirmedDebt;
+    return debtCategories.reduce((total, category) => {
+      const aggregate = getAggregate(category.id);
+      return total + (aggregate?.amountWan || 0);
+    }, 0);
   };
 
   // 计算债务笔数（优先使用实时数据）
   const calculateDebtCount = () => {
-    const confirmedCount = debts.filter(debt => debt.amount > 0).length;
-    const mortgageLiveData = liveData['mortgage'];
-    if (mortgageLiveData && mortgageLiveData.aggregate.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedCount + mortgageLiveData.aggregate.count;
-    }
-    return confirmedCount;
+    return debtCategories.reduce((total, category) => {
+      const aggregate = getAggregate(category.id);
+      return total + (aggregate?.count || 0);
+    }, 0);
   };
 
   // 计算剩余本金（优先使用实时数据）

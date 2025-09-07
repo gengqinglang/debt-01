@@ -427,7 +427,311 @@ export const LoanFormCard: React.FC<LoanFormCardProps> = ({
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="space-y-4 px-4 py-3">
-            {/* ... keep existing code (loan form content) */}
+            {/* 房产名称 */}
+            <div className="space-y-2">
+              <Label htmlFor={`propertyName-${loan.id}`} className="text-xs font-medium">
+                房产名称
+              </Label>
+              <Input
+                id={`propertyName-${loan.id}`}
+                type="text"
+                placeholder="如：华润城润府"
+                value={loan.propertyName || ''}
+                onChange={(e) => updateLoan(loan.id, 'propertyName', e.target.value)}
+                className="h-9 text-sm"
+              />
+            </div>
+
+            {/* 贷款类型 */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">
+                贷款类型 <span className="text-red-500">*</span>
+              </Label>
+              <Select 
+                value={loan.loanType || ''} 
+                onValueChange={(value) => updateLoan(loan.id, 'loanType', value)}
+              >
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="选择贷款类型" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  <SelectItem value="commercial">商业贷款</SelectItem>
+                  <SelectItem value="provident">公积金贷款</SelectItem>
+                  <SelectItem value="combination">组合贷款</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 根据贷款类型显示不同的字段 */}
+            {loan.loanType === 'commercial' && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">
+                      贷款金额(万元) <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="如：300"
+                      value={loan.loanAmount || ''}
+                      onChange={(e) => updateLoan(loan.id, 'loanAmount', e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">
+                      利率(%) <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="如：4.2"
+                      value={loan.fixedRate || ''}
+                      onChange={(e) => updateLoan(loan.id, 'fixedRate', e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">
+                      剩余本金(万元) <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="如：250"
+                      value={loan.remainingPrincipal || ''}
+                      onChange={(e) => updateLoan(loan.id, 'remainingPrincipal', e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">
+                      开始还款日期 <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="date"
+                      value={loan.loanStartDate || ''}
+                      onChange={(e) => updateLoan(loan.id, 'loanStartDate', e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {loan.loanType === 'provident' && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">
+                      贷款金额(万元) <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="如：80"
+                      value={loan.providentLoanAmount || ''}
+                      onChange={(e) => updateLoan(loan.id, 'providentLoanAmount', e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">
+                      利率(%) <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="如：3.1"
+                      value={loan.providentRate || ''}
+                      onChange={(e) => updateLoan(loan.id, 'providentRate', e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">
+                      剩余本金(万元) <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="如：70"
+                      value={loan.providentRemainingPrincipal || ''}
+                      onChange={(e) => updateLoan(loan.id, 'providentRemainingPrincipal', e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">
+                      开始还款日期 <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="date"
+                      value={loan.providentStartDate || ''}
+                      onChange={(e) => updateLoan(loan.id, 'providentStartDate', e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {loan.loanType === 'combination' && (
+              <>
+                <div className="space-y-4">
+                  <div className="text-sm font-medium text-gray-800 border-b pb-2">商业贷款部分</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        贷款金额(万元) <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="如：220"
+                        value={loan.commercialLoanAmount || ''}
+                        onChange={(e) => updateLoan(loan.id, 'commercialLoanAmount', e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        利率(%) <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="如：4.2"
+                        value={loan.commercialFixedRate || ''}
+                        onChange={(e) => updateLoan(loan.id, 'commercialFixedRate', e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        剩余本金(万元) <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="如：180"
+                        value={loan.commercialRemainingPrincipal || ''}
+                        onChange={(e) => updateLoan(loan.id, 'commercialRemainingPrincipal', e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        开始还款日期 <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="date"
+                        value={loan.commercialStartDate || ''}
+                        onChange={(e) => updateLoan(loan.id, 'commercialStartDate', e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="text-sm font-medium text-gray-800 border-b pb-2">公积金贷款部分</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        贷款金额(万元) <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="如：80"
+                        value={loan.providentLoanAmount || ''}
+                        onChange={(e) => updateLoan(loan.id, 'providentLoanAmount', e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        利率(%) <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="如：3.1"
+                        value={loan.providentRate || ''}
+                        onChange={(e) => updateLoan(loan.id, 'providentRate', e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        剩余本金(万元) <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="如：70"
+                        value={loan.providentRemainingPrincipal || ''}
+                        onChange={(e) => updateLoan(loan.id, 'providentRemainingPrincipal', e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        开始还款日期 <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        type="date"
+                        value={loan.providentStartDate || ''}
+                        onChange={(e) => updateLoan(loan.id, 'providentStartDate', e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* 还款方式 */}
+            {loan.loanType && (
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">
+                  还款方式 <span className="text-red-500">*</span>
+                </Label>
+                <Select 
+                  value={loan.paymentMethod || ''} 
+                  onValueChange={(value) => updateLoan(loan.id, 'paymentMethod', value)}
+                >
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="选择还款方式" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="equal-payment">等额本息</SelectItem>
+                    <SelectItem value="equal-principal">等额本金</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* 确认按钮 */}
+            <div className="pt-4">
+              <Button
+                onClick={handleConfirmClick}
+                className="w-full h-12 text-white font-bold rounded-2xl"
+                style={{ backgroundColor: '#01BCD6' }}
+              >
+                确认房贷信息
+              </Button>
+            </div>
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
