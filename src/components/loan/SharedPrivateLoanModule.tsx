@@ -200,6 +200,59 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
             <p className="text-xs text-gray-600">年化利率：<span className="font-semibold text-gray-900">{privateLoan.annualRate}%</span></p>
           </div>
         )}
+        
+        {/* 待还利息/每月利息显示 */}
+        {privateLoan.repaymentMethod && (
+          <div className="mt-5">
+            <div className="space-y-2">
+              <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                    <span className="text-sm font-medium">{privateLoan.repaymentMethod === 'interest-first' ? '每月利息' : '待还利息'}</span>
+                  </div>
+                  <div className="text-right" style={{ color: '#01BCD6' }}>
+                    <div className="text-lg font-semibold">
+                      {(() => {
+                        // 检查必输项是否完整
+                        const requiredFilled = privateLoan.loanAmount && 
+                               privateLoan.startDate && 
+                               privateLoan.annualRate;
+                        
+                        if (!requiredFilled) return '--';
+                        
+                        const principalWan = parseFloat(privateLoan.loanAmount || '');
+                        const annualRatePct = parseFloat(privateLoan.annualRate || '');
+                        
+                        if (isNaN(principalWan) || principalWan <= 0 || isNaN(annualRatePct) || annualRatePct <= 0) return '--';
+                        
+                        const principal = principalWan * 10000;
+                        const annualRate = annualRatePct / 100;
+                        
+                        if (privateLoan.repaymentMethod === 'interest-first') {
+                          // 先息后本：每月利息  
+                          const monthlyInterest = (principal * annualRate) / 12;
+                          return `¥${Math.round(monthlyInterest).toLocaleString()}`;
+                        } else if (privateLoan.repaymentMethod === 'lump-sum') {
+                          // 一次性还本付息：从今天到结束日期的利息
+                          const today = new Date();
+                          const endDate = new Date(privateLoan.startDate || '');
+                          const diffTime = endDate.getTime() - today.getTime();
+                          const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                          const yearlyInterest = principal * annualRate;
+                          const totalInterest = (yearlyInterest * diffDays) / 365;
+                          return `¥${Math.round(totalInterest).toLocaleString()}`;
+                        }
+                        
+                        return '--';
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

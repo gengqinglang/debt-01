@@ -315,14 +315,38 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
                     <span className="text-sm font-medium">月供金额</span>
                   </div>
-                  <div className="text-right" style={{ color: '#01BCD6' }}>
-                    <div className="text-lg font-semibold">
-                      {(() => {
-                        const v = calculateCarLoanMonthlyPayment(carLoan);
-                        return v > 0 ? `¥${Math.round(v).toLocaleString()}` : '--';
-                      })()}
-                    </div>
-                  </div>
+                   <div className="text-right" style={{ color: '#01BCD6' }}>
+                     <div className="text-lg font-semibold">
+                       {(() => {
+                         // 检查必输项是否完整
+                         const basicRequired = carLoan.vehicleName && carLoan.loanType;
+                         if (!basicRequired) return '--';
+                         
+                         if (carLoan.loanType === 'bankLoan') {
+                           // 银行贷款类型必填项检查
+                           const requiredFilled = carLoan.principal && 
+                                  carLoan.remainingPrincipal && 
+                                  carLoan.startDateMonth && 
+                                  carLoan.endDateMonth && 
+                                  carLoan.repaymentMethod && 
+                                  carLoan.interestRate;
+                           
+                           if (!requiredFilled) return '--';
+                           const v = calculateCarLoanMonthlyPayment(carLoan);
+                           return v > 0 ? `¥${Math.round(v).toLocaleString()}` : '--';
+                         } else if (carLoan.loanType === 'installment') {
+                           // 分期类型必填项检查
+                           const requiredFilled = carLoan.installmentAmount && carLoan.remainingInstallments;
+                           if (!requiredFilled) return '--';
+                           
+                           const installmentAmount = parseFloat(carLoan.installmentAmount || '0');
+                           return installmentAmount > 0 ? `¥${Math.round(installmentAmount).toLocaleString()}` : '--';
+                         }
+                         
+                         return '--';
+                       })()}
+                     </div>
+                   </div>
                 </div>
               </div>
             </div>

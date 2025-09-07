@@ -232,11 +232,32 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
                       <span className="text-sm font-medium">{consumerLoan.repaymentMethod === 'interest-first' ? '每月利息' : '待还利息'}</span>
                     </div>
-                    <div className="text-right" style={{ color: '#01BCD6' }}>
-                      <div className="text-lg font-semibold">
-                        {pendingInterest !== null ? `¥${Math.round(pendingInterest).toLocaleString()}` : '--'}
-                      </div>
-                    </div>
+                     <div className="text-right" style={{ color: '#01BCD6' }}>
+                       <div className="text-lg font-semibold">
+                         {(() => {
+                           // 检查必输项是否完整
+                           const basicRequired = consumerLoan.repaymentMethod;
+                           if (!basicRequired) return '--';
+                           
+                           if (consumerLoan.repaymentMethod === 'interest-first') {
+                             // 先息后本必填项：剩余贷款本金 + 贷款结束日期 + 年化利率
+                             const requiredFilled = consumerLoan.loanAmount && 
+                                    consumerLoan.endDate && 
+                                    consumerLoan.annualRate;
+                             if (!requiredFilled) return '--';
+                           } else if (consumerLoan.repaymentMethod === 'lump-sum') {
+                             // 一次性还本付息必填项：贷款开始日期 + 贷款结束日期 + 剩余贷款本金 + 年化利率
+                             const requiredFilled = consumerLoan.startDate && 
+                                    consumerLoan.endDate && 
+                                    consumerLoan.loanAmount && 
+                                    consumerLoan.annualRate;
+                             if (!requiredFilled) return '--';
+                           }
+                           
+                           return pendingInterest !== null ? `¥${Math.round(pendingInterest).toLocaleString()}` : '--';
+                         })()}
+                       </div>
+                     </div>
                   </div>
                 </div>
               </div>
@@ -567,7 +588,16 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                         </div>
                         <div className="text-right" style={{ color: '#01BCD6' }}>
                           <div className="text-lg font-semibold">
-                            {monthlyPayment !== null ? `¥${Math.round(monthlyPayment).toLocaleString()}` : '--'}
+                            {(() => {
+                              // 检查必输项是否完整
+                              const requiredFilled = consumerLoan.remainingPrincipal && 
+                                     consumerLoan.startDate && 
+                                     consumerLoan.endDate && 
+                                     consumerLoan.annualRate;
+                              
+                              if (!requiredFilled) return '--';
+                              return monthlyPayment !== null ? `¥${Math.round(monthlyPayment).toLocaleString()}` : '--';
+                            })()}
                           </div>
                         </div>
                       </div>
