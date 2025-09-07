@@ -201,16 +201,8 @@ export const LoanFormCard: React.FC<LoanFormCardProps> = ({
                   <AlertDialogAction onClick={() => {
                     if (loansLength > 1) {
                       removeLoan(loan.id);
-                      toast({
-                        title: "已删除",
-                        description: "房贷信息已删除",
-                      });
                     } else {
                       resetLoan(loan.id);
-                      toast({
-                        title: "已清空",
-                        description: "房贷信息已恢复至默认值",
-                      });
                     }
                   }}>
                     {loansLength > 1 ? '确认删除' : '确认清空'}

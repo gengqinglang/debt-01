@@ -25,7 +25,6 @@ import { usePrivateLoanData } from '@/hooks/usePrivateLoanData';
 import { SharedPrivateLoanModule } from '@/components/loan/SharedPrivateLoanModule';
 import { useCreditCardData } from '@/hooks/useCreditCardData';
 import { SharedCreditCardModule } from '@/components/loan/SharedCreditCardModule';
-import { useToast } from '@/hooks/use-toast';
 
 interface DebtConfigurationProps {
   category: any;
@@ -76,7 +75,6 @@ const LoanFormCard: React.FC<{
   const [providentStartDateOpen, setProvidentStartDateOpen] = useState(false);
   const [providentEndDateOpen, setProvidentEndDateOpen] = useState(false);
   const stats = calculateLoanStats(loan);
-  const { toast } = useToast();
   
   return (
     <div className="relative">
@@ -113,16 +111,8 @@ const LoanFormCard: React.FC<{
                   <AlertDialogAction onClick={() => {
                     if (loansLength > 1) {
                       removeLoan(loan.id);
-                      toast({
-                        title: "已删除",
-                        description: "房贷信息已删除",
-                      });
                     } else {
                       resetLoan(loan.id);
-                      toast({
-                        title: "已清空",
-                        description: "房贷信息已恢复至默认值",
-                      });
                     }
                   }}>
                     {loansLength > 1 ? '确定删除' : '确定清空'}
