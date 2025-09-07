@@ -7,7 +7,7 @@ import { mockDebts, setMockDebts, clearMockDebts, isMockDebtsActive, getMockForm
 import { normalizeDebtData } from '@/loan-core/normalize';
 import { NormalizedDebtData } from '@/loan-core/types';
 
-// 财务配置类型定义（移除信用卡类型）
+// 财务配置类型定义
 export interface DebtInfo {
   id: string;
   type: 'mortgage' | 'carLoan' | 'consumerLoan' | 'businessLoan' | 'privateLoan' | 'creditCard';
@@ -23,7 +23,25 @@ export interface DebtInfo {
     remainingMonths: number;
   };
   rawData?: any;
-  // ... keep existing code (all other fields)
+  // 房贷特有字段
+  loanType?: 'commercial' | 'housingFund' | 'combination';
+  commercialAmount?: number;
+  commercialRate?: number;
+  housingFundAmount?: number;
+  housingFundRate?: number;
+  principal?: number;
+  term?: number;
+  repaymentMethod?: string;
+  // 车贷特有字段
+  isInstallment?: boolean;
+  installmentAmount?: number;
+  remainingInstallments?: number;
+  vehicleName?: string;
+  carLoanType?: 'installment' | 'bankLoan';
+  carPrincipal?: number;
+  carTerm?: number;
+  carInterestRate?: number;
+  carStartDate?: Date;
 }
 
 const FinancialStatusPage = () => {
@@ -111,7 +129,7 @@ const FinancialStatusPage = () => {
     const confirmedDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
     const mortgageLiveData = liveData['mortgage'];
     if (mortgageLiveData && !configConfirmed['mortgage']) {
-      return confirmedDebt + mortgageLiveData.remainingPrincipal;
+      return confirmedDebt + mortgageLiveData.aggregate.amountWan;
     }
     return confirmedDebt;
   };
@@ -120,8 +138,8 @@ const FinancialStatusPage = () => {
   const calculateDebtCount = () => {
     const confirmedCount = debts.filter(debt => debt.amount > 0).length;
     const mortgageLiveData = liveData['mortgage'];
-    if (mortgageLiveData && mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedCount + mortgageLiveData.count;
+    if (mortgageLiveData && mortgageLiveData.aggregate.count > 0 && !configConfirmed['mortgage']) {
+      return confirmedCount + mortgageLiveData.aggregate.count;
     }
     return confirmedCount;
   };
@@ -157,9 +175,11 @@ const FinancialStatusPage = () => {
     }, 0);
     
     const mortgageLiveData = liveData['mortgage'] || {} as any;
-    const liveInterestWan = Number(mortgageLiveData.remainingInterest) || 0;
-    if (mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedInterestWan + liveInterestWan;
+    const liveInterestWan = mortgageLiveData.aggregate ? (
+      (mortgageLiveData.aggregate.monthlyPaymentYuan * mortgageLiveData.aggregate.remainingMonths / 10000) - mortgageLiveData.aggregate.amountWan
+    ) : 0;
+    if (mortgageLiveData.aggregate && mortgageLiveData.aggregate.count > 0 && !configConfirmed['mortgage']) {
+      return confirmedInterestWan + Math.max(0, liveInterestWan);
     }
     return confirmedInterestWan;
   };
