@@ -1400,7 +1400,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
 
   // 房贷实时数据更新
   useEffect(() => {
-    if (category.type === 'mortgage' && onDataChange && loans.length > 0) {
+    if (category.type === 'mortgage' && onDataChange) {
       let validLoanCount = 0; // 放宽条件：以是否填写“剩余本金”作为有效笔数标准
       let totalRemainingPrincipal = 0;
       let totalMonthlyPayment = 0;
@@ -1460,20 +1460,18 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         }
       });
 
-      // 如果有有效的贷款，计算并发送实时数据（允许月供/期数为0）
-      if (validLoanCount > 0) {
-        const totalRemainingInterest = (isFinite(totalMonthlyPayment) && totalMonthlyPayment > 0 && maxRemainingMonths > 0)
-          ? (totalMonthlyPayment * maxRemainingMonths) / 10000 - totalRemainingPrincipal
-          : 0;
+      // 总是发送实时数据更新（包括count为0的情况）
+      const totalRemainingInterest = (isFinite(totalMonthlyPayment) && totalMonthlyPayment > 0 && maxRemainingMonths > 0)
+        ? (totalMonthlyPayment * maxRemainingMonths) / 10000 - totalRemainingPrincipal
+        : 0;
 
-        onDataChange(category.id, {
-          count: validLoanCount,
-          remainingPrincipal: totalRemainingPrincipal,
-          remainingInterest: Math.max(0, totalRemainingInterest),
-          monthlyPayment: totalMonthlyPayment,
-          remainingMonths: maxRemainingMonths
-        });
-      }
+      onDataChange(category.id, {
+        count: validLoanCount,
+        remainingPrincipal: totalRemainingPrincipal,
+        remainingInterest: Math.max(0, totalRemainingInterest),
+        monthlyPayment: totalMonthlyPayment,
+        remainingMonths: maxRemainingMonths
+      });
     }
   }, [loans, category.type, category.id, onDataChange, calculateMonthlyPayment]);
   
