@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, TrendingUp, PiggyBank, CreditCard, Check } from 'lucide-react';
 import FinancialConfigurationFlow from '@/components/financial-status-fs/FinancialConfigurationFlow';
 import { mockDebts, setMockDebts, clearMockDebts, isMockDebtsActive, getMockFormData } from '@/data/mockDebts';
-import { normalizeDebtData, calculateInterestFromNormalizedData } from '@/lib/debtAdapters';
 
 // 财务配置类型定义（移除信用卡类型）
 export interface DebtInfo {
@@ -118,52 +117,42 @@ const FinancialStatusPage = () => {
 
   // 计算债务汇总（优先使用实时数据）
   const calculateTotalDebt = () => {
-    let totalAmountWan = 0;
-    
-    // 计算已确认债务
     const confirmedDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
-    totalAmountWan += confirmedDebt;
-    
-    // 计算未确认但有实时数据的债务
-    debtCategories.forEach(category => {
-      if (!configConfirmed[category.type] && liveData[category.type]) {
-        const normalizedData = normalizeDebtData(category.type, liveData[category.type]);
-        totalAmountWan += normalizedData.amountWan;
-      }
-    });
-    
-    return totalAmountWan;
+    const mortgageLiveData = liveData['mortgage'];
+    if (mortgageLiveData && !configConfirmed['mortgage']) {
+      return confirmedDebt + mortgageLiveData.remainingPrincipal;
+    }
+    return confirmedDebt;
   };
 
   // 计算债务笔数（优先使用实时数据）
   const calculateDebtCount = () => {
-    let totalCount = 0;
-    
-    // 计算已确认债务笔数
     const confirmedCount = debts.filter(debt => debt.amount > 0).length;
-    totalCount += confirmedCount;
-    
-    // 计算未确认但有实时数据的债务笔数
-    debtCategories.forEach(category => {
-      if (!configConfirmed[category.type] && liveData[category.type]) {
-        const normalizedData = normalizeDebtData(category.type, liveData[category.type]);
-        totalCount += normalizedData.count;
-      }
-    });
-    
-    return totalCount;
+    const mortgageLiveData = liveData['mortgage'];
+    if (mortgageLiveData && mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
+      return confirmedCount + mortgageLiveData.count;
+    }
+    return confirmedCount;
   };
 
   // 计算剩余本金（优先使用实时数据）
   const calculateRemainingPrincipal = () => {
-    return calculateTotalDebt();
+    // 单位统一为“万”
+    const confirmedPrincipalWan = debts.reduce((sum, debt) => {
+      const val = Number(debt.amount) || 0;
+      return sum + val;
+    }, 0);
+    const mortgageLiveData = liveData['mortgage'] || {} as any;
+    const livePrincipalWan = Number(mortgageLiveData.remainingPrincipal) || 0;
+    if ((mortgageLiveData as any).count > 0 && !configConfirmed['mortgage']) {
+      return confirmedPrincipalWan + livePrincipalWan;
+    }
+    return confirmedPrincipalWan;
   };
 
   // 计算待还利息（优先使用实时数据）
   const calculateRemainingInterest = () => {
-    let totalInterestWan = 0;
-    
-    // 计算已确认债务利息
+    // 单位统一为“万”
     const confirmedInterestWan = debts.reduce((sum, debt) => {
       const monthly = Number((debt as any).monthlyPayment) || 0;
       const months = Number((debt as any).remainingMonths) || 0;
@@ -175,20 +164,16 @@ const FinancialStatusPage = () => {
       }
       return sum;
     }, 0);
-    totalInterestWan += confirmedInterestWan;
     
-    // 计算未确认但有实时数据的债务利息
-    debtCategories.forEach(category => {
-      if (!configConfirmed[category.type] && liveData[category.type]) {
-        const normalizedData = normalizeDebtData(category.type, liveData[category.type]);
-        const interestData = calculateInterestFromNormalizedData(normalizedData);
-        totalInterestWan += interestData.remainingInterestWan;
-      }
-    });
-    
-    return totalInterestWan;
+    const mortgageLiveData = liveData['mortgage'] || {} as any;
+    const liveInterestWan = Number(mortgageLiveData.remainingInterest) || 0;
+    if (mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
+      return confirmedInterestWan + liveInterestWan;
+    }
+    return confirmedInterestWan;
   };
 
+  
   // 处理实时数据变化 - 合并数据而非覆盖
   const handleDataChange = (categoryId: string, data: any) => {
     setLiveData(prev => {
