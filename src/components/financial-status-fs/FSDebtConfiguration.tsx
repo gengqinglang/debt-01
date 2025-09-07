@@ -1673,7 +1673,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                     }
                   });
                   
+                  const completeLoansCount = loans.filter(loan => isLoanComplete(loan)).length;
+                  
                   const aggregatedData = {
+                    count: completeLoansCount,
                     amount: totalRemainingPrincipal,
                     monthlyPayment: totalMonthlyPayment,
                     remainingMonths: maxRemainingMonths,
