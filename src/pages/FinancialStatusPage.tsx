@@ -4,10 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, TrendingUp, PiggyBank, CreditCard, Check } from 'lucide-react';
 import FinancialConfigurationFlow from '@/components/financial-status-fs/FinancialConfigurationFlow';
 import { mockDebts, setMockDebts, clearMockDebts, isMockDebtsActive, getMockFormData } from '@/data/mockDebts';
-import { normalizeDebtData } from '@/loan-core/normalize';
-import { NormalizedDebtData } from '@/loan-core/types';
 
-// 财务配置类型定义
+// 财务配置类型定义（移除信用卡类型）
 export interface DebtInfo {
   id: string;
   type: 'mortgage' | 'carLoan' | 'consumerLoan' | 'businessLoan' | 'privateLoan' | 'creditCard';
@@ -16,13 +14,6 @@ export interface DebtInfo {
   monthlyPayment: number;
   remainingMonths?: number;
   interestRate?: number;
-  normalized?: {
-    count: number;
-    amountWan: number;
-    monthlyPaymentYuan: number;
-    remainingMonths: number;
-  };
-  rawData?: any;
   // 房贷特有字段
   loanType?: 'commercial' | 'housingFund' | 'combination';
   commercialAmount?: number;
@@ -33,15 +24,15 @@ export interface DebtInfo {
   term?: number;
   repaymentMethod?: string;
   // 车贷特有字段
-  isInstallment?: boolean;
-  installmentAmount?: number;
-  remainingInstallments?: number;
-  vehicleName?: string;
-  carLoanType?: 'installment' | 'bankLoan';
-  carPrincipal?: number;
-  carTerm?: number;
-  carInterestRate?: number;
-  carStartDate?: Date;
+  isInstallment?: boolean; // 是否分期还款
+  installmentAmount?: number; // 每期还款额
+  remainingInstallments?: number; // 还剩多少期
+  vehicleName?: string; // 车辆名称
+  carLoanType?: 'installment' | 'bankLoan'; // 贷款类型
+  carPrincipal?: number; // 银行贷款本金
+  carTerm?: number; // 银行贷款期限
+  carInterestRate?: number; // 银行贷款利率
+  carStartDate?: Date; // 银行贷款开始时间
 }
 
 const FinancialStatusPage = () => {
@@ -53,7 +44,7 @@ const FinancialStatusPage = () => {
   const [configConfirmed, setConfigConfirmed] = useState<{[key: string]: boolean}>({});
   
   // 实时数据状态（用于显示未确认但已填写的数据）
-  const [liveData, setLiveData] = useState<{[key: string]: NormalizedDebtData}>({});
+  const [liveData, setLiveData] = useState<{[key: string]: any}>({});
 
   // 初始化模拟数据
   useEffect(() => {
@@ -124,41 +115,24 @@ const FinancialStatusPage = () => {
 
   const currentCategory = debtCategories[currentIndex];
 
-  // 安全地获取聚合数据
-  const getAggregate = (categoryId: string) => {
-    const liveNormalizedData = liveData[categoryId];
-    if (liveNormalizedData?.aggregate && !configConfirmed[categoryId]) {
-      return liveNormalizedData.aggregate;
-    }
-    
-    // 如果已确认但没有实时数据，从confirmed debt数据生成标准化格式
-    const confirmedDebt = debts.find(d => d.id === categoryId);
-    if (confirmedDebt && configConfirmed[categoryId]) {
-      return {
-        count: confirmedDebt.amount > 0 ? 1 : 0,
-        amountWan: confirmedDebt.amount,
-        monthlyPaymentYuan: (confirmedDebt.monthlyPayment || 0) * 10000,
-        remainingMonths: 0 // 简化处理
-      };
-    }
-    
-    return { count: 0, amountWan: 0, monthlyPaymentYuan: 0, remainingMonths: 0 };
-  };
-
   // 计算债务汇总（优先使用实时数据）
   const calculateTotalDebt = () => {
-    return debtCategories.reduce((total, category) => {
-      const aggregate = getAggregate(category.id);
-      return total + (aggregate?.amountWan || 0);
-    }, 0);
+    const confirmedDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
+    const mortgageLiveData = liveData['mortgage'];
+    if (mortgageLiveData && !configConfirmed['mortgage']) {
+      return confirmedDebt + mortgageLiveData.remainingPrincipal;
+    }
+    return confirmedDebt;
   };
 
   // 计算债务笔数（优先使用实时数据）
   const calculateDebtCount = () => {
-    return debtCategories.reduce((total, category) => {
-      const aggregate = getAggregate(category.id);
-      return total + (aggregate?.count || 0);
-    }, 0);
+    const confirmedCount = debts.filter(debt => debt.amount > 0).length;
+    const mortgageLiveData = liveData['mortgage'];
+    if (mortgageLiveData && mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
+      return confirmedCount + mortgageLiveData.count;
+    }
+    return confirmedCount;
   };
 
   // 计算剩余本金（优先使用实时数据）
@@ -192,34 +166,63 @@ const FinancialStatusPage = () => {
     }, 0);
     
     const mortgageLiveData = liveData['mortgage'] || {} as any;
-    const liveInterestWan = mortgageLiveData.aggregate ? (
-      (mortgageLiveData.aggregate.monthlyPaymentYuan * mortgageLiveData.aggregate.remainingMonths / 10000) - mortgageLiveData.aggregate.amountWan
-    ) : 0;
-    if (mortgageLiveData.aggregate && mortgageLiveData.aggregate.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedInterestWan + Math.max(0, liveInterestWan);
+    const liveInterestWan = Number(mortgageLiveData.remainingInterest) || 0;
+    if (mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
+      return confirmedInterestWan + liveInterestWan;
     }
     return confirmedInterestWan;
   };
 
   
-  // 处理标准化的实时数据变化
-  const handleDataChange = (categoryId: string, normalizedData: NormalizedDebtData) => {
-    setLiveData(prev => ({
-      ...prev,
-      [categoryId]: normalizedData
-    }));
+  // 处理实时数据变化 - 合并数据而非覆盖
+  const handleDataChange = (categoryId: string, data: any) => {
+    setLiveData(prev => {
+      const existing = prev[categoryId] || {};
+      
+      // 检查是否有详细结构键（loans, carLoans等）
+      const hasDetailKeys = ['loans', 'carLoans', 'consumerLoans', 'businessLoans', 'privateLoans', 'creditCards'];
+      const hasExistingDetail = hasDetailKeys.some(key => existing[key]);
+      const hasNewDetail = hasDetailKeys.some(key => data[key]);
+      
+      // 如果存在详细结构，保留详细结构，只更新汇总字段
+      if (hasExistingDetail && !hasNewDetail) {
+        // 只更新汇总字段，保留详细结构
+        return {
+          ...prev,
+          [categoryId]: {
+            ...existing,
+            // 只更新非详细结构的字段
+            ...Object.keys(data).reduce((acc, key) => {
+              if (!hasDetailKeys.includes(key)) {
+                acc[key] = data[key];
+              }
+              return acc;
+            }, {} as any)
+          }
+        };
+      }
+      
+      // 否则正常合并
+      return {
+        ...prev,
+        [categoryId]: {
+          ...existing,
+          ...data
+        }
+      };
+    });
   };
 
   // 处理配置确认
-  const handleConfigConfirm = (categoryId: string, confirmPayload: any) => {
+  const handleConfigConfirm = (categoryId: string, data: any) => {
     // 负债配置
     const existingDebtIndex = debts.findIndex(debt => debt.type === categoryId);
     if (existingDebtIndex >= 0) {
       const updatedDebts = [...debts];
-      updatedDebts[existingDebtIndex] = { ...updatedDebts[existingDebtIndex], ...confirmPayload };
+      updatedDebts[existingDebtIndex] = { ...updatedDebts[existingDebtIndex], ...data };
       setDebts(updatedDebts);
     } else {
-      setDebts([...debts, { id: Date.now().toString(), type: categoryId as any, ...confirmPayload }]);
+      setDebts([...debts, { id: Date.now().toString(), type: categoryId as any, ...data }]);
     }
 
     setConfigConfirmed({
@@ -279,14 +282,20 @@ const FinancialStatusPage = () => {
   const getCurrentData = () => {
     const live = liveData[currentCategory.id];
     
-    // 优先返回实时数据的rawData
-    if (live && live.rawData) {
-      return live.rawData;
+    // 检查 liveData 是否包含详细结构
+    const hasDetailStructure = live && (
+      live.loans || live.carLoans || live.consumerLoans || 
+      live.businessLoans || live.privateLoans || live.creditCards
+    );
+    
+    // 优先返回包含详细结构的 liveData
+    if (hasDetailStructure) {
+      return live;
     }
     
-    // 回退到已确认的数据
+    // 回退到已确认的汇总数据
     const existingDebt = debts.find(debt => debt.type === currentCategory.id);
-    return existingDebt || null;
+    return existingDebt || live;
   };
 
   return (
