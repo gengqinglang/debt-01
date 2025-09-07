@@ -1821,14 +1821,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   });
                 }
               }}
-              className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
+              className={`w-full h-10 text-sm font-semibold rounded-lg transition-all duration-300 ${
                 isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!carLoans.some(isCarLoanComplete)}
             >
-              <Check className="w-4 h-4 mr-2" />
+              <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认车贷信息'}
             </Button>
           </SharedCarLoanModule>
@@ -1873,14 +1873,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   });
                 }
               }}
-              className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
+              className={`w-full h-10 text-sm font-semibold rounded-lg transition-all duration-300 ${
                 isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!consumerLoans.some(isConsumerLoanComplete)}
             >
-              <Check className="w-4 h-4 mr-2" />
+              <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认消费贷信息'}
             </Button>
           </SharedConsumerLoanModule>
@@ -1925,14 +1925,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   });
                 }
               }}
-              className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
+              className={`w-full h-10 text-sm font-semibold rounded-lg transition-all duration-300 ${
                 isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!businessLoans.some(isBusinessLoanComplete)}
             >
-              <Check className="w-4 h-4 mr-2" />
+              <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认经营贷信息'}
             </Button>
           </SharedBusinessLoanModule>
@@ -1979,14 +1979,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   });
                 }
               }}
-              className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
+              className={`w-full h-10 text-sm font-semibold rounded-lg transition-all duration-300 ${
                 isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!privateLoans.some(isPrivateLoanComplete)}
             >
-              <Check className="w-4 h-4 mr-2" />
+              <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认民间借贷信息'}
             </Button>
           </SharedPrivateLoanModule>
@@ -2031,14 +2031,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   });
                 }
               }}
-              className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
+              className={`w-full h-10 text-sm font-semibold rounded-lg transition-all duration-300 ${
                 isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!creditCards.some(isCreditCardComplete)}
             >
-              <Check className="w-4 h-4 mr-2" />
+              <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认信用卡信息'}
             </Button>
           </SharedCreditCardModule>
@@ -2052,10 +2052,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             <div className="mt-6 pt-6 border-t border-gray-100">
               <Button 
                 onClick={handleConfirm}
-                className="w-full py-3 bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900 font-semibold rounded-lg"
+                className="w-full h-10 text-sm bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900 font-semibold rounded-lg"
                 disabled={!canConfirm()}
               >
-                <Check className="w-4 h-4 mr-2" />
+                <Check className="w-3 h-3 mr-2" />
                 确认{category.name}信息
               </Button>
             </div>
