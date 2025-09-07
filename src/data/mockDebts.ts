@@ -65,6 +65,91 @@ export const mockDebts: DebtInfo[] = [
   }
 ];
 
+// 提供匹配各组件hook期望格式的模拟数据
+export const getMockFormData = () => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  return {
+    mortgage: [
+      {
+        id: 'mock-mortgage-1',
+        propertyName: '海淀某小区',
+        loanType: 'commercial',
+        loanAmount: '300',
+        remainingPrincipal: '180',
+        loanStartDate: '2020-05-15',
+        loanEndDate: '2040-05-15',
+        paymentMethod: 'equal-payment',
+        rateType: 'floating',
+        floatingRateAdjustment: '0'
+      }
+    ],
+    carLoan: [
+      {
+        id: 'mock-car-1',
+        vehicleName: '奔驰C260',
+        loanType: 'bankLoan',
+        principal: '25',
+        term: '60',
+        interestRate: '4.8',
+        startDate: '2022-03-10',
+        endDate: '2027-03-10',
+        repaymentMethod: 'equal-payment',
+        remainingPrincipal: '15',
+        startDateMonth: '2022-03-10',
+        endDateMonth: '2027-03-10'
+      }
+    ],
+    consumerLoan: [
+      {
+        id: 'mock-consumer-1',
+        name: '装修贷',
+        loanAmount: '20',
+        remainingPrincipal: '15',
+        startDate: '2023-01-15',
+        endDate: '2028-01-15',
+        loanTerm: '60',
+        annualRate: '5.8',
+        repaymentMethod: 'equal-payment'
+      }
+    ],
+    businessLoan: [
+      {
+        id: 'mock-business-1',
+        name: '经营周转贷',
+        loanAmount: '80',
+        remainingPrincipal: '50',
+        startDate: '2022-08-20',
+        endDate: '2032-08-20',
+        loanTerm: '120',
+        annualRate: '6.5',
+        repaymentMethod: 'equal-payment'
+      }
+    ],
+    privateLoan: [
+      {
+        id: 'mock-private-1',
+        name: '朋友借款',
+        loanAmount: '8',
+        startDate: '2023-06-01',
+        endDate: '2027-06-01',
+        annualRate: '7.2',
+        rateFen: '2',
+        rateLi: '0',
+        repaymentMethod: 'equal-payment'
+      }
+    ],
+    creditCard: [
+      {
+        id: 'mock-credit-1',
+        name: '招商银行信用卡',
+        currentAmount: '12000',
+        unbilledAmount: '8000'
+      }
+    ]
+  };
+};
+
 export const setMockDebts = () => {
   localStorage.setItem('confirmed_debts', JSON.stringify(mockDebts));
   localStorage.setItem('mock_debts_active', 'true');

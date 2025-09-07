@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, TrendingUp, PiggyBank, CreditCard, Check } from 'lucide-react';
 import FinancialConfigurationFlow from '@/components/financial-status-fs/FinancialConfigurationFlow';
-import { mockDebts, setMockDebts, clearMockDebts, isMockDebtsActive } from '@/data/mockDebts';
+import { mockDebts, setMockDebts, clearMockDebts, isMockDebtsActive, getMockFormData } from '@/data/mockDebts';
 
 // 财务配置类型定义（移除信用卡类型）
 export interface DebtInfo {
@@ -51,28 +51,7 @@ const FinancialStatusPage = () => {
     const existingDebts = localStorage.getItem('confirmed_debts');
     if (!existingDebts && !isMockDebtsActive()) {
       setMockDebts();
-      // 预填充表单数据到 liveData
-      const mockDataByCategory = {
-        mortgage: {
-          loans: [mockDebts.find(d => d.type === 'mortgage')].filter(Boolean)
-        },
-        carLoan: {
-          carLoans: [mockDebts.find(d => d.type === 'carLoan')].filter(Boolean)
-        },
-        consumerLoan: {
-          consumerLoans: [mockDebts.find(d => d.type === 'consumerLoan')].filter(Boolean)
-        },
-        businessLoan: {
-          businessLoans: [mockDebts.find(d => d.type === 'businessLoan')].filter(Boolean)
-        },
-        privateLoan: {
-          privateLoans: [mockDebts.find(d => d.type === 'privateLoan')].filter(Boolean)
-        },
-        creditCard: {
-          creditCards: [mockDebts.find(d => d.type === 'creditCard')].filter(Boolean)
-        }
-      };
-      setLiveData(mockDataByCategory);
+      setLiveData(getMockFormData());
     }
   }, []);
 
@@ -222,7 +201,8 @@ const FinancialStatusPage = () => {
   };
 
   const getCurrentData = () => {
-    return debts.find(debt => debt.type === currentCategory.id);
+    const existingDebt = debts.find(debt => debt.type === currentCategory.id);
+    return existingDebt || liveData[currentCategory.id];
   };
 
   return (
@@ -284,17 +264,18 @@ const FinancialStatusPage = () => {
         </div>
 
         {/* 配置流程 */}
-        <FinancialConfigurationFlow
-          currentStep={1}
-          currentIndex={currentIndex}
-          currentCategory={currentCategory}
-          allCategories={debtCategories}
-          configConfirmed={configConfirmed}
-          onConfigConfirm={handleConfigConfirm}
-          onDataChange={handleDataChange}
-          onSkip={skipCurrentConfig}
-          existingData={getCurrentData()}
-        />
+            <FinancialConfigurationFlow
+              key={`${currentCategory.id}-${isMockDebtsActive()}`}
+              currentStep={1}
+              currentIndex={currentIndex}
+              currentCategory={currentCategory}
+              allCategories={debtCategories}
+              configConfirmed={configConfirmed}
+              onConfigConfirm={handleConfigConfirm}
+              onDataChange={handleDataChange}
+              onSkip={skipCurrentConfig}
+              existingData={getCurrentData()}
+            />
 
         {/* 底部导航 */}
         <div className="fixed bottom-0 left-0 right-0 z-50 p-2 space-y-3 bg-gradient-to-t from-white via-white/95 to-white/90 backdrop-blur-xl border-t border-gray-100 pb-safe" 
