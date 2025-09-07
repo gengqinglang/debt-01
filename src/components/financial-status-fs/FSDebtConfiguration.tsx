@@ -1109,8 +1109,13 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     };
     
     const changed = JSON.stringify(currentData) !== JSON.stringify(lastConfirmedData);
-    setHasDataChanged(changed);
-  }, [loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData, lastConfirmedData]);
+    // 如果已确认且有模拟数据，强制设置为未改变
+    if (isConfirmed && existingData) {
+      setHasDataChanged(false);
+    } else {
+      setHasDataChanged(changed);
+    }
+  }, [loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData, lastConfirmedData, isConfirmed, existingData]);
 
   // Sync with existing data when component mounts or existingData changes
   useEffect(() => {
@@ -1127,19 +1132,24 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   // 初始化确认状态数据（用于模拟数据自动确认）
   useEffect(() => {
     if (isConfirmed && !lastConfirmedData && existingData) {
-      const initialConfirmedData = {
-        loans,
-        carLoans,
-        consumerLoans,
-        businessLoans,
-        privateLoans,
-        creditCards,
-        formData
-      };
-      setLastConfirmedData(initialConfirmedData);
-      setHasDataChanged(false);
+      // 等待数据完全加载后初始化
+      const timer = setTimeout(() => {
+        const initialConfirmedData = {
+          loans,
+          carLoans,
+          consumerLoans,
+          businessLoans,
+          privateLoans,
+          creditCards,
+          formData
+        };
+        setLastConfirmedData(initialConfirmedData);
+        setHasDataChanged(false);
+      }, 200);
+      
+      return () => clearTimeout(timer);
     }
-  }, [isConfirmed, lastConfirmedData, existingData, loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData]);
+  }, [isConfirmed, existingData, loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData]);
 
   // 汇总车贷数据
   const getCarLoanAggregatedData = () => {
