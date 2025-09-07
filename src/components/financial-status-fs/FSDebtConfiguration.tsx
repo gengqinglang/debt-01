@@ -118,7 +118,7 @@ const LoanFormCard: React.FC<{
               <div className="text-center">
                 <div className="text-xs text-gray-500 mb-1">月供</div>
                 <div className="text-sm font-bold text-gray-900">
-                  {stats?.currentMonthlyPayment ? `${Math.round(stats.currentMonthlyPayment).toLocaleString()}元` : '计算中...'}
+                  {isLoanComplete(loan) && stats?.currentMonthlyPayment ? `${Math.round(stats.currentMonthlyPayment).toLocaleString()}元` : '录入完毕后显示'}
                 </div>
               </div>
             </div>
@@ -1011,7 +1011,10 @@ const LoanFormCard: React.FC<{
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-gray-700">组合贷款总月供：</span>
                     <span className="text-lg font-bold text-gray-900">
-                      {Math.round(calculateCommercialMonthlyPayment(loan) + calculateProvidentMonthlyPayment(loan)).toLocaleString()}元
+                      {(isCommercialLoanComplete(loan) && isProvidentLoanComplete(loan)) 
+                        ? `${Math.round(calculateCommercialMonthlyPayment(loan) + calculateProvidentMonthlyPayment(loan)).toLocaleString()}元`
+                        : '录入完毕后显示'
+                      }
                     </span>
                   </div>
                 </div>
