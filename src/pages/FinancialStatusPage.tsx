@@ -45,6 +45,27 @@ const FinancialStatusPage = () => {
   // 实时数据状态（用于显示未确认但已填写的数据）
   const [liveData, setLiveData] = useState<{[key: string]: any}>({});
 
+  // 初始化时从localStorage加载数据
+  useEffect(() => {
+    try {
+      // 加载已确认的债务数据
+      const savedDebts = localStorage.getItem('confirmed_debts');
+      if (savedDebts) {
+        const parsedDebts = JSON.parse(savedDebts);
+        setDebts(parsedDebts);
+        
+        // 标记这些债务为已确认
+        const confirmed: {[key: string]: boolean} = {};
+        parsedDebts.forEach((debt: DebtInfo) => {
+          confirmed[debt.type] = true;
+        });
+        setConfigConfirmed(confirmed);
+      }
+    } catch (error) {
+      console.error('Error loading saved debt data:', error);
+    }
+  }, []);
+
   // 定义债务配置顺序
   const debtCategories = [
     { id: 'mortgage', name: '房贷', type: 'mortgage' as const },
