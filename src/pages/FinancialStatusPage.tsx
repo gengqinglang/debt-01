@@ -230,13 +230,15 @@ const FinancialStatusPage = () => {
     }, 0);
   };
 
-  // 处理实时数据变化 - 数据变化时重置确认状态
-  const handleDataChange = (categoryId: string, data: any) => {
-    // 数据变化时立即重置确认状态
-    setConfigConfirmed(prev => ({
-      ...prev,
-      [categoryId]: false
-    }));
+  // 处理实时数据变化 - 根据操作类型决定是否重置确认状态
+  const handleDataChange = (categoryId: string, data: any, meta?: { isAddOperation?: boolean }) => {
+    // 只有在非添加操作时才重置确认状态（编辑现有数据时重置，再录一笔时不重置）
+    if (!meta?.isAddOperation) {
+      setConfigConfirmed(prev => ({
+        ...prev,
+        [categoryId]: false
+      }));
+    }
     
     setLiveData(prev => {
       const existing = prev[categoryId] || {};

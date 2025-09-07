@@ -10,7 +10,7 @@ interface FinancialConfigurationFlowProps {
   allCategories: any[];
   configConfirmed: {[key: string]: boolean};
   onConfigConfirm: (categoryId: string, data: any) => void;
-  onDataChange?: (categoryId: string, liveData: any) => void; // 新增实时数据回调
+  onDataChange?: (categoryId: string, liveData: any, meta?: { isAddOperation?: boolean }) => void; // 新增实时数据回调
   onSkip: () => void;
   existingData?: any;
 }
