@@ -65,23 +65,26 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
     return loans.length > 0 ? { [loans[0].id]: true } : {};
   });
   
-  // 确保第一个房贷卡片默认展开
+  // 确保第一个房贷卡片默认展开（仅在初始化时）
   useEffect(() => {
-    if (loans.length > 0) {
+    if (loans.length > 0 && Object.keys(expandedLoans).length === 0) {
       setExpandedLoans({ [loans[0].id]: true });
     }
-  }, [loans.length]);
+  }, [loans.length, expandedLoans]);
   const prevLoansLengthRef = useRef(loans.length);
   
   // 使用传入的LoanFormCard或默认的LoanFormCard
   const LoanCardComponent = CustomLoanFormCard || LoanFormCard;
 
-  // 检测新增贷款并自动展开，同时收起其他
+  // 检测新增贷款并自动展开，保持其他贷款状态
   useEffect(() => {
     if (loans.length > prevLoansLengthRef.current) {
-      // 新增了贷款，只展开最新的贷款，收起其他所有
+      // 新增了贷款，展开最新的贷款，但保持其他贷款的当前状态
       const newLoan = loans[loans.length - 1];
-      setExpandedLoans({ [newLoan.id]: true }); // 只保留新贷款展开
+      setExpandedLoans(prev => ({
+        ...prev, // 保持之前的状态
+        [newLoan.id]: true // 只展开新贷款
+      }));
     }
     prevLoansLengthRef.current = loans.length;
   }, [loans.length, loans]);
