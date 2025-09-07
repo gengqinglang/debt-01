@@ -230,8 +230,11 @@ const FinancialStatusPage = () => {
   };
 
   const getCurrentData = () => {
+    // 优先使用实时数据（包含表单期望结构），再回退到已确认的汇总数据
+    const live = liveData[currentCategory.id];
+    if (live) return live;
     const existingDebt = debts.find(debt => debt.type === currentCategory.id);
-    return existingDebt || liveData[currentCategory.id];
+    return existingDebt;
   };
 
   return (
