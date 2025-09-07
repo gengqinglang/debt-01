@@ -485,23 +485,25 @@ const LoanFormCard: React.FC<{
                 )}
                 
                 {/* 月供金额单独占一行，与上方网格宽度一致 */}
-                <div className="mt-5">
-                  <div className="space-y-2">
-                    <div className="rounded-lg p-3 bg-white border border-cyan-500">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                          <span className="text-sm font-medium">月供金额</span>
-                        </div>
-                        <div className="text-right" style={{ color: '#01BCD6' }}>
-                          <div className="text-lg font-semibold">
-                            ¥{Math.round(calculateMonthlyPayment(loan)).toLocaleString()}
+                {isCommercialLoanComplete(loan) && (
+                  <div className="mt-5">
+                    <div className="space-y-2">
+                      <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                            <span className="text-sm font-medium">月供金额</span>
+                          </div>
+                          <div className="text-right" style={{ color: '#01BCD6' }}>
+                            <div className="text-lg font-semibold">
+                              ¥{Math.round(calculateCommercialMonthlyPayment(loan)).toLocaleString()}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </>
             )}
 
@@ -546,7 +548,7 @@ const LoanFormCard: React.FC<{
             )}
 
             {/* 公积金贷款单贷月供金额 */}
-            {loan.loanType === 'provident' && (
+            {loan.loanType === 'provident' && isProvidentLoanComplete(loan) && (
               <div className="mt-5">
                 <div className="space-y-2">
                   <div className="rounded-lg p-3 bg-white border border-cyan-500">
@@ -557,7 +559,7 @@ const LoanFormCard: React.FC<{
                       </div>
                       <div className="text-right" style={{ color: '#01BCD6' }}>
                         <div className="text-lg font-semibold">
-                          ¥{Math.round(calculateMonthlyPayment(loan)).toLocaleString()}
+                          ¥{Math.round(calculateProvidentMonthlyPayment(loan)).toLocaleString()}
                         </div>
                       </div>
                     </div>
@@ -793,23 +795,25 @@ const LoanFormCard: React.FC<{
                 )}
                 
                 {/* 月供金额单独占一行，与上方网格宽度一致 */}
-                <div className="mt-5">
-                  <div className="space-y-2">
-                    <div className="rounded-lg p-3 bg-white border border-cyan-500">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                          <span className="text-sm font-medium">月供金额</span>
-                        </div>
-                        <div className="text-right" style={{ color: '#01BCD6' }}>
-                          <div className="text-lg font-semibold">
-                            ¥{Math.round(calculateCommercialMonthlyPayment(loan)).toLocaleString()}
+                {isCommercialLoanComplete(loan) && (
+                  <div className="mt-5">
+                    <div className="space-y-2">
+                      <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                            <span className="text-sm font-medium">月供金额</span>
+                          </div>
+                          <div className="text-right" style={{ color: '#01BCD6' }}>
+                            <div className="text-lg font-semibold">
+                              ¥{Math.round(calculateCommercialMonthlyPayment(loan)).toLocaleString()}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* 公积金贷款标题 */}
                 <div className="mt-8 mb-4 flex items-center">
@@ -988,23 +992,25 @@ const LoanFormCard: React.FC<{
                 </div>
                 
                 {/* 月供金额单独占一行，与上方网格宽度一致 */}
-                <div className="mt-5">
-                  <div className="space-y-2">
-                    <div className="rounded-lg p-3 bg-white border border-cyan-500">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                          <span className="text-sm font-medium">月供金额</span>
-                        </div>
-                        <div className="text-right" style={{ color: '#01BCD6' }}>
-                          <div className="text-lg font-semibold">
-                            ¥{Math.round(calculateProvidentMonthlyPayment(loan)).toLocaleString()}
+                {isProvidentLoanComplete(loan) && (
+                  <div className="mt-5">
+                    <div className="space-y-2">
+                      <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                            <span className="text-sm font-medium">月供金额</span>
+                          </div>
+                          <div className="text-right" style={{ color: '#01BCD6' }}>
+                            <div className="text-lg font-semibold">
+                              ¥{Math.round(calculateProvidentMonthlyPayment(loan)).toLocaleString()}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* 组合贷款总月供显示 */}
                 <div className="mt-6 p-3 bg-gray-50 rounded-lg">
