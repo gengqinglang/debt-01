@@ -25,6 +25,7 @@ import { usePrivateLoanData } from '@/hooks/usePrivateLoanData';
 import { SharedPrivateLoanModule } from '@/components/loan/SharedPrivateLoanModule';
 import { useCreditCardData } from '@/hooks/useCreditCardData';
 import { SharedCreditCardModule } from '@/components/loan/SharedCreditCardModule';
+import { useToast } from '@/hooks/use-toast';
 
 interface DebtConfigurationProps {
   category: any;
@@ -40,6 +41,7 @@ const LoanFormCard: React.FC<{
   index: number;
   updateLoan: (id: string, field: keyof LoanInfo, value: string) => void;
   removeLoan: (id: string) => void;
+  resetLoan: (id: string) => void;
   loansLength: number;
   isLoanComplete: (loan: LoanInfo) => boolean;
   calculateMonthlyPayment: (loan: LoanInfo) => number;
@@ -55,6 +57,7 @@ const LoanFormCard: React.FC<{
   index,
   updateLoan,
   removeLoan,
+  resetLoan,
   loansLength,
   isLoanComplete,
   calculateMonthlyPayment,
@@ -73,6 +76,7 @@ const LoanFormCard: React.FC<{
   const [providentStartDateOpen, setProvidentStartDateOpen] = useState(false);
   const [providentEndDateOpen, setProvidentEndDateOpen] = useState(false);
   const stats = calculateLoanStats(loan);
+  const { toast } = useToast();
   
   return (
     <div className="relative">
@@ -83,32 +87,49 @@ const LoanFormCard: React.FC<{
             {loan.propertyName || `房贷 ${index + 1}`}
           </h4>
           <div className="flex items-center space-x-1">
-            {loansLength > 1 && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button 
-                    className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-                    title="删除此房贷"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>确认删除</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      您确定要删除这笔房贷吗？此操作不可撤销。
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>取消</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => removeLoan(loan.id)}>
-                      确定删除
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button 
+                  className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+                  title={loansLength > 1 ? "删除此房贷" : "清空此房贷"}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {loansLength > 1 ? '确认删除' : '确认清空'}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {loansLength > 1 
+                      ? '您确定要删除这笔房贷吗？此操作不可撤销。'
+                      : '您确定要清空这笔房贷信息吗？将恢复至默认值。'
+                    }
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => {
+                    if (loansLength > 1) {
+                      removeLoan(loan.id);
+                      toast({
+                        title: "已删除",
+                        description: "房贷信息已删除",
+                      });
+                    } else {
+                      resetLoan(loan.id);
+                      toast({
+                        title: "已清空",
+                        description: "房贷信息已恢复至默认值",
+                      });
+                    }
+                  }}>
+                    {loansLength > 1 ? '确定删除' : '确定清空'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
             {/* 第一行：房产名 + 贷款类型 */}
