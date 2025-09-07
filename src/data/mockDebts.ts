@@ -78,8 +78,8 @@ export const getMockFormData = () => {
           loanType: 'commercial',
           loanAmount: '300',
           remainingPrincipal: '180',
-          loanStartDate: '2020-05-15',
-          loanEndDate: '2040-05-15',
+          loanStartDate: '2020-05',
+          loanEndDate: '2040-05',
           paymentMethod: 'equal-payment',
           rateType: 'floating',
           floatingRateAdjustment: '0'

@@ -155,12 +155,43 @@ const FinancialStatusPage = () => {
   };
 
   
-  // 处理实时数据变化
+  // 处理实时数据变化 - 合并数据而非覆盖
   const handleDataChange = (categoryId: string, data: any) => {
-    setLiveData(prev => ({
-      ...prev,
-      [categoryId]: data
-    }));
+    setLiveData(prev => {
+      const existing = prev[categoryId] || {};
+      
+      // 检查是否有详细结构键（loans, carLoans等）
+      const hasDetailKeys = ['loans', 'carLoans', 'consumerLoans', 'businessLoans', 'privateLoans', 'creditCards'];
+      const hasExistingDetail = hasDetailKeys.some(key => existing[key]);
+      const hasNewDetail = hasDetailKeys.some(key => data[key]);
+      
+      // 如果存在详细结构，保留详细结构，只更新汇总字段
+      if (hasExistingDetail && !hasNewDetail) {
+        // 只更新汇总字段，保留详细结构
+        return {
+          ...prev,
+          [categoryId]: {
+            ...existing,
+            // 只更新非详细结构的字段
+            ...Object.keys(data).reduce((acc, key) => {
+              if (!hasDetailKeys.includes(key)) {
+                acc[key] = data[key];
+              }
+              return acc;
+            }, {} as any)
+          }
+        };
+      }
+      
+      // 否则正常合并
+      return {
+        ...prev,
+        [categoryId]: {
+          ...existing,
+          ...data
+        }
+      };
+    });
   };
 
   // 处理配置确认
@@ -230,11 +261,22 @@ const FinancialStatusPage = () => {
   };
 
   const getCurrentData = () => {
-    // 优先使用实时数据（包含表单期望结构），再回退到已确认的汇总数据
     const live = liveData[currentCategory.id];
-    if (live) return live;
+    
+    // 检查 liveData 是否包含详细结构
+    const hasDetailStructure = live && (
+      live.loans || live.carLoans || live.consumerLoans || 
+      live.businessLoans || live.privateLoans || live.creditCards
+    );
+    
+    // 优先返回包含详细结构的 liveData
+    if (hasDetailStructure) {
+      return live;
+    }
+    
+    // 回退到已确认的汇总数据
     const existingDebt = debts.find(debt => debt.type === currentCategory.id);
-    return existingDebt;
+    return existingDebt || live;
   };
 
   return (
@@ -297,7 +339,7 @@ const FinancialStatusPage = () => {
 
         {/* 配置流程 */}
             <FinancialConfigurationFlow
-              key={`${currentCategory.id}-${isMockDebtsActive()}-${Boolean(liveData[currentCategory.id])}`}
+              key={`${currentCategory.id}-${isMockDebtsActive()}-${JSON.stringify(getCurrentData())?.length || 0}`}
               currentStep={1}
               currentIndex={currentIndex}
               currentCategory={currentCategory}
