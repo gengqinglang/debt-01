@@ -73,7 +73,11 @@ export const LoanFormCard: React.FC<LoanFormCardProps> = ({
   const handleConfirmClick = () => {
     if (loan.loanType === 'combination') {
       if (isCommercialLoanComplete(loan) && isProvidentLoanComplete(loan)) {
-        onCollapse();
+        // 不再自动折叠卡片，保持展开状态
+        toast({
+          title: "房贷信息已确认",
+          description: "组合贷款信息录入完成",
+        });
       } else {
         toast({
           title: "请完善贷款信息",
@@ -83,7 +87,11 @@ export const LoanFormCard: React.FC<LoanFormCardProps> = ({
       }
     } else {
       if (isLoanComplete(loan)) {
-        onCollapse();
+        // 不再自动折叠卡片，保持展开状态
+        toast({
+          title: "房贷信息已确认",
+          description: "贷款信息录入完成",
+        });
       } else {
         toast({
           title: "请完善贷款信息", 
