@@ -1770,14 +1770,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   onConfirm(category.id, aggregatedData);
                 }
               }}
-              className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
+              className={`w-full h-10 text-sm font-semibold rounded-lg transition-all duration-300 ${
                 isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!loans.some(loan => isLoanComplete(loan))}
             >
-              <Check className="w-4 h-4 mr-2" />
+              <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认房贷信息'}
             </Button>
           </FSSharedLoanModule>
