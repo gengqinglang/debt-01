@@ -148,7 +148,8 @@
   }
 
   html, body {
-    /* Removed scrollbar-gutter to prevent mobile H5 UI issues */
+    /* Prevent horizontal layout shifts from scrollbar appearance/disappearance */
+    scrollbar-gutter: stable both-edges;
   }
 
   body {
@@ -420,8 +421,7 @@
 }
 .debug-scrollbar::-webkit-scrollbar-track {
   background: hsl(var(--muted));
-  /* Use inset box-shadow instead of border to avoid affecting layout width */
-  box-shadow: inset 2px 0 0 hsl(var(--primary));
+  border-left: 2px solid hsl(var(--primary));
 }
 .debug-scrollbar::-webkit-scrollbar-thumb {
   background: hsl(var(--primary));
