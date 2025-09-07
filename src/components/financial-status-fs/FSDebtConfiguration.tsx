@@ -962,7 +962,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   existingData
 }) => {
   const uniqueId = useId();
-  const { loans, updateLoan, addLoan, removeLoan, setLoans } = useLoanData({ persist: false });
+  const { loans, updateLoan, addLoan, removeLoan, setLoans } = useLoanData({ persist: true });
   
   // Carloan hooks
   const { 
