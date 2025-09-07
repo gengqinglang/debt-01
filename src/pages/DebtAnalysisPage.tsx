@@ -6,6 +6,7 @@ import type { DebtInfo } from '@/pages/FinancialStatusPage';
 import RepaymentSummary from '@/components/debt/RepaymentSummary';
 import LoanOverviewList from '@/components/debt/LoanOverviewList';
 import RepaymentCalendar from '@/components/debt/RepaymentCalendar';
+import { setMockDebts } from '@/data/mockDebts';
 
 const DebtAnalysisPage = () => {
   const navigate = useNavigate();
@@ -20,6 +21,19 @@ const DebtAnalysisPage = () => {
       } catch (error) {
         console.error('Error parsing saved debts:', error);
         setDebts([]);
+      }
+    } else {
+      // 如果没有数据，自动加载模拟数据
+      setMockDebts();
+      const mockData = localStorage.getItem('confirmed_debts');
+      if (mockData) {
+        try {
+          const parsedMockDebts = JSON.parse(mockData);
+          setDebts(Array.isArray(parsedMockDebts) ? parsedMockDebts : []);
+        } catch (error) {
+          console.error('Error parsing mock debts:', error);
+          setDebts([]);
+        }
       }
     }
   }, []);

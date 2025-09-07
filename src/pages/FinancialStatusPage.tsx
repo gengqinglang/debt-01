@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, TrendingUp, PiggyBank, CreditCard, Check } from 'lucide-react';
 import FinancialConfigurationFlow from '@/components/financial-status-fs/FinancialConfigurationFlow';
+import { mockDebts, setMockDebts, clearMockDebts, isMockDebtsActive } from '@/data/mockDebts';
 
 // 财务配置类型定义（移除信用卡类型）
 export interface DebtInfo {
@@ -44,6 +45,36 @@ const FinancialStatusPage = () => {
   
   // 实时数据状态（用于显示未确认但已填写的数据）
   const [liveData, setLiveData] = useState<{[key: string]: any}>({});
+
+  // 初始化模拟数据
+  useEffect(() => {
+    const existingDebts = localStorage.getItem('confirmed_debts');
+    if (!existingDebts && !isMockDebtsActive()) {
+      setMockDebts();
+      // 预填充表单数据到 liveData
+      const mockDataByCategory = {
+        mortgage: {
+          loans: [mockDebts.find(d => d.type === 'mortgage')].filter(Boolean)
+        },
+        carLoan: {
+          carLoans: [mockDebts.find(d => d.type === 'carLoan')].filter(Boolean)
+        },
+        consumerLoan: {
+          consumerLoans: [mockDebts.find(d => d.type === 'consumerLoan')].filter(Boolean)
+        },
+        businessLoan: {
+          businessLoans: [mockDebts.find(d => d.type === 'businessLoan')].filter(Boolean)
+        },
+        privateLoan: {
+          privateLoans: [mockDebts.find(d => d.type === 'privateLoan')].filter(Boolean)
+        },
+        creditCard: {
+          creditCards: [mockDebts.find(d => d.type === 'creditCard')].filter(Boolean)
+        }
+      };
+      setLiveData(mockDataByCategory);
+    }
+  }, []);
 
   // 定义债务配置顺序
   const debtCategories = [
