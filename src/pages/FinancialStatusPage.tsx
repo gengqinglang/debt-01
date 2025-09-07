@@ -48,10 +48,39 @@ const FinancialStatusPage = () => {
 
   // 初始化模拟数据
   useEffect(() => {
-    const existingDebts = localStorage.getItem('confirmed_debts');
-    if (!existingDebts && !isMockDebtsActive()) {
+    // 如果没有已确认的债务数据，使用模拟数据
+    try {
+      const existingDebts = localStorage.getItem('confirmed_debts');
+      if (!existingDebts || JSON.parse(existingDebts).length === 0) {
+        setMockDebts();
+        setDebts(mockDebts);
+      } else {
+        setDebts(JSON.parse(existingDebts));
+      }
+
+      // 如果模拟数据处于激活状态，加载表单模拟数据
+      if (isMockDebtsActive()) {
+        let mockFormData = localStorage.getItem('mock_form_data');
+        if (!mockFormData) {
+          const formData = getMockFormData();
+          localStorage.setItem('mock_form_data', JSON.stringify(formData));
+          localStorage.setItem('shared_loan_data', JSON.stringify(formData.mortgage.loans));
+          mockFormData = JSON.stringify(formData);
+        }
+        
+        // 确保 shared_loan_data 存在
+        const sharedLoanData = localStorage.getItem('shared_loan_data');
+        if (!sharedLoanData) {
+          const formData = JSON.parse(mockFormData);
+          localStorage.setItem('shared_loan_data', JSON.stringify(formData.mortgage.loans));
+        }
+        
+        setLiveData(JSON.parse(mockFormData));
+      }
+    } catch (error) {
+      console.error('加载债务数据失败:', error);
       setMockDebts();
-      setLiveData(getMockFormData());
+      setDebts(mockDebts);
     }
   }, []);
 
@@ -265,7 +294,7 @@ const FinancialStatusPage = () => {
 
         {/* 配置流程 */}
             <FinancialConfigurationFlow
-              key={`${currentCategory.id}-${isMockDebtsActive()}`}
+              key={`${currentCategory.id}-${isMockDebtsActive()}-${Boolean(liveData[currentCategory.id])}`}
               currentStep={1}
               currentIndex={currentIndex}
               currentCategory={currentCategory}

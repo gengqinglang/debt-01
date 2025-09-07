@@ -13,25 +13,36 @@ const DebtAnalysisPage = () => {
   const [debts, setDebts] = useState<DebtInfo[]>([]);
 
   useEffect(() => {
-    const savedDebts = localStorage.getItem('confirmed_debts');
-    if (savedDebts) {
-      try {
+    // 从本地存储加载债务数据，如果没有则使用模拟数据
+    try {
+      const savedDebts = localStorage.getItem('confirmed_debts');
+      if (savedDebts) {
         const parsedDebts = JSON.parse(savedDebts);
-        setDebts(Array.isArray(parsedDebts) ? parsedDebts : []);
-      } catch (error) {
-        console.error('Error parsing saved debts:', error);
-        setDebts([]);
+        if (parsedDebts.length === 0) {
+          setMockDebts();
+          const mockData = localStorage.getItem('confirmed_debts');
+          if (mockData) {
+            setDebts(JSON.parse(mockData));
+          }
+        } else {
+          setDebts(parsedDebts);
+        }
+      } else {
+        setMockDebts();
+        const mockData = localStorage.getItem('confirmed_debts');
+        if (mockData) {
+          setDebts(JSON.parse(mockData));
+        }
       }
-    } else {
-      // 如果没有数据，自动加载模拟数据
+    } catch (error) {
+      console.error('加载债务数据失败:', error);
       setMockDebts();
       const mockData = localStorage.getItem('confirmed_debts');
       if (mockData) {
         try {
-          const parsedMockDebts = JSON.parse(mockData);
-          setDebts(Array.isArray(parsedMockDebts) ? parsedMockDebts : []);
-        } catch (error) {
-          console.error('Error parsing mock debts:', error);
+          setDebts(JSON.parse(mockData));
+        } catch (err) {
+          console.error('解析模拟数据失败:', err);
           setDebts([]);
         }
       }
