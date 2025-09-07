@@ -977,7 +977,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   const { 
     businessLoans, 
     addBusinessLoan, 
-    removeBusinessLoan, 
+    removeBusinessLoan,
+    resetBusinessLoan,
     updateBusinessLoan, 
     isBusinessLoanComplete 
   } = useBusinessLoanData();
@@ -986,7 +987,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   const { 
     privateLoans, 
     addPrivateLoan, 
-    removePrivateLoan, 
+    removePrivateLoan,
+    resetPrivateLoan,
     updatePrivateLoan, 
     isPrivateLoanComplete,
     updateRateFen,
@@ -997,7 +999,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   const { 
     creditCards, 
     addCreditCard, 
-    removeCreditCard, 
+    removeCreditCard,
+    resetCreditCard,
     updateCreditCard, 
     isCreditCardComplete 
   } = useCreditCardData();
@@ -1810,6 +1813,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             businessLoans={businessLoans}
             addBusinessLoan={addBusinessLoan}
             removeBusinessLoan={removeBusinessLoan}
+            resetBusinessLoan={resetBusinessLoan}
             updateBusinessLoan={updateBusinessLoan}
             isBusinessLoanComplete={isBusinessLoanComplete}
           >
@@ -1862,6 +1866,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             privateLoans={privateLoans}
             addPrivateLoan={addPrivateLoan}
             removePrivateLoan={removePrivateLoan}
+            resetPrivateLoan={resetPrivateLoan}
             updatePrivateLoan={updatePrivateLoan}
             isPrivateLoanComplete={isPrivateLoanComplete}
             updateRateFen={updateRateFen}
@@ -1916,6 +1921,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             creditCards={creditCards}
             addCreditCard={addCreditCard}
             removeCreditCard={removeCreditCard}
+            resetCreditCard={resetCreditCard}
             updateCreditCard={updateCreditCard}
             isCreditCardComplete={isCreditCardComplete}
           >
