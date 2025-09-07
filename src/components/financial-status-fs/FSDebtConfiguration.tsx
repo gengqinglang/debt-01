@@ -7,9 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
-import { Home, Car, CreditCard, ShoppingCart, Check, Edit, CalendarIcon, Percent, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Home, Car, CreditCard, ShoppingCart, Check, Edit, CalendarIcon, Percent, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -50,8 +49,6 @@ const LoanFormCard: React.FC<{
   calculateCommercialMonthlyPayment: (loan: LoanInfo) => number;
   calculateProvidentMonthlyPayment: (loan: LoanInfo) => number;
   calculateLoanStats: (loan: LoanInfo) => any;
-  isExpanded: boolean;
-  onToggleExpand: () => void;
 }> = ({
   loan,
   index,
@@ -67,8 +64,6 @@ const LoanFormCard: React.FC<{
   calculateCommercialMonthlyPayment,
   calculateProvidentMonthlyPayment,
   calculateLoanStats,
-  isExpanded,
-  onToggleExpand,
 }) => {
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
@@ -80,131 +75,24 @@ const LoanFormCard: React.FC<{
   
   return (
     <div className="relative">
-      {/* 收起时的摘要显示 */}
-      {!isExpanded && (
-        <div 
-          className="rounded-lg py-6 px-3 bg-white cursor-pointer hover:bg-gray-50 transition-colors"
-          style={{ border: '2px solid #CAF4F7' }}
-          onClick={onToggleExpand}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <h4 className="text-sm font-medium text-gray-900">
-                {loan.propertyName || `房贷 ${index + 1}`}
-              </h4>
-              <span className="text-xs px-2 py-1 bg-white/80 rounded text-gray-600">
-                {loan.loanType === 'commercial' ? '商业贷款' : 
-                 loan.loanType === 'provident' ? '公积金贷款' : '组合贷款'}
-              </span>
-            </div>
-            <ChevronDown className="h-4 w-4 text-gray-400" />
-          </div>
-          
-          <div className="space-y-3">
-            {/* 贷款基本信息展示 */}
-            <div className="grid grid-cols-3 gap-3 border-b border-white pb-2">
-              <div className="text-center">
-                <div className="text-xs text-gray-500 mb-1">原始贷款本金</div>
-                <div className="text-sm font-bold text-gray-900">
-                  {loan.loanAmount || '未设置'}万元
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-500 mb-1">利率</div>
-                <div className="text-sm font-bold text-gray-900">
-                  {loan.rateType === 'fixed' ? `${loan.fixedRate || '未设置'}%` : `LPR${loan.floatingRateAdjustment || '+0'}BP`}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-500 mb-1">月供</div>
-                <div className="text-sm font-bold text-gray-900">
-                  {isLoanComplete(loan) && stats?.currentMonthlyPayment ? `${Math.round(stats.currentMonthlyPayment).toLocaleString()}元` : '录入完毕后显示'}
-                </div>
-              </div>
-            </div>
-            
-            {/* 时间进度 */}
-            <div>
-                <div className="grid grid-cols-3 gap-3 mb-2">
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 mb-1">已还时间</div>
-                  <div className="text-sm font-semibold text-gray-900">
-                    {stats?.paidMonths || 0}个月
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 mb-1">剩余时间</div>
-                  <div className="text-sm font-semibold text-gray-900">
-                    {(stats?.totalMonths || 0) - (stats?.paidMonths || 0)}个月
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 mb-1">进度</div>
-                  <div className="text-sm font-semibold" style={{ color: '#01BCD6' }}>
-                    {stats?.timeProgress?.toFixed(1) || '0.0'}%
-                  </div>
-                </div>
-              </div>
-              <Progress value={stats?.timeProgress || 0} className="h-2" />
-            </div>
-
-            {/* 本金进度 - 只有输入了原始金额才显示 */}
-            {stats?.hasOriginalAmount && (
-              <div>
-                <div className="grid grid-cols-3 gap-3 mb-2">
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500 mb-1">已还本金</div>
-                    <div className="text-sm font-semibold text-gray-900">
-                      {((stats?.paidPrincipal || 0) / 10000).toFixed(1)}万元
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500 mb-1">待还本金</div>
-                    <div className="text-sm font-semibold text-gray-900">
-                      {(((stats?.totalPrincipal || 0) - (stats?.paidPrincipal || 0)) / 10000).toFixed(1)}万元
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-500 mb-1">进度</div>
-                    <div className="text-sm font-semibold" style={{ color: '#01BCD6' }}>
-                      {stats?.principalProgress?.toFixed(1) || '0.0'}%
-                    </div>
-                  </div>
-                </div>
-                <Progress value={stats?.principalProgress || 0} className="h-2" />
-              </div>
+      {/* 房贷编辑表单 */}
+      <div className="rounded-lg py-6 px-3 bg-white" style={{ border: '2px solid #CAF4F7' }}>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-900">
+            {loan.propertyName || `房贷 ${index + 1}`}
+          </h4>
+          <div className="flex items-center space-x-1">
+            {loansLength > 1 && (
+              <button 
+                onClick={() => removeLoan(loan.id)}
+                className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+                title="删除此房贷"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             )}
           </div>
         </div>
-      )}
-
-      {/* 展开时的编辑表单 */}
-      <Collapsible open={isExpanded} onOpenChange={onToggleExpand}>
-        <CollapsibleContent>
-          {isExpanded && (
-            <div className="rounded-lg py-6 px-3 bg-white" style={{ border: '2px solid #CAF4F7' }}>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-900">
-                  {loan.propertyName || `房贷 ${index + 1}`}
-                </h4>
-                <div className="flex items-center space-x-1">
-                  {loansLength > 1 && (
-                    <button 
-                      onClick={() => removeLoan(loan.id)}
-                      className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-                      title="删除此房贷"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                  <button 
-                    onClick={onToggleExpand}
-                    className="p-1 hover:bg-gray-100 rounded"
-                  >
-                    <ChevronUp className="h-4 w-4 text-gray-400" />
-                  </button>
-                </div>
-              </div>
             {/* 第一行：房产名 + 贷款类型 */}
             <div className="grid grid-cols-2 gap-4">
               <div className="min-w-0">
@@ -1033,9 +921,6 @@ const LoanFormCard: React.FC<{
               </>
             )}
             </div>
-          )}
-        </CollapsibleContent>
-      </Collapsible>
     </div>
   );
 };

@@ -60,48 +60,8 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
     }
   }, [loans.length, addLoan]);
   
-  // 初始化第一个贷款为展开状态
-  const [expandedLoans, setExpandedLoans] = useState<{ [key: string]: boolean }>(() => {
-    return loans.length > 0 ? { [loans[0].id]: true } : {};
-  });
-  
-  // 确保第一个房贷卡片默认展开（仅在初始化时）
-  useEffect(() => {
-    if (loans.length > 0 && Object.keys(expandedLoans).length === 0) {
-      setExpandedLoans({ [loans[0].id]: true });
-    }
-  }, [loans.length, expandedLoans]);
-  const prevLoansLengthRef = useRef(loans.length);
-  
   // 使用传入的LoanFormCard或默认的LoanFormCard
   const LoanCardComponent = CustomLoanFormCard || LoanFormCard;
-
-  // 检测新增贷款并自动展开，保持其他贷款状态
-  useEffect(() => {
-    if (loans.length > prevLoansLengthRef.current) {
-      // 新增了贷款，展开最新的贷款，但保持其他贷款的当前状态
-      const newLoan = loans[loans.length - 1];
-      setExpandedLoans(prev => ({
-        ...prev, // 保持之前的状态
-        [newLoan.id]: true // 只展开新贷款
-      }));
-    }
-    prevLoansLengthRef.current = loans.length;
-  }, [loans.length, loans]);
-
-  const toggleLoanExpand = (loanId: string) => {
-    setExpandedLoans(prev => ({
-      ...prev,
-      [loanId]: !prev[loanId]
-    }));
-  };
-
-  const collapseLoan = (loanId: string) => {
-    setExpandedLoans(prev => ({
-      ...prev,
-      [loanId]: false
-    }));
-  };
 
   // 同步内部 loans 给父组件
   useEffect(() => {
@@ -130,9 +90,6 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
             calculateProvidentMonthlyPayment={calculateProvidentMonthlyPayment}
             calculateCommercialLoanStats={calculateCommercialLoanStats}
             calculateProvidentLoanStats={calculateProvidentLoanStats}
-            isExpanded={expandedLoans[loan.id] || false}
-            onToggleExpand={() => toggleLoanExpand(loan.id)}
-            onCollapse={() => collapseLoan(loan.id)}
           />
         </div>
       ))}
