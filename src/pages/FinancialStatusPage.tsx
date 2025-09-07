@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, TrendingUp, PiggyBank, CreditCard, Check } from 'lucide-react';
 import FinancialConfigurationFlow from '@/components/financial-status-fs/FinancialConfigurationFlow';
-import { mockDebts, setMockDebts, clearMockDebts, isMockDebtsActive, getMockFormData } from '@/data/mockDebts';
+import { clearMockDebts } from '@/data/mockDebts';
 
 // 财务配置类型定义（移除信用卡类型）
 export interface DebtInfo {
@@ -49,91 +49,29 @@ const FinancialStatusPage = () => {
   // 待确认更改状态（用于跟踪用户是否有未确认的编辑）
   const [pendingChanges, setPendingChanges] = useState<{[key: string]: boolean}>({});
 
-  // 初始化模拟数据
+  // 初始化数据 - 清空模拟数据，从localStorage加载
   useEffect(() => {
-    // 如果没有已确认的债务数据，使用模拟数据
+    // 清除所有模拟数据
+    clearMockDebts();
+    
+    // 从localStorage加载已确认的债务数据
     try {
       const existingDebts = localStorage.getItem('confirmed_debts');
-      if (!existingDebts || JSON.parse(existingDebts).length === 0) {
-        setMockDebts();
-        setDebts(mockDebts);
+      if (existingDebts) {
+        const parsedDebts = JSON.parse(existingDebts);
+        setDebts(Array.isArray(parsedDebts) ? parsedDebts : []);
       } else {
-        setDebts(JSON.parse(existingDebts));
-      }
-
-      // 如果模拟数据处于激活状态，加载表单模拟数据
-      if (isMockDebtsActive()) {
-        let mockFormData = localStorage.getItem('mock_form_data');
-        if (!mockFormData) {
-          const formData = getMockFormData();
-          localStorage.setItem('mock_form_data', JSON.stringify(formData));
-          localStorage.setItem('shared_loan_data', JSON.stringify(formData.mortgage.loans));
-          mockFormData = JSON.stringify(formData);
-        }
-        
-        // 确保 shared_loan_data 存在
-        const sharedLoanData = localStorage.getItem('shared_loan_data');
-        if (!sharedLoanData) {
-          const formData = JSON.parse(mockFormData);
-          localStorage.setItem('shared_loan_data', JSON.stringify(formData.mortgage.loans));
-        }
-        
-        setLiveData(JSON.parse(mockFormData));
-        
-        // 构造包含详细数组的 confirmedDebts 并自动确认所有有数据的贷款类型
-        const formData = JSON.parse(mockFormData);
-        const autoConfirmed: {[key: string]: boolean} = {};
-        const confirmedDebts: DebtInfo[] = [];
-        
-        debtCategories.forEach(category => {
-          const categoryData = formData[category.id];
-          if (categoryData && (
-            (categoryData.loans && categoryData.loans.length > 0) ||
-            (categoryData.carLoans && categoryData.carLoans.length > 0) ||
-            (categoryData.consumerLoans && categoryData.consumerLoans.length > 0) ||
-            (categoryData.businessLoans && categoryData.businessLoans.length > 0) ||
-            (categoryData.privateLoans && categoryData.privateLoans.length > 0) ||
-            (categoryData.creditCards && categoryData.creditCards.length > 0) ||
-            categoryData.count > 0
-          )) {
-            autoConfirmed[category.id] = true;
-            
-            // 从 mockDebts 找到对应的债务信息并增强with详细数组
-            const mockDebt = mockDebts.find(debt => {
-              const typeMapping: {[key: string]: string} = {
-                'mortgage': '房贷',
-                'carLoan': '车贷', 
-                'consumerLoan': '消费贷',
-                'businessLoan': '经营贷',
-                'privateLoan': '民间贷',
-                'creditCard': '信用卡'
-              };
-              return debt.type === typeMapping[category.id];
-            });
-            
-            if (mockDebt) {
-              const enhancedDebt = {
-                ...mockDebt,
-                loans: categoryData.loans || [],
-                carLoans: categoryData.carLoans || [],
-                consumerLoans: categoryData.consumerLoans || [],
-                businessLoans: categoryData.businessLoans || [],
-                privateLoans: categoryData.privateLoans || [],
-                creditCards: categoryData.creditCards || []
-              };
-              confirmedDebts.push(enhancedDebt);
-            }
-          }
-        });
-        
-        setDebts(confirmedDebts);
-        setConfigConfirmed(autoConfirmed);
+        setDebts([]);
       }
     } catch (error) {
       console.error('加载债务数据失败:', error);
-      setMockDebts();
-      setDebts(mockDebts);
+      setDebts([]);
     }
+    
+    // 初始化所有状态为空
+    setLiveData({});
+    setConfigConfirmed({});
+    setPendingChanges({});
   }, []);
 
   // 定义债务配置顺序
@@ -500,7 +438,7 @@ const FinancialStatusPage = () => {
 
         {/* 配置流程 */}
             <FinancialConfigurationFlow
-              key={`${currentCategory.id}-${isMockDebtsActive()}-${JSON.stringify(getCurrentData())?.length || 0}`}
+              key={`${currentCategory.id}-${configConfirmed[currentCategory.id] ? 'confirmed' : 'unconfirmed'}-${pendingChanges[currentCategory.id] ? 'pending' : 'nopending'}`}
               currentStep={1}
               currentIndex={currentIndex}
               currentCategory={currentCategory}

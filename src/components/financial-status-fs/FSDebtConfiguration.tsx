@@ -1803,10 +1803,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
               {/* 左侧：再录一笔（虚线边框，青色） */}
               <Button
                 onClick={() => {
-                  // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
-                  if (onDataChange) {
-                    onDataChange(category.id, {}, { isInitialMount: false });
-                  }
+                  // 直接添加新项，不立即触发 pendingChanges
                   addOperationRef.current = true;
                   addLoan();
                   setTimeout(() => {
@@ -2112,7 +2109,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasDataChanged
+                isConfirmed && !hasPendingChanges
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
@@ -2164,7 +2161,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasDataChanged
+                isConfirmed && !hasPendingChanges
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}

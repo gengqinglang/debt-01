@@ -6,46 +6,25 @@ import type { DebtInfo } from '@/pages/FinancialStatusPage';
 import RepaymentSummary from '@/components/debt/RepaymentSummary';
 import LoanOverviewList from '@/components/debt/LoanOverviewList';
 import RepaymentCalendar from '@/components/debt/RepaymentCalendar';
-import { setMockDebts } from '@/data/mockDebts';
+
 
 const DebtAnalysisPage = () => {
   const navigate = useNavigate();
   const [debts, setDebts] = useState<DebtInfo[]>([]);
 
   useEffect(() => {
-    // 从本地存储加载债务数据，如果没有则使用模拟数据
+    // 从本地存储加载债务数据
     try {
       const savedDebts = localStorage.getItem('confirmed_debts');
       if (savedDebts) {
         const parsedDebts = JSON.parse(savedDebts);
-        if (parsedDebts.length === 0) {
-          setMockDebts();
-          const mockData = localStorage.getItem('confirmed_debts');
-          if (mockData) {
-            setDebts(JSON.parse(mockData));
-          }
-        } else {
-          setDebts(parsedDebts);
-        }
+        setDebts(Array.isArray(parsedDebts) ? parsedDebts : []);
       } else {
-        setMockDebts();
-        const mockData = localStorage.getItem('confirmed_debts');
-        if (mockData) {
-          setDebts(JSON.parse(mockData));
-        }
+        setDebts([]);
       }
     } catch (error) {
       console.error('加载债务数据失败:', error);
-      setMockDebts();
-      const mockData = localStorage.getItem('confirmed_debts');
-      if (mockData) {
-        try {
-          setDebts(JSON.parse(mockData));
-        } catch (err) {
-          console.error('解析模拟数据失败:', err);
-          setDebts([]);
-        }
-      }
+      setDebts([]);
     }
   }, []);
 
