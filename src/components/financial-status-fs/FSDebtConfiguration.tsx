@@ -1477,75 +1477,65 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   
   // 车贷实时数据更新
   useEffect(() => {
-    if (category.type === 'carLoan' && onDataChange && carLoans.length > 0) {
+    if (category.type === 'carLoan' && onDataChange) {
       const aggregatedData = getCarLoanAggregatedData();
-      if (aggregatedData.count > 0) {
-        onDataChange(category.id, {
-          count: aggregatedData.count,
-          monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths
-        });
-      }
+      onDataChange(category.id, {
+        count: aggregatedData.count,
+        monthlyPayment: aggregatedData.totalMonthlyPayment,
+        remainingMonths: aggregatedData.maxRemainingMonths
+      });
     }
   }, [carLoans, category.type, category.id, onDataChange, getCarLoanAggregatedData]);
   
   // 消费贷实时数据更新
   useEffect(() => {
-    if (category.type === 'consumerLoan' && onDataChange && consumerLoans.length > 0) {
+    if (category.type === 'consumerLoan' && onDataChange) {
       const aggregatedData = getConsumerLoanAggregatedData();
-      if (aggregatedData.count > 0) {
-        onDataChange(category.id, {
-          count: aggregatedData.count,
-          amount: aggregatedData.totalLoanAmount, // 消费贷使用总贷款金额
-          monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths
-        });
-      }
+      onDataChange(category.id, {
+        count: aggregatedData.count,
+        amount: aggregatedData.totalLoanAmount, // 消费贷使用总贷款金额
+        monthlyPayment: aggregatedData.totalMonthlyPayment,
+        remainingMonths: aggregatedData.maxRemainingMonths
+      });
     }
   }, [consumerLoans, category.type, category.id, onDataChange, getConsumerLoanAggregatedData]);
   
   // 经营贷实时数据更新
   useEffect(() => {
-    if (category.type === 'businessLoan' && onDataChange && businessLoans.length > 0) {
+    if (category.type === 'businessLoan' && onDataChange) {
       const aggregatedData = getBusinessLoanAggregatedData();
-      if (aggregatedData.count > 0) {
-        onDataChange(category.id, {
-          count: aggregatedData.count,
-          amount: aggregatedData.totalLoanAmount,
-          monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths
-        });
-      }
+      onDataChange(category.id, {
+        count: aggregatedData.count,
+        amount: aggregatedData.totalLoanAmount,
+        monthlyPayment: aggregatedData.totalMonthlyPayment,
+        remainingMonths: aggregatedData.maxRemainingMonths
+      });
     }
   }, [businessLoans, category.type, category.id, onDataChange, getBusinessLoanAggregatedData]);
   
   // 民间借贷实时数据更新
   useEffect(() => {
-    if (category.type === 'privateLoan' && onDataChange && privateLoans.length > 0) {
+    if (category.type === 'privateLoan' && onDataChange) {
       const aggregatedData = getPrivateLoanAggregatedData();
-      if (aggregatedData.count > 0) {
-        onDataChange(category.id, {
-          count: aggregatedData.count,
-          amount: aggregatedData.totalLoanAmount,
-          monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths
-        });
-      }
+      onDataChange(category.id, {
+        count: aggregatedData.count,
+        amount: aggregatedData.totalLoanAmount,
+        monthlyPayment: aggregatedData.totalMonthlyPayment,
+        remainingMonths: aggregatedData.maxRemainingMonths
+      });
     }
   }, [privateLoans, category.type, category.id, onDataChange, getPrivateLoanAggregatedData]);
   
   // 信用卡实时数据更新
   useEffect(() => {
-    if (category.type === 'creditCard' && onDataChange && creditCards.length > 0) {
+    if (category.type === 'creditCard' && onDataChange) {
       const aggregatedData = getCreditCardAggregatedData();
-      if (aggregatedData.count > 0) {
-        onDataChange(category.id, {
-          count: aggregatedData.count,
-          amount: aggregatedData.totalAmount, // 使用万元
-          monthlyPayment: 0, // 信用卡没有固定月供
-          remainingMonths: 0
-        });
-      }
+      onDataChange(category.id, {
+        count: aggregatedData.count,
+        amount: aggregatedData.totalAmount, // 使用万元
+        monthlyPayment: 0, // 信用卡没有固定月供
+        remainingMonths: 0
+      });
     }
   }, [creditCards, category.type, category.id, onDataChange, getCreditCardAggregatedData]);
 
