@@ -158,18 +158,6 @@ const FinancialStatusPage = () => {
   const calculateRemainingPrincipal = () => {
     return calculateTotalDebt();
   };
-    // 单位统一为“万”
-    const confirmedPrincipalWan = debts.reduce((sum, debt) => {
-      const val = Number(debt.amount) || 0;
-      return sum + val;
-    }, 0);
-    const mortgageLiveData = liveData['mortgage'] || {} as any;
-    const livePrincipalWan = Number(mortgageLiveData.remainingPrincipal) || 0;
-    if ((mortgageLiveData as any).count > 0 && !configConfirmed['mortgage']) {
-      return confirmedPrincipalWan + livePrincipalWan;
-    }
-    return confirmedPrincipalWan;
-  };
 
   // 计算待还利息（优先使用实时数据）
   const calculateRemainingInterest = () => {
@@ -200,28 +188,7 @@ const FinancialStatusPage = () => {
     
     return totalInterestWan;
   };
-    // 单位统一为“万”
-    const confirmedInterestWan = debts.reduce((sum, debt) => {
-      const monthly = Number((debt as any).monthlyPayment) || 0;
-      const months = Number((debt as any).remainingMonths) || 0;
-      const principalWan = Number(debt.amount) || 0;
-      if (monthly > 0 && months > 0 && principalWan >= 0) {
-        const totalPaymentsWan = (monthly * months) / 10000;
-        const interestWan = Math.max(0, totalPaymentsWan - principalWan);
-        return sum + interestWan;
-      }
-      return sum;
-    }, 0);
-    
-    const mortgageLiveData = liveData['mortgage'] || {} as any;
-    const liveInterestWan = Number(mortgageLiveData.remainingInterest) || 0;
-    if (mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedInterestWan + liveInterestWan;
-    }
-    return confirmedInterestWan;
-  };
 
-  
   // 处理实时数据变化 - 合并数据而非覆盖
   const handleDataChange = (categoryId: string, data: any) => {
     setLiveData(prev => {
