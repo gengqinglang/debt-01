@@ -107,10 +107,10 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn(
-                        "h-9 w-full justify-start text-left font-normal",
-                        !privateLoan.startDate && "text-muted-foreground"
-                      )}
+                       className={cn(
+                         "h-9 w-full justify-start text-left font-normal mt-1",
+                         !privateLoan.startDate && "text-muted-foreground"
+                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {privateLoan.startDate ? format(new Date(privateLoan.startDate), "yyyy-MM-dd") : "选择日期"}

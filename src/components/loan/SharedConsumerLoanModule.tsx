@@ -164,10 +164,10 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn(
-                        "h-9 w-full justify-start text-left font-normal",
-                        !consumerLoan.endDate && "text-muted-foreground"
-                      )}
+                       className={cn(
+                         "h-9 w-full justify-start text-left font-normal mt-1",
+                         !consumerLoan.endDate && "text-muted-foreground"
+                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {consumerLoan.endDate ? format(new Date(consumerLoan.endDate), "yyyy-MM-dd") : "选择日期"}
@@ -326,10 +326,10 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn(
-                        "h-9 w-full justify-start text-left font-normal",
-                        !consumerLoan.endDate && "text-muted-foreground"
-                      )}
+                       className={cn(
+                         "h-9 w-full justify-start text-left font-normal mt-1",
+                         !consumerLoan.endDate && "text-muted-foreground"
+                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {consumerLoan.endDate ? format(new Date(consumerLoan.endDate), "yyyy-MM-dd") : "选择日期"}
@@ -517,10 +517,10 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn(
-                        "h-9 w-full justify-start text-left font-normal",
-                        !consumerLoan.endDate && "text-muted-foreground"
-                      )}
+                       className={cn(
+                         "h-9 w-full justify-start text-left font-normal mt-1",
+                         !consumerLoan.endDate && "text-muted-foreground"
+                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {consumerLoan.endDate ? format(new Date(consumerLoan.endDate), "yyyy-MM-dd") : "选择日期"}

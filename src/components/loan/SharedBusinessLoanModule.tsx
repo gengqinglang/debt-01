@@ -164,10 +164,10 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn(
-                        "h-9 w-full justify-start text-left font-normal",
-                        !businessLoan.startDate && "text-muted-foreground"
-                      )}
+                       className={cn(
+                         "h-9 w-full justify-start text-left font-normal mt-1",
+                         !businessLoan.startDate && "text-muted-foreground"
+                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {businessLoan.startDate ? format(new Date(businessLoan.startDate), "yyyy-MM-dd") : "选择日期"}
@@ -357,10 +357,10 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn(
-                        "h-9 w-full justify-start text-left font-normal",
-                        !businessLoan.endDate && "text-muted-foreground"
-                      )}
+                       className={cn(
+                         "h-9 w-full justify-start text-left font-normal mt-1",
+                         !businessLoan.endDate && "text-muted-foreground"
+                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {businessLoan.endDate ? format(new Date(businessLoan.endDate), "yyyy-MM-dd") : "选择日期"}
