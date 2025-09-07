@@ -1673,6 +1673,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         {category.type === 'mortgage' ? (
           /* 房贷使用FSSharedLoanModule */
           <FSSharedLoanModule
+            existingData={existingData?.loans}
             calculateLoanStats={calculateLoanStats}
             isLoanComplete={isLoanComplete}
             calculateMonthlyPayment={calculateMonthlyPayment}

@@ -31,6 +31,8 @@ interface FSSharedLoanModuleProps {
   onLoansChange?: (loans: LoanInfo[]) => void;
   // 新增：控制是否持久化到localStorage
   persist?: boolean;
+  // 新增：外部数据初始化
+  existingData?: LoanInfo[];
 }
 
 export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
@@ -48,17 +50,27 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
   LoanFormCard: CustomLoanFormCard,
   children,
   onLoansChange,
-  persist = false // FS version defaults to false
+  persist = false, // FS version defaults to false
+  existingData
 }) => {
-  const { loans, updateLoan, addLoan, removeLoan } = useLoanData({ persist });
+  const { loans, updateLoan, addLoan, removeLoan, setLoans } = useLoanData({ persist });
   const { toast } = useToast();
+  
+  // 初始化外部数据
+  useEffect(() => {
+    if (existingData && existingData.length > 0) {
+      setLoans(existingData);
+    } else if (loans.length === 0) {
+      addLoan();
+    }
+  }, [existingData]);
   
   // 确保至少有一笔贷款（初始状态）
   useEffect(() => {
-    if (loans.length === 0) {
+    if (!existingData && loans.length === 0) {
       addLoan();
     }
-  }, [loans.length, addLoan]);
+  }, [loans.length, addLoan, existingData]);
   
   // 初始化第一个贷款为展开状态
   const [expandedLoans, setExpandedLoans] = useState<{ [key: string]: boolean }>(() => {
