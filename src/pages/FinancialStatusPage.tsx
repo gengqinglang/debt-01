@@ -268,8 +268,23 @@ const FinancialStatusPage = () => {
           <div className="grid grid-cols-3 gap-2">
             {debtCategories.map((cat, idx) => {
               const active = idx === currentIndex;
-              const hasData = debts.some(debt => debt.type === cat.id && debt.amount > 0) || 
-                             configConfirmed[cat.id];
+              
+              // 改进hasData逻辑，特别处理房贷
+              let hasData = false;
+              if (configConfirmed[cat.id]) {
+                // 已确认的情况
+                if (cat.id === 'mortgage') {
+                  const debt = debts.find(d => d.type === cat.id);
+                  hasData = debt && (debt.count || 0) > 0;
+                } else {
+                  hasData = debts.some(debt => debt.type === cat.id && debt.amount > 0);
+                }
+              } else {
+                // 未确认的情况，检查实时数据
+                const liveDataForCategory = liveData[cat.id];
+                hasData = liveDataForCategory && liveDataForCategory.count > 0;
+              }
+              
               return (
                 <button
                   key={cat.id}
