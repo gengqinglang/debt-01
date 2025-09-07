@@ -1092,6 +1092,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
 
   // Wrapper functions that set the add operation flag
   const addCarLoan = () => {
+    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
+    if (onDataChange) {
+      onDataChange(category.id, {}, { isInitialMount: false });
+    }
     addOperationRef.current = true;
     originalAddCarLoan();
     setTimeout(() => {
@@ -1100,6 +1104,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   };
 
   const addConsumerLoan = () => {
+    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
+    if (onDataChange) {
+      onDataChange(category.id, {}, { isInitialMount: false });
+    }
     addOperationRef.current = true;
     originalAddConsumerLoan();
     setTimeout(() => {
@@ -1108,6 +1116,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   };
 
   const addBusinessLoan = () => {
+    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
+    if (onDataChange) {
+      onDataChange(category.id, {}, { isInitialMount: false });
+    }
     addOperationRef.current = true;
     originalAddBusinessLoan();
     setTimeout(() => {
@@ -1116,6 +1128,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   };
 
   const addPrivateLoan = () => {
+    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
+    if (onDataChange) {
+      onDataChange(category.id, {}, { isInitialMount: false });
+    }
     addOperationRef.current = true;
     originalAddPrivateLoan();
     setTimeout(() => {
@@ -1124,6 +1140,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   };
 
   const addCreditCard = () => {
+    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
+    if (onDataChange) {
+      onDataChange(category.id, {}, { isInitialMount: false });
+    }
     addOperationRef.current = true;
     originalAddCreditCard();
     setTimeout(() => {
@@ -1142,6 +1162,13 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   // LPR 利率常量
   const currentLPR_5Year = 3.50; // 5年期LPR（公积金）
   const currentLPR_5YearPlus = 3.50; // 5年期以上LPR（商业）
+
+  // 初始化确认数据标记（防止初始挂载时触发pendingChanges）
+  useEffect(() => {
+    setTimeout(() => {
+      isInitialMountRef.current = false;
+    }, 0);
+  }, []);
 
   // Check if data has changed since last confirmation
   useEffect(() => {
@@ -1572,7 +1599,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           loans: loans // 保留详细数据供编辑使用
         };
         
-        onDataChange(category.id, liveData, { isAddOperation: addOperationRef.current });
+        onDataChange(category.id, liveData, { 
+          isAddOperation: addOperationRef.current,
+          isInitialMount: isInitialMountRef.current 
+        });
       }
     }
   }, [loans, category.type, category.id, onDataChange, isLoanComplete, calculateMonthlyPayment]);
@@ -1773,6 +1803,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
               {/* 左侧：再录一笔（虚线边框，青色） */}
               <Button
                 onClick={() => {
+                  // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
+                  if (onDataChange) {
+                    onDataChange(category.id, {}, { isInitialMount: false });
+                  }
                   addOperationRef.current = true;
                   addLoan();
                   setTimeout(() => {

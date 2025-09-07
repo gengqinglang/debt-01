@@ -80,9 +80,11 @@ const FinancialStatusPage = () => {
         
         setLiveData(JSON.parse(mockFormData));
         
-        // 自动确认所有有数据的贷款类型
+        // 构造包含详细数组的 confirmedDebts 并自动确认所有有数据的贷款类型
         const formData = JSON.parse(mockFormData);
         const autoConfirmed: {[key: string]: boolean} = {};
+        const confirmedDebts: DebtInfo[] = [];
+        
         debtCategories.forEach(category => {
           const categoryData = formData[category.id];
           if (categoryData && (
@@ -95,8 +97,36 @@ const FinancialStatusPage = () => {
             categoryData.count > 0
           )) {
             autoConfirmed[category.id] = true;
+            
+            // 从 mockDebts 找到对应的债务信息并增强with详细数组
+            const mockDebt = mockDebts.find(debt => {
+              const typeMapping: {[key: string]: string} = {
+                'mortgage': '房贷',
+                'carLoan': '车贷', 
+                'consumerLoan': '消费贷',
+                'businessLoan': '经营贷',
+                'privateLoan': '民间贷',
+                'creditCard': '信用卡'
+              };
+              return debt.type === typeMapping[category.id];
+            });
+            
+            if (mockDebt) {
+              const enhancedDebt = {
+                ...mockDebt,
+                loans: categoryData.loans || [],
+                carLoans: categoryData.carLoans || [],
+                consumerLoans: categoryData.consumerLoans || [],
+                businessLoans: categoryData.businessLoans || [],
+                privateLoans: categoryData.privateLoans || [],
+                creditCards: categoryData.creditCards || []
+              };
+              confirmedDebts.push(enhancedDebt);
+            }
           }
         });
+        
+        setDebts(confirmedDebts);
         setConfigConfirmed(autoConfirmed);
       }
     } catch (error) {
