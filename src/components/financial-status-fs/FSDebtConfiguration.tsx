@@ -1637,7 +1637,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             calculateProvidentLoanStats={calculateLoanStats}
             LoanFormCard={LoanFormCard}
             onLoansChange={setLoans}
-            persist={false}
+            persist={true}
           >
             <Button 
               onClick={() => {

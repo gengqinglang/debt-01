@@ -48,7 +48,7 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
   LoanFormCard: CustomLoanFormCard,
   children,
   onLoansChange,
-  persist = false // FS version defaults to false
+  persist = true // 修改默认值为true，确保数据持久化
 }) => {
   const { loans, updateLoan, addLoan, removeLoan, resetLoan } = useLoanData({ persist });
   const { toast } = useToast();
