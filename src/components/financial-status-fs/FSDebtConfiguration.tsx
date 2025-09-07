@@ -207,7 +207,7 @@ const LoanFormCard: React.FC<{
               </div>
             {/* 第一行：房产名 + 贷款类型 */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2 min-w-0">
+              <div className="min-w-0">
                 <Label className="text-xs font-medium">
                   房产名称 <span className="text-red-500">*</span>
                 </Label>
@@ -217,10 +217,10 @@ const LoanFormCard: React.FC<{
                   placeholder="如：海淀某小区"
                   value={loan.propertyName}
                   onChange={(e) => updateLoan(loan.id, 'propertyName', e.target.value)}
-                  className="h-9 text-sm"
+                  className="h-9 text-sm mt-1"
                 />
               </div>
-              <div className="space-y-2 min-w-0">
+              <div className="min-w-0">
                 <Label className="text-xs font-medium">
                   贷款类型 <span className="text-red-500">*</span>
                 </Label>
@@ -247,7 +247,7 @@ const LoanFormCard: React.FC<{
                     }
                   }
                 }}>
-                  <SelectTrigger className="h-9 text-sm w-full">
+                  <SelectTrigger className="h-9 text-sm w-full mt-1">
                     <SelectValue placeholder="选择类型" />
                   </SelectTrigger>
                   <SelectContent>
@@ -262,7 +262,7 @@ const LoanFormCard: React.FC<{
             {/* 第二行：贷款原始金额 + 剩余贷款本金（非组合贷款） */}
             {loan.loanType !== 'combination' && (
               <div className="grid grid-cols-2 gap-4 mt-5">
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0">
                   <Label className="text-xs font-medium">
                     贷款原始金额(万元)
                   </Label>
@@ -271,10 +271,10 @@ const LoanFormCard: React.FC<{
                     placeholder="如：300"
                     value={loan.loanAmount}
                     onChange={(e) => updateLoan(loan.id, 'loanAmount', e.target.value)}
-                    className="h-9 text-sm"
+                    className="h-9 text-sm mt-1"
                   />
                 </div>
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0">
                   <Label className="text-xs font-medium">
                      贷款剩余本金(万元) <span className="text-red-500">*</span>
                   </Label>
@@ -283,7 +283,7 @@ const LoanFormCard: React.FC<{
                     placeholder="如：200"
                     value={loan.remainingPrincipal || ''}
                     onChange={(e) => updateLoan(loan.id, 'remainingPrincipal', e.target.value)}
-                    className="h-9 text-sm"
+                    className="h-9 text-sm mt-1"
                   />
                 </div>
               </div>
@@ -292,7 +292,7 @@ const LoanFormCard: React.FC<{
             {/* 第三行：贷款开始/结束日期（非组合贷款） */}
             {loan.loanType !== 'combination' && (
               <div className="grid grid-cols-2 gap-4 mt-5">
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0">
                   <Label className="text-xs font-medium">
                     贷款开始日期 <span className="text-red-500">*</span>
                   </Label>
@@ -301,7 +301,7 @@ const LoanFormCard: React.FC<{
                       <Button
                         variant="outline"
                         className={cn(
-                          "h-9 w-full justify-start text-left font-normal",
+                          "h-9 w-full justify-start text-left font-normal mt-1",
                           !loan.loanStartDate && "text-muted-foreground"
                         )}
                       >
@@ -342,7 +342,7 @@ const LoanFormCard: React.FC<{
                     </PopoverContent>
                   </Popover>
                 </div>
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0">
                   <Label className="text-xs font-medium">
                     贷款结束日期 <span className="text-red-500">*</span>
                   </Label>
@@ -351,7 +351,7 @@ const LoanFormCard: React.FC<{
                       <Button
                         variant="outline"
                         className={cn(
-                          "h-9 w-full justify-start text-left font-normal",
+                          "h-9 w-full justify-start text-left font-normal mt-1",
                           !loan.loanEndDate && "text-muted-foreground"
                         )}
                       >
@@ -398,7 +398,7 @@ const LoanFormCard: React.FC<{
             {/* 第四行：还款方式 + 利率类型（商业贷款单贷） */}
             {loan.loanType === 'commercial' && (
               <div className="grid grid-cols-2 gap-4 mt-5">
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0">
                   <Label className="text-xs font-medium">
                     还款方式 <span className="text-red-500">*</span>
                   </Label>
@@ -417,7 +417,7 @@ const LoanFormCard: React.FC<{
                     </div>
                   </RadioGroup>
                 </div>
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0">
                   <Label className="text-xs font-medium">
                     利率类型 <span className="text-red-500">*</span>
                   </Label>
@@ -444,7 +444,7 @@ const LoanFormCard: React.FC<{
               <>
                 {loan.rateType === 'fixed' ? (
                   <div className="grid grid-cols-2 gap-4 mt-5">
-                    <div className="space-y-2 min-w-0">
+                    <div className="min-w-0">
                       <Label className="text-xs font-medium">
                         固定利率(%) <span className="text-red-500">*</span>
                       </Label>
@@ -461,8 +461,8 @@ const LoanFormCard: React.FC<{
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2 mt-5">
-                    <div className="space-y-2">
+                  <div className="mt-5">
+                    <div>
                       <Label className="text-xs font-medium">
                         利率加减点(基点BP) <span className="text-red-500">*</span>
                       </Label>
@@ -478,7 +478,7 @@ const LoanFormCard: React.FC<{
                             updateLoan(loan.id, 'floatingRateAdjustment', value);
                           }
                         }}
-                        className="h-9 w-full min-w-0 box-border rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="h-9 w-full min-w-0 box-border rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mt-1"
                       />
                     </div>
                   </div>
@@ -508,7 +508,7 @@ const LoanFormCard: React.FC<{
             {/* 第四行：还款方式 + 利率类型（公积金贷款单贷） */}
             {loan.loanType === 'provident' && (
               <div className="grid grid-cols-2 gap-4 mt-5">
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0">
                   <Label className="text-xs font-medium">
                     还款方式 <span className="text-red-500">*</span>
                   </Label>
@@ -527,7 +527,7 @@ const LoanFormCard: React.FC<{
                     </div>
                   </RadioGroup>
                 </div>
-                <div className="space-y-2 min-w-0">
+                <div className="min-w-0">
                   <Label className="text-xs font-medium">
                     利率 <span className="text-red-500">*</span>
                   </Label>
@@ -577,7 +577,7 @@ const LoanFormCard: React.FC<{
 
                 {/* 商业贷款金额和剩余本金 */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       商业贷款金额(万元)
                     </Label>
@@ -586,10 +586,10 @@ const LoanFormCard: React.FC<{
                       placeholder="如：250"
                       value={loan.commercialLoanAmount}
                       onChange={(e) => updateLoan(loan.id, 'commercialLoanAmount', e.target.value)}
-                      className="h-9 text-sm"
+                    className="h-9 text-sm mt-1"
                     />
                   </div>
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       商业剩余本金(万元) <span className="text-red-500">*</span>
                     </Label>
@@ -598,14 +598,14 @@ const LoanFormCard: React.FC<{
                       placeholder="如：180"
                       value={loan.commercialRemainingPrincipal || ''}
                       onChange={(e) => updateLoan(loan.id, 'commercialRemainingPrincipal', e.target.value)}
-                      className="h-9 text-sm"
+                      className="h-9 text-sm mt-1"
                     />
                   </div>
                 </div>
 
                 {/* 商业贷款开始和结束日期 */}
                 <div className="grid grid-cols-2 gap-4 mt-5">
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       贷款开始日期 <span className="text-red-500">*</span>
                     </Label>
@@ -655,7 +655,7 @@ const LoanFormCard: React.FC<{
                       </PopoverContent>
                     </Popover>
                   </div>
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       贷款结束日期 <span className="text-red-500">*</span>
                     </Label>
@@ -709,7 +709,7 @@ const LoanFormCard: React.FC<{
 
                 {/* 商业贷款还款方式和利率类型 */}
                 <div className="grid grid-cols-2 gap-4 mt-5">
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       还款方式 <span className="text-red-500">*</span>
                     </Label>
@@ -728,7 +728,7 @@ const LoanFormCard: React.FC<{
                       </div>
                     </RadioGroup>
                   </div>
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       利率类型 <span className="text-red-500">*</span>
                     </Label>
@@ -752,7 +752,7 @@ const LoanFormCard: React.FC<{
                 {/* 商业贷款利率具体值 */}
                 {loan.commercialRateType === 'fixed' ? (
                   <div className="grid grid-cols-2 gap-4 mt-5">
-                    <div className="space-y-2 min-w-0">
+                    <div className="min-w-0">
                       <Label className="text-xs font-medium">
                         固定利率(%) <span className="text-red-500">*</span>
                       </Label>
@@ -786,7 +786,7 @@ const LoanFormCard: React.FC<{
                             updateLoan(loan.id, 'commercialFloatingRateAdjustment', value);
                           }
                         }}
-                        className="h-9 w-full min-w-0 box-border rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        className="h-9 w-full min-w-0 box-border rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mt-1"
                       />
                     </div>
                   </div>
@@ -819,7 +819,7 @@ const LoanFormCard: React.FC<{
 
                 {/* 公积金贷款金额和剩余本金 */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       公积金贷款金额(万元)
                     </Label>
@@ -828,10 +828,10 @@ const LoanFormCard: React.FC<{
                       placeholder="如：50"
                       value={loan.providentLoanAmount}
                       onChange={(e) => updateLoan(loan.id, 'providentLoanAmount', e.target.value)}
-                      className="h-9 text-sm"
+                    className="h-9 text-sm mt-1"
                     />
                   </div>
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       公积金剩余本金(万元) <span className="text-red-500">*</span>
                     </Label>
@@ -840,14 +840,14 @@ const LoanFormCard: React.FC<{
                       placeholder="如：20"
                       value={loan.providentRemainingPrincipal || ''}
                       onChange={(e) => updateLoan(loan.id, 'providentRemainingPrincipal', e.target.value)}
-                      className="h-9 text-sm"
+                      className="h-9 text-sm mt-1"
                     />
                   </div>
                 </div>
 
                 {/* 公积金贷款开始和结束日期 */}
                 <div className="grid grid-cols-2 gap-4 mt-5">
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       贷款开始日期 <span className="text-red-500">*</span>
                     </Label>
@@ -897,7 +897,7 @@ const LoanFormCard: React.FC<{
                       </PopoverContent>
                     </Popover>
                   </div>
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       贷款结束日期 <span className="text-red-500">*</span>
                     </Label>
@@ -951,7 +951,7 @@ const LoanFormCard: React.FC<{
 
                 {/* 公积金贷款还款方式和利率 */}
                 <div className="grid grid-cols-2 gap-4 mt-5">
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       还款方式 <span className="text-red-500">*</span>
                     </Label>
@@ -970,7 +970,7 @@ const LoanFormCard: React.FC<{
                       </div>
                     </RadioGroup>
                   </div>
-                  <div className="space-y-2 min-w-0">
+                  <div className="min-w-0">
                     <Label className="text-xs font-medium">
                       利率 <span className="text-red-500">*</span>
                     </Label>
