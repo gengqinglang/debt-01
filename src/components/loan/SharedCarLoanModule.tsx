@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CalendarIcon, Trash2, Plus, Percent } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useCarLoanData, CarLoanInfo } from '@/hooks/useCarLoanData';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -58,13 +59,30 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
           {carLoan.vehicleName || `车贷 ${index + 1}`}
         </h4>
         {carLoansLength > 1 && (
-          <button 
-            onClick={() => removeCarLoan(carLoan.id)}
-            className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-            title="删除此车贷"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button 
+                className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+                title="删除此车贷"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>确认删除</AlertDialogTitle>
+                <AlertDialogDescription>
+                  您确定要删除这笔车贷吗？此操作不可撤销。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>取消</AlertDialogCancel>
+                <AlertDialogAction onClick={() => removeCarLoan(carLoan.id)}>
+                  确定删除
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
       

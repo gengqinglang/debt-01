@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon, Trash2, Plus } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ConsumerLoanInfo } from '@/hooks/useConsumerLoanData';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -91,13 +92,30 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
           消费贷 {index + 1}
         </h4>
         {consumerLoansLength > 1 && (
-          <button 
-            onClick={() => removeConsumerLoan(consumerLoan.id)}
-            className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-            title="删除此消费贷"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button 
+                className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+                title="删除此消费贷"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>确认删除</AlertDialogTitle>
+                <AlertDialogDescription>
+                  您确定要删除这笔消费贷吗？此操作不可撤销。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>取消</AlertDialogCancel>
+                <AlertDialogAction onClick={() => removeConsumerLoan(consumerLoan.id)}>
+                  确定删除
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
       

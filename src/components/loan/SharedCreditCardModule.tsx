@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Trash2, Plus } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { CreditCardInfo } from '@/hooks/useCreditCardData';
 
 interface CreditCardCardProps {
@@ -27,13 +28,30 @@ const CreditCardCard: React.FC<CreditCardCardProps> = ({
           信用卡 {index + 1}
         </h4>
         {creditCardsLength > 1 && (
-          <button 
-            onClick={() => removeCreditCard(creditCard.id)}
-            className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-            title="删除此信用卡"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button 
+                className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+                title="删除此信用卡"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>确认删除</AlertDialogTitle>
+                <AlertDialogDescription>
+                  您确定要删除这张信用卡吗？此操作不可撤销。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>取消</AlertDialogCancel>
+                <AlertDialogAction onClick={() => removeCreditCard(creditCard.id)}>
+                  确定删除
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
       
