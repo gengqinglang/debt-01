@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 
 // 导入页面组件
 import FinancialStatusPage from "./pages/FinancialStatusPage";
+import DebtAnalysisPage from "./pages/DebtAnalysisPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<FinancialStatusPage />} />
                   <Route path="/financial-status" element={<Navigate to="/" replace />} />
+                  <Route path="/debt-analysis" element={<DebtAnalysisPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </BrowserRouter>

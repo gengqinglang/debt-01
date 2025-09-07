@@ -186,9 +186,8 @@ const FinancialStatusPage = () => {
 
     console.log('Saving confirmed_debts to localStorage (by confirmed flag):', confirmedDebts);
 
-    // 显示保存成功提示
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    // 跳转到债务分析页面
+    navigate('/debt-analysis');
   };
 
   const getCurrentData = () => {
