@@ -115,67 +115,129 @@ const FinancialStatusPage = () => {
 
   const currentCategory = debtCategories[currentIndex];
 
-  // 计算债务汇总（优先使用实时数据）
-  const calculateTotalDebt = () => {
-    const confirmedDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
-    const mortgageLiveData = liveData['mortgage'];
-    if (mortgageLiveData && !configConfirmed['mortgage']) {
-      return confirmedDebt + mortgageLiveData.remainingPrincipal;
-    }
-    return confirmedDebt;
-  };
-
-  // 计算债务笔数（优先使用实时数据）
+  // 只统计已确认的债务笔数
   const calculateDebtCount = () => {
-    const confirmedCount = debts.filter(debt => debt.amount > 0).length;
-    const mortgageLiveData = liveData['mortgage'];
-    if (mortgageLiveData && mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedCount + mortgageLiveData.count;
-    }
-    return confirmedCount;
-  };
-
-  // 计算剩余本金（优先使用实时数据）
-  const calculateRemainingPrincipal = () => {
-    // 单位统一为“万”
-    const confirmedPrincipalWan = debts.reduce((sum, debt) => {
-      const val = Number(debt.amount) || 0;
-      return sum + val;
-    }, 0);
-    const mortgageLiveData = liveData['mortgage'] || {} as any;
-    const livePrincipalWan = Number(mortgageLiveData.remainingPrincipal) || 0;
-    if ((mortgageLiveData as any).count > 0 && !configConfirmed['mortgage']) {
-      return confirmedPrincipalWan + livePrincipalWan;
-    }
-    return confirmedPrincipalWan;
-  };
-
-  // 计算待还利息（优先使用实时数据）
-  const calculateRemainingInterest = () => {
-    // 单位统一为“万”
-    const confirmedInterestWan = debts.reduce((sum, debt) => {
-      const monthly = Number((debt as any).monthlyPayment) || 0;
-      const months = Number((debt as any).remainingMonths) || 0;
-      const principalWan = Number(debt.amount) || 0;
-      if (monthly > 0 && months > 0 && principalWan >= 0) {
-        const totalPaymentsWan = (monthly * months) / 10000;
-        const interestWan = Math.max(0, totalPaymentsWan - principalWan);
-        return sum + interestWan;
+    return debts.reduce((totalCount, debt) => {
+      if (!configConfirmed[debt.type]) return totalCount;
+      
+      switch (debt.type) {
+        case 'mortgage':
+          return totalCount + ((debt as any).loans?.length || 0);
+        case 'carLoan':
+          return totalCount + ((debt as any).carLoans?.length || 0);
+        case 'consumerLoan':
+          return totalCount + ((debt as any).consumerLoans?.length || 0);
+        case 'businessLoan':
+          return totalCount + ((debt as any).businessLoans?.length || 0);
+        case 'privateLoan':
+          return totalCount + ((debt as any).privateLoans?.length || 0);
+        case 'creditCard':
+          return totalCount + ((debt as any).creditCards?.length || 0);
+        default:
+          return totalCount;
       }
-      return sum;
     }, 0);
-    
-    const mortgageLiveData = liveData['mortgage'] || {} as any;
-    const liveInterestWan = Number(mortgageLiveData.remainingInterest) || 0;
-    if (mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedInterestWan + liveInterestWan;
-    }
-    return confirmedInterestWan;
   };
 
-  
-  // 处理实时数据变化 - 合并数据而非覆盖
+  // 只统计已确认的剩余本金
+  const calculateRemainingPrincipal = () => {
+    return debts.reduce((totalPrincipal, debt) => {
+      if (!configConfirmed[debt.type]) return totalPrincipal;
+      
+      switch (debt.type) {
+        case 'mortgage':
+          // 房贷：直接使用确认时的 amount（剩余本金合计，万元）
+          return totalPrincipal + (Number(debt.amount) || 0);
+        case 'carLoan':
+          // 车贷：从 carLoans 详情估算剩余本金
+          const carLoans = (debt as any).carLoans || [];
+          const carPrincipal = carLoans.reduce((sum: number, carLoan: any) => {
+            if (carLoan.loanType === 'bankLoan') {
+              // 银行贷款：优先 remainingPrincipal，否则 principal
+              return sum + (Number(carLoan.remainingPrincipal) || Number(carLoan.principal) || 0);
+            } else {
+              // 分期：用月供×期数估算
+              const installmentAmount = Number(carLoan.installmentAmount) || 0;
+              const remainingInstallments = Number(carLoan.remainingInstallments) || 0;
+              return sum + (installmentAmount * remainingInstallments / 10000);
+            }
+          }, 0);
+          return totalPrincipal + carPrincipal;
+        case 'consumerLoan':
+        case 'businessLoan':
+        case 'privateLoan':
+        case 'creditCard':
+          // 其它类别：使用确认时的 amount（近似剩余本金，万元）
+          return totalPrincipal + (Number(debt.amount) || 0);
+        default:
+          return totalPrincipal;
+      }
+    }, 0);
+  };
+
+  // 只统计已确认的待还利息
+  const calculateRemainingInterest = () => {
+    return debts.reduce((totalInterest, debt) => {
+      if (!configConfirmed[debt.type]) return totalInterest;
+      
+      let monthlyPaymentYuan = 0;
+      let remainingMonths = 0;
+      let principalWan = 0;
+      
+      switch (debt.type) {
+        case 'mortgage':
+          monthlyPaymentYuan = Number((debt as any).monthlyPayment) || 0;
+          remainingMonths = Number((debt as any).remainingMonths) || 0;
+          principalWan = Number(debt.amount) || 0;
+          break;
+        case 'carLoan':
+          // 车贷：使用 installmentAmount、remainingInstallments
+          monthlyPaymentYuan = Number((debt as any).installmentAmount) || 0;
+          remainingMonths = Number((debt as any).remainingInstallments) || 0;
+          // 车贷本金按上面计算逻辑估算
+          const carLoans = (debt as any).carLoans || [];
+          principalWan = carLoans.reduce((sum: number, carLoan: any) => {
+            if (carLoan.loanType === 'bankLoan') {
+              return sum + (Number(carLoan.remainingPrincipal) || Number(carLoan.principal) || 0);
+            } else {
+              const installmentAmount = Number(carLoan.installmentAmount) || 0;
+              const remainingInstallments = Number(carLoan.remainingInstallments) || 0;
+              return sum + (installmentAmount * remainingInstallments / 10000);
+            }
+          }, 0);
+          break;
+        case 'consumerLoan':
+        case 'businessLoan':
+        case 'privateLoan':
+          monthlyPaymentYuan = Number((debt as any).monthlyPayment) || 0;
+          remainingMonths = Number((debt as any).remainingMonths) || 0;
+          principalWan = Number(debt.amount) || 0;
+          break;
+        case 'creditCard':
+          // 信用卡没有固定月供和期数，利息为0
+          return totalInterest;
+        default:
+          return totalInterest;
+      }
+      
+      if (monthlyPaymentYuan > 0 && remainingMonths > 0 && principalWan >= 0) {
+        const totalPaymentsWan = (monthlyPaymentYuan * remainingMonths) / 10000;
+        const interestWan = Math.max(0, totalPaymentsWan - principalWan);
+        return totalInterest + interestWan;
+      }
+      
+      return totalInterest;
+    }, 0);
+  };
+
+  // 处理实时数据变化 - 数据变化时重置确认状态
   const handleDataChange = (categoryId: string, data: any) => {
+    // 数据变化时立即重置确认状态
+    setConfigConfirmed(prev => ({
+      ...prev,
+      [categoryId]: false
+    }));
+    
     setLiveData(prev => {
       const existing = prev[categoryId] || {};
       

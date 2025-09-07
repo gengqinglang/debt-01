@@ -1109,12 +1109,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     };
     
     const changed = JSON.stringify(currentData) !== JSON.stringify(lastConfirmedData);
-    // 如果已确认且有模拟数据，强制设置为未改变
-    if (isConfirmed && existingData) {
-      setHasDataChanged(false);
-    } else {
-      setHasDataChanged(changed);
-    }
+    setHasDataChanged(changed);
   }, [loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData, lastConfirmedData, isConfirmed, existingData]);
 
   // Sync with existing data when component mounts or existingData changes
@@ -1561,7 +1556,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         onDataChange(category.id, {
           count: aggregatedData.count,
           monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths
+          remainingMonths: aggregatedData.maxRemainingMonths,
+          carLoans: carLoans
         });
       }
     }
@@ -1576,7 +1572,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           count: aggregatedData.count,
           amount: aggregatedData.totalLoanAmount, // 消费贷使用总贷款金额
           monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths
+          remainingMonths: aggregatedData.maxRemainingMonths,
+          consumerLoans: consumerLoans
         });
       }
     }
@@ -1591,7 +1588,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           count: aggregatedData.count,
           amount: aggregatedData.totalLoanAmount,
           monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths
+          remainingMonths: aggregatedData.maxRemainingMonths,
+          businessLoans: businessLoans
         });
       }
     }
@@ -1606,7 +1604,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           count: aggregatedData.count,
           amount: aggregatedData.totalLoanAmount,
           monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths
+          remainingMonths: aggregatedData.maxRemainingMonths,
+          privateLoans: privateLoans
         });
       }
     }
@@ -1621,7 +1620,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           count: aggregatedData.count,
           amount: aggregatedData.totalAmount, // 使用万元
           monthlyPayment: 0, // 信用卡没有固定月供
-          remainingMonths: 0
+          remainingMonths: 0,
+          creditCards: creditCards
         });
       }
     }
