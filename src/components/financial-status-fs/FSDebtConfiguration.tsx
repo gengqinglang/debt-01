@@ -29,8 +29,9 @@ import { SharedCreditCardModule } from '@/components/loan/SharedCreditCardModule
 interface DebtConfigurationProps {
   category: any;
   onConfirm: (categoryId: string, data: any) => void;
-  onDataChange?: (categoryId: string, liveData: any, meta?: { isAddOperation?: boolean }) => void; // 新增实时数据回调
+  onDataChange?: (categoryId: string, liveData: any, meta?: { isAddOperation?: boolean; isInitialMount?: boolean }) => void; // 新增实时数据回调
   isConfirmed: boolean;
+  hasPendingChanges?: boolean; // 是否有待确认的更改
   existingData?: any;
 }
 
@@ -1030,6 +1031,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   onConfirm,
   onDataChange,
   isConfirmed,
+  hasPendingChanges,
   existingData
 }) => {
   const uniqueId = useId();
@@ -1037,6 +1039,9 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   
   // Track when add operations happen to distinguish from edit operations
   const addOperationRef = useRef(false);
+  
+  // Track initial mount to prevent triggering pending changes on initial data load
+  const isInitialMountRef = useRef(true);
   
   // Carloan hooks
   const { 
@@ -1582,7 +1587,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           monthlyPayment: aggregatedData.totalMonthlyPayment,
           remainingMonths: aggregatedData.maxRemainingMonths,
           carLoans: carLoans // 保存原始车贷数据用于后续编辑
-        }, { isAddOperation: addOperationRef.current });
+        }, { 
+          isAddOperation: addOperationRef.current,
+          isInitialMount: isInitialMountRef.current 
+        });
       }
     }
   }, [carLoans, category.type, category.id, onDataChange, getCarLoanAggregatedData]);
@@ -1598,7 +1606,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           monthlyPayment: aggregatedData.totalMonthlyPayment,
           remainingMonths: aggregatedData.maxRemainingMonths,
           consumerLoans: consumerLoans // 保存原始消费贷数据用于后续编辑
-        }, { isAddOperation: addOperationRef.current });
+        }, { 
+          isAddOperation: addOperationRef.current,
+          isInitialMount: isInitialMountRef.current 
+        });
       }
     }
   }, [consumerLoans, category.type, category.id, onDataChange, getConsumerLoanAggregatedData]);
@@ -1614,7 +1625,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           monthlyPayment: aggregatedData.totalMonthlyPayment,
           remainingMonths: aggregatedData.maxRemainingMonths,
           businessLoans: businessLoans // 保存原始经营贷数据用于后续编辑
-        }, { isAddOperation: addOperationRef.current });
+        }, { 
+          isAddOperation: addOperationRef.current,
+          isInitialMount: isInitialMountRef.current 
+        });
       }
     }
   }, [businessLoans, category.type, category.id, onDataChange, getBusinessLoanAggregatedData]);
@@ -1630,7 +1644,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           monthlyPayment: aggregatedData.totalMonthlyPayment,
           remainingMonths: aggregatedData.maxRemainingMonths,
           privateLoans: privateLoans // 保存原始民间借贷数据用于后续编辑
-        }, { isAddOperation: addOperationRef.current });
+        }, { 
+          isAddOperation: addOperationRef.current,
+          isInitialMount: isInitialMountRef.current 
+        });
       }
     }
   }, [privateLoans, category.type, category.id, onDataChange, getPrivateLoanAggregatedData]);
@@ -1646,7 +1663,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           monthlyPayment: 0, // 信用卡没有固定月供
           remainingMonths: 0,
           creditCards: creditCards // 保存原始信用卡数据用于后续编辑
-        }, { isAddOperation: addOperationRef.current });
+        }, { 
+          isAddOperation: addOperationRef.current,
+          isInitialMount: isInitialMountRef.current 
+        });
       }
     }
   }, [creditCards, category.type, category.id, onDataChange, getCreditCardAggregatedData]);
@@ -1848,14 +1868,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   }
                 }}
                 className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                  isConfirmed && !hasDataChanged
+                  isConfirmed && !hasPendingChanges
                     ? 'bg-[#B3EBEF]/50 text-gray-500'
                     : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
                 }`}
                 disabled={!loans.some(loan => isLoanComplete(loan))}
               >
                 <Check className="w-4 h-4 mr-2" />
-                {isConfirmed && !hasDataChanged ? '已确认' : '确认房贷信息'}
+                {isConfirmed && !hasPendingChanges ? '已确认' : '确认房贷信息'}
               </Button>
             </div>
           </div>
@@ -1900,14 +1920,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasDataChanged
+                isConfirmed && !hasPendingChanges
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!carLoans.some(isCarLoanComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasDataChanged ? '已确认' : '确认车贷信息'}
+              {isConfirmed && !hasPendingChanges ? '已确认' : '确认车贷信息'}
             </Button>
           </SharedCarLoanModule>
         ) : category.type === 'consumerLoan' ? (
@@ -1952,14 +1972,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasDataChanged
+                isConfirmed && !hasPendingChanges
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!consumerLoans.some(isConsumerLoanComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasDataChanged ? '已确认' : '确认消费贷信息'}
+              {isConfirmed && !hasPendingChanges ? '已确认' : '确认消费贷信息'}
             </Button>
           </SharedConsumerLoanModule>
         ) : category.type === 'businessLoan' ? (
@@ -2004,14 +2024,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasDataChanged
+                isConfirmed && !hasPendingChanges
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!businessLoans.some(isBusinessLoanComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasDataChanged ? '已确认' : '确认经营贷信息'}
+              {isConfirmed && !hasPendingChanges ? '已确认' : '确认经营贷信息'}
             </Button>
           </SharedBusinessLoanModule>
         ) : category.type === 'privateLoan' ? (
@@ -2065,7 +2085,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
               disabled={!privateLoans.some(isPrivateLoanComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasDataChanged ? '已确认' : '确认民间借贷信息'}
+              {isConfirmed && !hasPendingChanges ? '已确认' : '确认民间借贷信息'}
             </Button>
           </SharedPrivateLoanModule>
         ) : category.type === 'creditCard' ? (
@@ -2117,7 +2137,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
               disabled={!creditCards.some(isCreditCardComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasDataChanged ? '已确认' : '确认信用卡信息'}
+              {isConfirmed && !hasPendingChanges ? '已确认' : '确认信用卡信息'}
             </Button>
           </SharedCreditCardModule>
         ) : (

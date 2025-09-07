@@ -45,6 +45,9 @@ const FinancialStatusPage = () => {
   
   // 实时数据状态（用于显示未确认但已填写的数据）
   const [liveData, setLiveData] = useState<{[key: string]: any}>({});
+  
+  // 待确认更改状态（用于跟踪用户是否有未确认的编辑）
+  const [pendingChanges, setPendingChanges] = useState<{[key: string]: boolean}>({});
 
   // 初始化模拟数据
   useEffect(() => {
@@ -230,13 +233,16 @@ const FinancialStatusPage = () => {
     }, 0);
   };
 
-  // 处理实时数据变化 - 根据操作类型决定是否重置确认状态
-  const handleDataChange = (categoryId: string, data: any, meta?: { isAddOperation?: boolean }) => {
-    // 只有在非添加操作时才重置确认状态（编辑现有数据时重置，再录一笔时不重置）
-    if (!meta?.isAddOperation) {
-      setConfigConfirmed(prev => ({
+  // 处理实时数据变化 - 设置待确认状态但不影响TAB勾选和统计
+  const handleDataChange = (categoryId: string, data: any, meta?: { isAddOperation?: boolean; isInitialMount?: boolean }) => {
+    // 忽略初始挂载时的数据变化，避免取消确认状态
+    if (meta?.isInitialMount) {
+      // 只更新liveData，不影响确认状态和待确认状态
+    } else {
+      // 标记为有待确认的更改（TAB保持勾选，但按钮文字会变化）
+      setPendingChanges(prev => ({
         ...prev,
-        [categoryId]: false
+        [categoryId]: true
       }));
     }
     
@@ -289,13 +295,56 @@ const FinancialStatusPage = () => {
       setDebts([...debts, { id: Date.now().toString(), type: categoryId as any, ...data }]);
     }
 
-    setConfigConfirmed({
-      ...configConfirmed,
-      [categoryId]: true
-    });
+    // 检查确认后是否还有有效记录来决定TAB状态
+    const hasValidRecords = checkCategoryHasValidRecords(categoryId, data);
+    
+    setConfigConfirmed(prev => ({
+      ...prev,
+      [categoryId]: hasValidRecords
+    }));
+    
+    // 清除待确认状态
+    setPendingChanges(prev => ({
+      ...prev,
+      [categoryId]: false
+    }));
 
     // 完成当前配置后不自动跳转，由用户通过上方类型选择切换
     // 保留数据与确认状态，不改变 currentIndex
+  };
+  
+  // 检查类别是否有有效记录
+  const checkCategoryHasValidRecords = (categoryId: string, data: any): boolean => {
+    switch (categoryId) {
+      case 'mortgage':
+        return (data.loans && data.loans.length > 0 && data.loans.some((loan: any) => 
+          loan.propertyName && loan.remainingPrincipal && parseFloat(loan.remainingPrincipal) > 0
+        ));
+      case 'carLoan':
+        return (data.carLoans && data.carLoans.length > 0 && data.carLoans.some((loan: any) => 
+          loan.vehicleName && ((loan.loanType === 'installment' && loan.installmentAmount && parseFloat(loan.installmentAmount) > 0) ||
+                               (loan.loanType === 'bankLoan' && loan.principal && parseFloat(loan.principal) > 0))
+        ));
+      case 'consumerLoan':
+        return (data.consumerLoans && data.consumerLoans.length > 0 && data.consumerLoans.some((loan: any) => 
+          loan.loanAmount && parseFloat(loan.loanAmount) > 0
+        ));
+      case 'businessLoan':
+        return (data.businessLoans && data.businessLoans.length > 0 && data.businessLoans.some((loan: any) => 
+          loan.loanAmount && parseFloat(loan.loanAmount) > 0
+        ));
+      case 'privateLoan':
+        return (data.privateLoans && data.privateLoans.length > 0 && data.privateLoans.some((loan: any) => 
+          loan.loanAmount && parseFloat(loan.loanAmount) > 0
+        ));
+      case 'creditCard':
+        return (data.creditCards && data.creditCards.length > 0 && data.creditCards.some((card: any) => 
+          (card.currentAmount && parseFloat(card.currentAmount) > 0) || 
+          (card.unbilledAmount && parseFloat(card.unbilledAmount) > 0)
+        ));
+      default:
+        return false;
+    }
   };
 
   // 返回上一步
@@ -427,6 +476,7 @@ const FinancialStatusPage = () => {
               currentCategory={currentCategory}
               allCategories={debtCategories}
               configConfirmed={configConfirmed}
+              pendingChanges={pendingChanges}
               onConfigConfirm={handleConfigConfirm}
               onDataChange={handleDataChange}
               onSkip={skipCurrentConfig}
