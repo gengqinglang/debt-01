@@ -1124,6 +1124,23 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     }
   }, [existingData, category.type, setLoans]);
 
+  // 初始化确认状态数据（用于模拟数据自动确认）
+  useEffect(() => {
+    if (isConfirmed && !lastConfirmedData && existingData) {
+      const initialConfirmedData = {
+        loans,
+        carLoans,
+        consumerLoans,
+        businessLoans,
+        privateLoans,
+        creditCards,
+        formData
+      };
+      setLastConfirmedData(initialConfirmedData);
+      setHasDataChanged(false);
+    }
+  }, [isConfirmed, lastConfirmedData, existingData, loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData]);
+
   // 汇总车贷数据
   const getCarLoanAggregatedData = () => {
     const completeCarLoans = carLoans.filter(isCarLoanComplete);

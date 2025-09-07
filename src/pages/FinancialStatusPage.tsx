@@ -76,6 +76,25 @@ const FinancialStatusPage = () => {
         }
         
         setLiveData(JSON.parse(mockFormData));
+        
+        // 自动确认所有有数据的贷款类型
+        const formData = JSON.parse(mockFormData);
+        const autoConfirmed: {[key: string]: boolean} = {};
+        debtCategories.forEach(category => {
+          const categoryData = formData[category.id];
+          if (categoryData && (
+            (categoryData.loans && categoryData.loans.length > 0) ||
+            (categoryData.carLoans && categoryData.carLoans.length > 0) ||
+            (categoryData.consumerLoans && categoryData.consumerLoans.length > 0) ||
+            (categoryData.businessLoans && categoryData.businessLoans.length > 0) ||
+            (categoryData.privateLoans && categoryData.privateLoans.length > 0) ||
+            (categoryData.creditCards && categoryData.creditCards.length > 0) ||
+            categoryData.count > 0
+          )) {
+            autoConfirmed[category.id] = true;
+          }
+        });
+        setConfigConfirmed(autoConfirmed);
       }
     } catch (error) {
       console.error('加载债务数据失败:', error);
@@ -311,8 +330,7 @@ const FinancialStatusPage = () => {
           <div className="grid grid-cols-3 gap-2">
             {debtCategories.map((cat, idx) => {
               const active = idx === currentIndex;
-              const hasData = debts.some(debt => debt.type === cat.id && debt.amount > 0) || 
-                             configConfirmed[cat.id];
+              const isConfirmed = configConfirmed[cat.id];
               return (
                 <button
                   key={cat.id}
@@ -326,7 +344,7 @@ const FinancialStatusPage = () => {
                   aria-pressed={active}
                 >
                   {cat.name}
-                  {hasData && (
+                  {isConfirmed && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: '#01BCD6' }}>
                       <Check className="w-2.5 h-2.5 text-white" />
                     </div>
