@@ -7,24 +7,20 @@ import RepaymentSummary from '@/components/debt/RepaymentSummary';
 import LoanOverviewList from '@/components/debt/LoanOverviewList';
 import RepaymentCalendar from '@/components/debt/RepaymentCalendar';
 
-
 const DebtAnalysisPage = () => {
   const navigate = useNavigate();
   const [debts, setDebts] = useState<DebtInfo[]>([]);
 
   useEffect(() => {
-    // 从本地存储加载债务数据
-    try {
-      const savedDebts = localStorage.getItem('confirmed_debts');
-      if (savedDebts) {
+    const savedDebts = localStorage.getItem('confirmed_debts');
+    if (savedDebts) {
+      try {
         const parsedDebts = JSON.parse(savedDebts);
         setDebts(Array.isArray(parsedDebts) ? parsedDebts : []);
-      } else {
+      } catch (error) {
+        console.error('Error parsing saved debts:', error);
         setDebts([]);
       }
-    } catch (error) {
-      console.error('加载债务数据失败:', error);
-      setDebts([]);
     }
   }, []);
 

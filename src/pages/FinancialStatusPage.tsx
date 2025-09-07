@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, TrendingUp, PiggyBank, CreditCard, Check } from 'lucide-react';
 import FinancialConfigurationFlow from '@/components/financial-status-fs/FinancialConfigurationFlow';
-import { clearMockDebts } from '@/data/mockDebts';
 
 // 财务配置类型定义（移除信用卡类型）
 export interface DebtInfo {
@@ -45,34 +44,6 @@ const FinancialStatusPage = () => {
   
   // 实时数据状态（用于显示未确认但已填写的数据）
   const [liveData, setLiveData] = useState<{[key: string]: any}>({});
-  
-  // 待确认更改状态（用于跟踪用户是否有未确认的编辑）
-  const [pendingChanges, setPendingChanges] = useState<{[key: string]: boolean}>({});
-
-  // 初始化数据 - 清空模拟数据，从localStorage加载
-  useEffect(() => {
-    // 清除所有模拟数据
-    clearMockDebts();
-    
-    // 从localStorage加载已确认的债务数据
-    try {
-      const existingDebts = localStorage.getItem('confirmed_debts');
-      if (existingDebts) {
-        const parsedDebts = JSON.parse(existingDebts);
-        setDebts(Array.isArray(parsedDebts) ? parsedDebts : []);
-      } else {
-        setDebts([]);
-      }
-    } catch (error) {
-      console.error('加载债务数据失败:', error);
-      setDebts([]);
-    }
-    
-    // 初始化所有状态为空
-    setLiveData({});
-    setConfigConfirmed({});
-    setPendingChanges({});
-  }, []);
 
   // 定义债务配置顺序
   const debtCategories = [
@@ -86,169 +57,71 @@ const FinancialStatusPage = () => {
 
   const currentCategory = debtCategories[currentIndex];
 
-  // 只统计已确认的债务笔数
-  const calculateDebtCount = () => {
-    return debts.reduce((totalCount, debt) => {
-      if (!configConfirmed[debt.type]) return totalCount;
-      
-      switch (debt.type) {
-        case 'mortgage':
-          return totalCount + ((debt as any).loans?.length || 0);
-        case 'carLoan':
-          return totalCount + ((debt as any).carLoans?.length || 0);
-        case 'consumerLoan':
-          return totalCount + ((debt as any).consumerLoans?.length || 0);
-        case 'businessLoan':
-          return totalCount + ((debt as any).businessLoans?.length || 0);
-        case 'privateLoan':
-          return totalCount + ((debt as any).privateLoans?.length || 0);
-        case 'creditCard':
-          return totalCount + ((debt as any).creditCards?.length || 0);
-        default:
-          return totalCount;
-      }
-    }, 0);
-  };
-
-  // 只统计已确认的剩余本金
-  const calculateRemainingPrincipal = () => {
-    return debts.reduce((totalPrincipal, debt) => {
-      if (!configConfirmed[debt.type]) return totalPrincipal;
-      
-      switch (debt.type) {
-        case 'mortgage':
-          // 房贷：直接使用确认时的 amount（剩余本金合计，万元）
-          return totalPrincipal + (Number(debt.amount) || 0);
-        case 'carLoan':
-          // 车贷：从 carLoans 详情估算剩余本金
-          const carLoans = (debt as any).carLoans || [];
-          const carPrincipal = carLoans.reduce((sum: number, carLoan: any) => {
-            if (carLoan.loanType === 'bankLoan') {
-              // 银行贷款：优先 remainingPrincipal，否则 principal
-              return sum + (Number(carLoan.remainingPrincipal) || Number(carLoan.principal) || 0);
-            } else {
-              // 分期：用月供×期数估算
-              const installmentAmount = Number(carLoan.installmentAmount) || 0;
-              const remainingInstallments = Number(carLoan.remainingInstallments) || 0;
-              return sum + (installmentAmount * remainingInstallments / 10000);
-            }
-          }, 0);
-          return totalPrincipal + carPrincipal;
-        case 'consumerLoan':
-        case 'businessLoan':
-        case 'privateLoan':
-        case 'creditCard':
-          // 其它类别：使用确认时的 amount（近似剩余本金，万元）
-          return totalPrincipal + (Number(debt.amount) || 0);
-        default:
-          return totalPrincipal;
-      }
-    }, 0);
-  };
-
-  // 只统计已确认的待还利息
-  const calculateRemainingInterest = () => {
-    return debts.reduce((totalInterest, debt) => {
-      if (!configConfirmed[debt.type]) return totalInterest;
-      
-      let monthlyPaymentYuan = 0;
-      let remainingMonths = 0;
-      let principalWan = 0;
-      
-      switch (debt.type) {
-        case 'mortgage':
-          monthlyPaymentYuan = Number((debt as any).monthlyPayment) || 0;
-          remainingMonths = Number((debt as any).remainingMonths) || 0;
-          principalWan = Number(debt.amount) || 0;
-          break;
-        case 'carLoan':
-          // 车贷：使用 installmentAmount、remainingInstallments
-          monthlyPaymentYuan = Number((debt as any).installmentAmount) || 0;
-          remainingMonths = Number((debt as any).remainingInstallments) || 0;
-          // 车贷本金按上面计算逻辑估算
-          const carLoans = (debt as any).carLoans || [];
-          principalWan = carLoans.reduce((sum: number, carLoan: any) => {
-            if (carLoan.loanType === 'bankLoan') {
-              return sum + (Number(carLoan.remainingPrincipal) || Number(carLoan.principal) || 0);
-            } else {
-              const installmentAmount = Number(carLoan.installmentAmount) || 0;
-              const remainingInstallments = Number(carLoan.remainingInstallments) || 0;
-              return sum + (installmentAmount * remainingInstallments / 10000);
-            }
-          }, 0);
-          break;
-        case 'consumerLoan':
-        case 'businessLoan':
-        case 'privateLoan':
-          monthlyPaymentYuan = Number((debt as any).monthlyPayment) || 0;
-          remainingMonths = Number((debt as any).remainingMonths) || 0;
-          principalWan = Number(debt.amount) || 0;
-          break;
-        case 'creditCard':
-          // 信用卡没有固定月供和期数，利息为0
-          return totalInterest;
-        default:
-          return totalInterest;
-      }
-      
-      if (monthlyPaymentYuan > 0 && remainingMonths > 0 && principalWan >= 0) {
-        const totalPaymentsWan = (monthlyPaymentYuan * remainingMonths) / 10000;
-        const interestWan = Math.max(0, totalPaymentsWan - principalWan);
-        return totalInterest + interestWan;
-      }
-      
-      return totalInterest;
-    }, 0);
-  };
-
-  // 处理实时数据变化 - 设置待确认状态但不影响TAB勾选和统计
-  const handleDataChange = (categoryId: string, data: any, meta?: { isAddOperation?: boolean; isInitialMount?: boolean }) => {
-    // 忽略初始挂载时的数据变化，避免取消确认状态
-    if (meta?.isInitialMount) {
-      // 只更新liveData，不影响确认状态和待确认状态
-    } else {
-      // 标记为有待确认的更改（TAB保持勾选，但按钮文字会变化）
-      setPendingChanges(prev => ({
-        ...prev,
-        [categoryId]: true
-      }));
+  // 计算债务汇总（优先使用实时数据）
+  const calculateTotalDebt = () => {
+    const confirmedDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
+    const mortgageLiveData = liveData['mortgage'];
+    if (mortgageLiveData && !configConfirmed['mortgage']) {
+      return confirmedDebt + mortgageLiveData.remainingPrincipal;
     }
-    
-    setLiveData(prev => {
-      const existing = prev[categoryId] || {};
-      
-      // 检查是否有详细结构键（loans, carLoans等）
-      const hasDetailKeys = ['loans', 'carLoans', 'consumerLoans', 'businessLoans', 'privateLoans', 'creditCards'];
-      const hasExistingDetail = hasDetailKeys.some(key => existing[key]);
-      const hasNewDetail = hasDetailKeys.some(key => data[key]);
-      
-      // 如果存在详细结构，保留详细结构，只更新汇总字段
-      if (hasExistingDetail && !hasNewDetail) {
-        // 只更新汇总字段，保留详细结构
-        return {
-          ...prev,
-          [categoryId]: {
-            ...existing,
-            // 只更新非详细结构的字段
-            ...Object.keys(data).reduce((acc, key) => {
-              if (!hasDetailKeys.includes(key)) {
-                acc[key] = data[key];
-              }
-              return acc;
-            }, {} as any)
-          }
-        };
+    return confirmedDebt;
+  };
+
+  // 计算债务笔数（优先使用实时数据）
+  const calculateDebtCount = () => {
+    const confirmedCount = debts.filter(debt => debt.amount > 0).length;
+    const mortgageLiveData = liveData['mortgage'];
+    if (mortgageLiveData && mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
+      return confirmedCount + mortgageLiveData.count;
+    }
+    return confirmedCount;
+  };
+
+  // 计算剩余本金（优先使用实时数据）
+  const calculateRemainingPrincipal = () => {
+    // 单位统一为“万”
+    const confirmedPrincipalWan = debts.reduce((sum, debt) => {
+      const val = Number(debt.amount) || 0;
+      return sum + val;
+    }, 0);
+    const mortgageLiveData = liveData['mortgage'] || {} as any;
+    const livePrincipalWan = Number(mortgageLiveData.remainingPrincipal) || 0;
+    if ((mortgageLiveData as any).count > 0 && !configConfirmed['mortgage']) {
+      return confirmedPrincipalWan + livePrincipalWan;
+    }
+    return confirmedPrincipalWan;
+  };
+
+  // 计算待还利息（优先使用实时数据）
+  const calculateRemainingInterest = () => {
+    // 单位统一为“万”
+    const confirmedInterestWan = debts.reduce((sum, debt) => {
+      const monthly = Number((debt as any).monthlyPayment) || 0;
+      const months = Number((debt as any).remainingMonths) || 0;
+      const principalWan = Number(debt.amount) || 0;
+      if (monthly > 0 && months > 0 && principalWan >= 0) {
+        const totalPaymentsWan = (monthly * months) / 10000;
+        const interestWan = Math.max(0, totalPaymentsWan - principalWan);
+        return sum + interestWan;
       }
-      
-      // 否则正常合并
-      return {
-        ...prev,
-        [categoryId]: {
-          ...existing,
-          ...data
-        }
-      };
-    });
+      return sum;
+    }, 0);
+    
+    const mortgageLiveData = liveData['mortgage'] || {} as any;
+    const liveInterestWan = Number(mortgageLiveData.remainingInterest) || 0;
+    if (mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
+      return confirmedInterestWan + liveInterestWan;
+    }
+    return confirmedInterestWan;
+  };
+
+  
+  // 处理实时数据变化
+  const handleDataChange = (categoryId: string, data: any) => {
+    setLiveData(prev => ({
+      ...prev,
+      [categoryId]: data
+    }));
   };
 
   // 处理配置确认
@@ -263,56 +136,13 @@ const FinancialStatusPage = () => {
       setDebts([...debts, { id: Date.now().toString(), type: categoryId as any, ...data }]);
     }
 
-    // 检查确认后是否还有有效记录来决定TAB状态
-    const hasValidRecords = checkCategoryHasValidRecords(categoryId, data);
-    
-    setConfigConfirmed(prev => ({
-      ...prev,
-      [categoryId]: hasValidRecords
-    }));
-    
-    // 清除待确认状态
-    setPendingChanges(prev => ({
-      ...prev,
-      [categoryId]: false
-    }));
+    setConfigConfirmed({
+      ...configConfirmed,
+      [categoryId]: true
+    });
 
     // 完成当前配置后不自动跳转，由用户通过上方类型选择切换
     // 保留数据与确认状态，不改变 currentIndex
-  };
-  
-  // 检查类别是否有有效记录
-  const checkCategoryHasValidRecords = (categoryId: string, data: any): boolean => {
-    switch (categoryId) {
-      case 'mortgage':
-        return (data.loans && data.loans.length > 0 && data.loans.some((loan: any) => 
-          loan.propertyName && loan.remainingPrincipal && parseFloat(loan.remainingPrincipal) > 0
-        ));
-      case 'carLoan':
-        return (data.carLoans && data.carLoans.length > 0 && data.carLoans.some((loan: any) => 
-          loan.vehicleName && ((loan.loanType === 'installment' && loan.installmentAmount && parseFloat(loan.installmentAmount) > 0) ||
-                               (loan.loanType === 'bankLoan' && loan.principal && parseFloat(loan.principal) > 0))
-        ));
-      case 'consumerLoan':
-        return (data.consumerLoans && data.consumerLoans.length > 0 && data.consumerLoans.some((loan: any) => 
-          loan.loanAmount && parseFloat(loan.loanAmount) > 0
-        ));
-      case 'businessLoan':
-        return (data.businessLoans && data.businessLoans.length > 0 && data.businessLoans.some((loan: any) => 
-          loan.loanAmount && parseFloat(loan.loanAmount) > 0
-        ));
-      case 'privateLoan':
-        return (data.privateLoans && data.privateLoans.length > 0 && data.privateLoans.some((loan: any) => 
-          loan.loanAmount && parseFloat(loan.loanAmount) > 0
-        ));
-      case 'creditCard':
-        return (data.creditCards && data.creditCards.length > 0 && data.creditCards.some((card: any) => 
-          (card.currentAmount && parseFloat(card.currentAmount) > 0) || 
-          (card.unbilledAmount && parseFloat(card.unbilledAmount) > 0)
-        ));
-      default:
-        return false;
-    }
   };
 
   // 返回上一步
@@ -361,22 +191,7 @@ const FinancialStatusPage = () => {
   };
 
   const getCurrentData = () => {
-    const live = liveData[currentCategory.id];
-    
-    // 检查 liveData 是否包含详细结构
-    const hasDetailStructure = live && (
-      live.loans || live.carLoans || live.consumerLoans || 
-      live.businessLoans || live.privateLoans || live.creditCards
-    );
-    
-    // 优先返回包含详细结构的 liveData
-    if (hasDetailStructure) {
-      return live;
-    }
-    
-    // 回退到已确认的汇总数据
-    const existingDebt = debts.find(debt => debt.type === currentCategory.id);
-    return existingDebt || live;
+    return debts.find(debt => debt.type === currentCategory.id);
   };
 
   return (
@@ -411,7 +226,8 @@ const FinancialStatusPage = () => {
           <div className="grid grid-cols-3 gap-2">
             {debtCategories.map((cat, idx) => {
               const active = idx === currentIndex;
-              const isConfirmed = configConfirmed[cat.id];
+              const hasData = debts.some(debt => debt.type === cat.id && debt.amount > 0) || 
+                             configConfirmed[cat.id];
               return (
                 <button
                   key={cat.id}
@@ -425,7 +241,7 @@ const FinancialStatusPage = () => {
                   aria-pressed={active}
                 >
                   {cat.name}
-                  {isConfirmed && (
+                  {hasData && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: '#01BCD6' }}>
                       <Check className="w-2.5 h-2.5 text-white" />
                     </div>
@@ -437,19 +253,17 @@ const FinancialStatusPage = () => {
         </div>
 
         {/* 配置流程 */}
-            <FinancialConfigurationFlow
-              key={`${currentCategory.id}-${configConfirmed[currentCategory.id] ? 'confirmed' : 'unconfirmed'}-${pendingChanges[currentCategory.id] ? 'pending' : 'nopending'}`}
-              currentStep={1}
-              currentIndex={currentIndex}
-              currentCategory={currentCategory}
-              allCategories={debtCategories}
-              configConfirmed={configConfirmed}
-              pendingChanges={pendingChanges}
-              onConfigConfirm={handleConfigConfirm}
-              onDataChange={handleDataChange}
-              onSkip={skipCurrentConfig}
-              existingData={getCurrentData()}
-            />
+        <FinancialConfigurationFlow
+          currentStep={1}
+          currentIndex={currentIndex}
+          currentCategory={currentCategory}
+          allCategories={debtCategories}
+          configConfirmed={configConfirmed}
+          onConfigConfirm={handleConfigConfirm}
+          onDataChange={handleDataChange}
+          onSkip={skipCurrentConfig}
+          existingData={getCurrentData()}
+        />
 
         {/* 底部导航 */}
         <div className="fixed bottom-0 left-0 right-0 z-50 p-2 space-y-3 bg-gradient-to-t from-white via-white/95 to-white/90 backdrop-blur-xl border-t border-gray-100 pb-safe" 

@@ -9,9 +9,8 @@ interface FinancialConfigurationFlowProps {
   currentCategory: any;
   allCategories: any[];
   configConfirmed: {[key: string]: boolean};
-  pendingChanges: {[key: string]: boolean};
   onConfigConfirm: (categoryId: string, data: any) => void;
-  onDataChange?: (categoryId: string, liveData: any, meta?: { isAddOperation?: boolean; isInitialMount?: boolean }) => void; // 新增实时数据回调
+  onDataChange?: (categoryId: string, liveData: any) => void; // 新增实时数据回调
   onSkip: () => void;
   existingData?: any;
 }
@@ -22,14 +21,12 @@ const FinancialConfigurationFlow: React.FC<FinancialConfigurationFlowProps> = ({
   currentCategory,
   allCategories,
   configConfirmed,
-  pendingChanges,
   onConfigConfirm,
   onDataChange,
   onSkip,
   existingData
 }) => {
   const isCurrentCategoryConfirmed = configConfirmed[currentCategory?.id];
-  const hasPendingChanges = pendingChanges[currentCategory?.id];
 
   return (
     <div className="flex-1 flex flex-col">
@@ -49,7 +46,6 @@ const FinancialConfigurationFlow: React.FC<FinancialConfigurationFlowProps> = ({
               onConfirm={onConfigConfirm}
               onDataChange={onDataChange}
               isConfirmed={isCurrentCategoryConfirmed}
-              hasPendingChanges={hasPendingChanges}
               existingData={existingData}
             />
           ) : (

@@ -9,7 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
-import { Home, Car, CreditCard, ShoppingCart, Check, Edit, CalendarIcon, Percent, ChevronDown, ChevronUp, Trash2, Plus } from 'lucide-react';
+import { Home, Car, CreditCard, ShoppingCart, Check, Edit, CalendarIcon, Percent, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -29,9 +29,8 @@ import { SharedCreditCardModule } from '@/components/loan/SharedCreditCardModule
 interface DebtConfigurationProps {
   category: any;
   onConfirm: (categoryId: string, data: any) => void;
-  onDataChange?: (categoryId: string, liveData: any, meta?: { isAddOperation?: boolean; isInitialMount?: boolean }) => void; // 新增实时数据回调
+  onDataChange?: (categoryId: string, liveData: any) => void; // 新增实时数据回调
   isConfirmed: boolean;
-  hasPendingChanges?: boolean; // 是否有待确认的更改
   existingData?: any;
 }
 
@@ -1031,125 +1030,57 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   onConfirm,
   onDataChange,
   isConfirmed,
-  hasPendingChanges,
   existingData
 }) => {
   const uniqueId = useId();
   const { loans, updateLoan, addLoan, removeLoan, setLoans } = useLoanData({ persist: false });
   
-  // Track when add operations happen to distinguish from edit operations
-  const addOperationRef = useRef(false);
-  
-  // Track initial mount to prevent triggering pending changes on initial data load
-  const isInitialMountRef = useRef(true);
-  
   // Carloan hooks
   const { 
     carLoans, 
-    addCarLoan: originalAddCarLoan, 
+    addCarLoan, 
     removeCarLoan, 
     updateCarLoan, 
     isCarLoanComplete 
-  } = useCarLoanData(existingData?.carLoans);
+  } = useCarLoanData();
   
   // Consumer loan hooks
   const { 
     consumerLoans, 
-    addConsumerLoan: originalAddConsumerLoan, 
+    addConsumerLoan, 
     removeConsumerLoan, 
     updateConsumerLoan, 
     isConsumerLoanComplete 
-  } = useConsumerLoanData(existingData?.consumerLoans);
+  } = useConsumerLoanData();
   
   // Business loan hooks
   const { 
     businessLoans, 
-    addBusinessLoan: originalAddBusinessLoan, 
+    addBusinessLoan, 
     removeBusinessLoan, 
     updateBusinessLoan, 
     isBusinessLoanComplete 
-  } = useBusinessLoanData(existingData?.businessLoans);
+  } = useBusinessLoanData();
   
   // Private loan hooks
   const { 
     privateLoans, 
-    addPrivateLoan: originalAddPrivateLoan, 
+    addPrivateLoan, 
     removePrivateLoan, 
     updatePrivateLoan, 
     isPrivateLoanComplete,
     updateRateFen,
     updateRateLi 
-  } = usePrivateLoanData(existingData?.privateLoans);
+  } = usePrivateLoanData();
   
   // Credit card hooks
   const { 
     creditCards, 
-    addCreditCard: originalAddCreditCard, 
+    addCreditCard, 
     removeCreditCard, 
     updateCreditCard, 
     isCreditCardComplete 
-  } = useCreditCardData(existingData?.creditCards);
-
-  // Wrapper functions that set the add operation flag
-  const addCarLoan = () => {
-    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
-    if (onDataChange) {
-      onDataChange(category.id, {}, { isInitialMount: false });
-    }
-    addOperationRef.current = true;
-    originalAddCarLoan();
-    setTimeout(() => {
-      addOperationRef.current = false;
-    }, 100);
-  };
-
-  const addConsumerLoan = () => {
-    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
-    if (onDataChange) {
-      onDataChange(category.id, {}, { isInitialMount: false });
-    }
-    addOperationRef.current = true;
-    originalAddConsumerLoan();
-    setTimeout(() => {
-      addOperationRef.current = false;
-    }, 100);
-  };
-
-  const addBusinessLoan = () => {
-    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
-    if (onDataChange) {
-      onDataChange(category.id, {}, { isInitialMount: false });
-    }
-    addOperationRef.current = true;
-    originalAddBusinessLoan();
-    setTimeout(() => {
-      addOperationRef.current = false;
-    }, 100);
-  };
-
-  const addPrivateLoan = () => {
-    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
-    if (onDataChange) {
-      onDataChange(category.id, {}, { isInitialMount: false });
-    }
-    addOperationRef.current = true;
-    originalAddPrivateLoan();
-    setTimeout(() => {
-      addOperationRef.current = false;
-    }, 100);
-  };
-
-  const addCreditCard = () => {
-    // 先调用 onDataChange 设置 pendingChanges，立即改变按钮状态
-    if (onDataChange) {
-      onDataChange(category.id, {}, { isInitialMount: false });
-    }
-    addOperationRef.current = true;
-    originalAddCreditCard();
-    setTimeout(() => {
-      addOperationRef.current = false;
-    }, 100);
-  };
+  } = useCreditCardData();
 
   // 基础表单数据
   const [formData, setFormData] = useState<{ [key: string]: string }>({});
@@ -1162,13 +1093,6 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   // LPR 利率常量
   const currentLPR_5Year = 3.50; // 5年期LPR（公积金）
   const currentLPR_5YearPlus = 3.50; // 5年期以上LPR（商业）
-
-  // 初始化确认数据标记（防止初始挂载时触发pendingChanges）
-  useEffect(() => {
-    setTimeout(() => {
-      isInitialMountRef.current = false;
-    }, 0);
-  }, []);
 
   // Check if data has changed since last confirmation
   useEffect(() => {
@@ -1186,7 +1110,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     
     const changed = JSON.stringify(currentData) !== JSON.stringify(lastConfirmedData);
     setHasDataChanged(changed);
-  }, [loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData, lastConfirmedData, isConfirmed, existingData]);
+  }, [loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData, lastConfirmedData]);
 
   // Sync with existing data when component mounts or existingData changes
   useEffect(() => {
@@ -1199,28 +1123,6 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       }
     }
   }, [existingData, category.type, setLoans]);
-
-  // 初始化确认状态数据（用于模拟数据自动确认）
-  useEffect(() => {
-    if (isConfirmed && !lastConfirmedData && existingData) {
-      // 等待数据完全加载后初始化
-      const timer = setTimeout(() => {
-        const initialConfirmedData = {
-          loans,
-          carLoans,
-          consumerLoans,
-          businessLoans,
-          privateLoans,
-          creditCards,
-          formData
-        };
-        setLastConfirmedData(initialConfirmedData);
-        setHasDataChanged(false);
-      }, 200);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isConfirmed, existingData, loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData]);
 
   // 汇总车贷数据
   const getCarLoanAggregatedData = () => {
@@ -1567,42 +1469,59 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     if (category.type === 'mortgage' && onDataChange && loans.length > 0) {
       let completeLoanCount = 0;
       let totalRemainingPrincipal = 0;
-      let totalMonthlyPayment = 0; // 总月供
-      let totalRemainingMonths = 0; // 剩余期数（取最大值）
-
+      let totalMonthlyPayment = 0;
+      let maxRemainingMonths = 0;
+      
       loans.forEach(loan => {
         if (isLoanComplete(loan)) {
           completeLoanCount++;
-          // 累计剩余本金
-          const remainingPrincipal = parseFloat(loan.remainingPrincipal || '0');
-          totalRemainingPrincipal += remainingPrincipal;
           
-          // 累计月供
-          const monthlyPayment = calculateMonthlyPayment(loan);
-          totalMonthlyPayment += monthlyPayment;
-
-          // 剩余期数：取所有贷款中的最大值
-          const stats = calculateLoanStats(loan);
-          const remainingMonths = (stats?.totalMonths || 0) - (stats?.paidMonths || 0);
-          if (remainingMonths > totalRemainingMonths) {
-            totalRemainingMonths = remainingMonths;
+          // Calculate remaining principal in 万元
+          if (loan.loanType === 'combination') {
+            const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0') / 10000;
+            const providentRemaining = parseFloat(loan.providentRemainingPrincipal || '0') / 10000;
+            totalRemainingPrincipal += commercialRemaining + providentRemaining;
+          } else {
+            const remaining = parseFloat(String(loan.remainingPrincipal || '0').replace(/[,\\s]/g, '')) / 10000;
+            totalRemainingPrincipal += remaining;
           }
+          
+          // Calculate monthly payment in 元
+          totalMonthlyPayment += calculateMonthlyPayment(loan);
+          
+          // Calculate remaining months
+          let startDate, endDate;
+          if (loan.loanType === 'combination') {
+            startDate = new Date((loan.commercialStartDate || '') + '-01');
+            endDate = new Date((loan.commercialEndDate || '') + '-01');
+          } else {
+            startDate = new Date(loan.loanStartDate + '-01');
+            endDate = new Date(loan.loanEndDate + '-01');
+          }
+          
+          const currentDate = new Date();
+          const remainingMonths = (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
+                                 (endDate.getMonth() - currentDate.getMonth());
+          
+          maxRemainingMonths = Math.max(maxRemainingMonths, Math.max(0, remainingMonths));
         }
       });
-
+      
+      // 如果有完成的贷款，计算并发送实时数据
       if (completeLoanCount > 0) {
+        // 计算待还利息（万元）
+        const totalRemainingInterest = totalMonthlyPayment * maxRemainingMonths / 10000 - totalRemainingPrincipal;
+        
+        // 通知父组件实时数据变化
         const liveData = {
           count: completeLoanCount,
-          amount: totalRemainingPrincipal, // 剩余本金合计（万元）
-          monthlyPayment: totalMonthlyPayment, // 月供合计（元）
-          remainingMonths: totalRemainingMonths, // 剩余期数（月）
-          loans: loans // 保留详细数据供编辑使用
+          remainingPrincipal: totalRemainingPrincipal,
+          remainingInterest: Math.max(0, totalRemainingInterest),
+          monthlyPayment: totalMonthlyPayment,
+          remainingMonths: maxRemainingMonths
         };
         
-        onDataChange(category.id, liveData, { 
-          isAddOperation: addOperationRef.current,
-          isInitialMount: isInitialMountRef.current 
-        });
+        onDataChange(category.id, liveData);
       }
     }
   }, [loans, category.type, category.id, onDataChange, isLoanComplete, calculateMonthlyPayment]);
@@ -1615,11 +1534,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         onDataChange(category.id, {
           count: aggregatedData.count,
           monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths,
-          carLoans: carLoans // 保存原始车贷数据用于后续编辑
-        }, { 
-          isAddOperation: addOperationRef.current,
-          isInitialMount: isInitialMountRef.current 
+          remainingMonths: aggregatedData.maxRemainingMonths
         });
       }
     }
@@ -1634,11 +1549,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           count: aggregatedData.count,
           amount: aggregatedData.totalLoanAmount, // 消费贷使用总贷款金额
           monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths,
-          consumerLoans: consumerLoans // 保存原始消费贷数据用于后续编辑
-        }, { 
-          isAddOperation: addOperationRef.current,
-          isInitialMount: isInitialMountRef.current 
+          remainingMonths: aggregatedData.maxRemainingMonths
         });
       }
     }
@@ -1653,11 +1564,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           count: aggregatedData.count,
           amount: aggregatedData.totalLoanAmount,
           monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths,
-          businessLoans: businessLoans // 保存原始经营贷数据用于后续编辑
-        }, { 
-          isAddOperation: addOperationRef.current,
-          isInitialMount: isInitialMountRef.current 
+          remainingMonths: aggregatedData.maxRemainingMonths
         });
       }
     }
@@ -1672,11 +1579,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           count: aggregatedData.count,
           amount: aggregatedData.totalLoanAmount,
           monthlyPayment: aggregatedData.totalMonthlyPayment,
-          remainingMonths: aggregatedData.maxRemainingMonths,
-          privateLoans: privateLoans // 保存原始民间借贷数据用于后续编辑
-        }, { 
-          isAddOperation: addOperationRef.current,
-          isInitialMount: isInitialMountRef.current 
+          remainingMonths: aggregatedData.maxRemainingMonths
         });
       }
     }
@@ -1691,11 +1594,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           count: aggregatedData.count,
           amount: aggregatedData.totalAmount, // 使用万元
           monthlyPayment: 0, // 信用卡没有固定月供
-          remainingMonths: 0,
-          creditCards: creditCards // 保存原始信用卡数据用于后续编辑
-        }, { 
-          isAddOperation: addOperationRef.current,
-          isInitialMount: isInitialMountRef.current 
+          remainingMonths: 0
         });
       }
     }
@@ -1773,143 +1672,112 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       <CardContent className="p-0 mt-4">
         {category.type === 'mortgage' ? (
           /* 房贷使用FSSharedLoanModule */
-          <div>
-            {/* 房贷列表 */}
-            {loans.map((loan, index) => (
-              <div key={loan.id} className="mb-4">
-                <LoanFormCard
-                  loan={loan} 
-                  index={index}
-                  updateLoan={updateLoan}
-                  removeLoan={removeLoan}
-                  loansLength={loans.length}
-                  isLoanComplete={isLoanComplete}
-                  calculateMonthlyPayment={calculateMonthlyPayment}
-                  currentLPR_5Year={currentLPR_5Year}
-                  currentLPR_5YearPlus={currentLPR_5YearPlus}
-                  isCommercialLoanComplete={isCommercialLoanComplete}
-                  isProvidentLoanComplete={isProvidentLoanComplete}
-                  calculateCommercialMonthlyPayment={calculateCommercialMonthlyPayment}
-                  calculateProvidentMonthlyPayment={calculateProvidentMonthlyPayment}
-                  calculateLoanStats={calculateLoanStats}
-                  isExpanded={true} // 始终展开
-                  onToggleExpand={() => {}} // 空函数
-                />
-              </div>
-            ))}
-
-            {/* 按钮区域 - 左侧"再录一笔" + 右侧确认按钮 */}
-            <div className="grid grid-cols-2 gap-3 mt-6 mb-3">
-              {/* 左侧：再录一笔（虚线边框，青色） */}
-              <Button
-                onClick={() => {
-                  // 直接添加新项，不立即触发 pendingChanges
-                  addOperationRef.current = true;
-                  addLoan();
-                  setTimeout(() => {
-                    addOperationRef.current = false;
-                  }, 100);
-                }}
-                variant="outline"
-                className="h-12 border-dashed"
-                style={{ borderColor: '#01BCD6', color: '#01BCD6' }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                再录一笔
-              </Button>
-
-              {/* 右侧：确认房贷信息 */}
-              <Button
-                onClick={() => {
-                  // Aggregate loan data and confirm
-                  const completeLoanExists = loans.some(loan => isLoanComplete(loan));
-                  if (completeLoanExists) {
-                    let totalRemainingPrincipal = 0;
-                    let totalMonthlyPayment = 0;
-                    let maxRemainingMonths = 0;
-                    
-                    loans.forEach(loan => {
-                      if (isLoanComplete(loan)) {
-                        if (loan.loanType === 'combination') {
-                          const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0') / 10000;
-                          const providentRemaining = parseFloat(loan.providentRemainingPrincipal || '0') / 10000;
-                          totalRemainingPrincipal += commercialRemaining + providentRemaining;
-                        } else {
-                          const remaining = parseFloat(loan.remainingPrincipal || '0') / 10000;
-                          totalRemainingPrincipal += remaining;
-                        }
-                        
-                        totalMonthlyPayment += calculateMonthlyPayment(loan);
-                        
-                        // Calculate remaining months
-                        const currentDate = new Date();
-                        let endDate: Date;
-                        
-                        if (loan.loanType === 'combination') {
-                          const commercialEndDateStr = loan.commercialEndDate || '';
-                          const providentEndDateStr = loan.providentEndDate || '';
-                          const commercialEndDateFormatted = commercialEndDateStr.includes('-') && commercialEndDateStr.split('-').length === 2 
-                            ? commercialEndDateStr + '-01' 
-                            : commercialEndDateStr;
-                          const providentEndDateFormatted = providentEndDateStr.includes('-') && providentEndDateStr.split('-').length === 2 
-                            ? providentEndDateStr + '-01' 
-                            : providentEndDateStr;
-                          const commercialEndDate = new Date(commercialEndDateFormatted);
-                          const providentEndDate = new Date(providentEndDateFormatted);
-                          endDate = commercialEndDate > providentEndDate ? commercialEndDate : providentEndDate;
-                        } else {
-                          const endDateStr = loan.loanEndDate.includes('-') && loan.loanEndDate.split('-').length === 2 
-                            ? loan.loanEndDate + '-01' 
-                            : loan.loanEndDate;
-                          endDate = new Date(endDateStr);
-                        }
-                        
-                        const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
-                                               (endDate.getMonth() - currentDate.getMonth()));
-                        maxRemainingMonths = Math.max(maxRemainingMonths, remainingMonths);
+          <FSSharedLoanModule
+            calculateLoanStats={calculateLoanStats}
+            isLoanComplete={isLoanComplete}
+            calculateMonthlyPayment={calculateMonthlyPayment}
+            currentLPR_5Year={currentLPR_5Year}
+            currentLPR_5YearPlus={currentLPR_5YearPlus}
+            isCommercialLoanComplete={isCommercialLoanComplete}
+            isProvidentLoanComplete={isProvidentLoanComplete}
+            calculateCommercialMonthlyPayment={calculateCommercialMonthlyPayment}
+            calculateProvidentMonthlyPayment={calculateProvidentMonthlyPayment}
+            calculateCommercialLoanStats={calculateLoanStats}
+            calculateProvidentLoanStats={calculateLoanStats}
+            LoanFormCard={LoanFormCard}
+            onLoansChange={setLoans}
+            persist={false}
+          >
+            <Button 
+              onClick={() => {
+                // Aggregate loan data and confirm
+                const completeLoanExists = loans.some(loan => isLoanComplete(loan));
+                if (completeLoanExists) {
+                  let totalRemainingPrincipal = 0;
+                  let totalMonthlyPayment = 0;
+                  let maxRemainingMonths = 0;
+                  
+                  loans.forEach(loan => {
+                    if (isLoanComplete(loan)) {
+                      if (loan.loanType === 'combination') {
+                        const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0') / 10000;
+                        const providentRemaining = parseFloat(loan.providentRemainingPrincipal || '0') / 10000;
+                        totalRemainingPrincipal += commercialRemaining + providentRemaining;
+                      } else {
+                        const remaining = parseFloat(loan.remainingPrincipal || '0') / 10000;
+                        totalRemainingPrincipal += remaining;
                       }
-                    });
-                    
-                    const aggregatedData = {
-                      amount: totalRemainingPrincipal,
-                      monthlyPayment: totalMonthlyPayment,
-                      remainingMonths: maxRemainingMonths,
-                      loans
-                    };
-                    
-                    // 保存确认时的数据状态
-                    setLastConfirmedData({
-                      loans,
-                      carLoans,
-                      consumerLoans,
-                      businessLoans,
-                      privateLoans,
-                      creditCards,
-                      formData
-                    });
-                    setHasDataChanged(false);
-                    
-                    // Set skip flag to prevent existingData sync after confirmation
-                    skipExistingSyncRef.current = true;
-                    setTimeout(() => {
-                      skipExistingSyncRef.current = false;
-                    }, 100);
-                    
-                    onConfirm(category.id, aggregatedData);
-                  }
-                }}
-                className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                  isConfirmed && !hasPendingChanges
-                    ? 'bg-[#B3EBEF]/50 text-gray-500'
-                    : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
-                }`}
-                disabled={!loans.some(loan => isLoanComplete(loan))}
-              >
-                <Check className="w-4 h-4 mr-2" />
-                {isConfirmed && !hasPendingChanges ? '已确认' : '确认房贷信息'}
-              </Button>
-            </div>
-          </div>
+                      
+                      totalMonthlyPayment += calculateMonthlyPayment(loan);
+                      
+                      // Calculate remaining months
+                      const currentDate = new Date();
+                      let endDate: Date;
+                      
+                      if (loan.loanType === 'combination') {
+                        const commercialEndDateStr = loan.commercialEndDate || '';
+                        const providentEndDateStr = loan.providentEndDate || '';
+                        const commercialEndDateFormatted = commercialEndDateStr.includes('-') && commercialEndDateStr.split('-').length === 2 
+                          ? commercialEndDateStr + '-01' 
+                          : commercialEndDateStr;
+                        const providentEndDateFormatted = providentEndDateStr.includes('-') && providentEndDateStr.split('-').length === 2 
+                          ? providentEndDateStr + '-01' 
+                          : providentEndDateStr;
+                        const commercialEndDate = new Date(commercialEndDateFormatted);
+                        const providentEndDate = new Date(providentEndDateFormatted);
+                        endDate = commercialEndDate > providentEndDate ? commercialEndDate : providentEndDate;
+                      } else {
+                        const endDateStr = loan.loanEndDate.includes('-') && loan.loanEndDate.split('-').length === 2 
+                          ? loan.loanEndDate + '-01' 
+                          : loan.loanEndDate;
+                        endDate = new Date(endDateStr);
+                      }
+                      
+                      const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
+                                             (endDate.getMonth() - currentDate.getMonth()));
+                      maxRemainingMonths = Math.max(maxRemainingMonths, remainingMonths);
+                    }
+                  });
+                  
+                  const aggregatedData = {
+                    amount: totalRemainingPrincipal,
+                    monthlyPayment: totalMonthlyPayment,
+                    remainingMonths: maxRemainingMonths,
+                    loans
+                  };
+                  
+                  // 保存确认时的数据状态
+                  setLastConfirmedData({
+                    loans,
+                    carLoans,
+                    consumerLoans,
+                    businessLoans,
+                    privateLoans,
+                    creditCards,
+                    formData
+                  });
+                  setHasDataChanged(false);
+                  
+                  // Set skip flag to prevent existingData sync after confirmation
+                  skipExistingSyncRef.current = true;
+                  setTimeout(() => {
+                    skipExistingSyncRef.current = false;
+                  }, 100);
+                  
+                  onConfirm(category.id, aggregatedData);
+                }
+              }}
+              className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
+                isConfirmed && !hasDataChanged
+                  ? 'bg-[#B3EBEF]/50 text-gray-500'
+                  : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
+              }`}
+              disabled={!loans.some(loan => isLoanComplete(loan))}
+            >
+              <Check className="w-4 h-4 mr-2" />
+              {isConfirmed && !hasDataChanged ? '已确认' : '确认房贷信息'}
+            </Button>
+          </FSSharedLoanModule>
         ) : category.type === 'carLoan' ? (
           /* 车贷使用SharedCarLoanModule */
           <SharedCarLoanModule 
@@ -1951,14 +1819,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasPendingChanges
+                isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!carLoans.some(isCarLoanComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasPendingChanges ? '已确认' : '确认车贷信息'}
+              {isConfirmed && !hasDataChanged ? '已确认' : '确认车贷信息'}
             </Button>
           </SharedCarLoanModule>
         ) : category.type === 'consumerLoan' ? (
@@ -2003,14 +1871,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasPendingChanges
+                isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!consumerLoans.some(isConsumerLoanComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasPendingChanges ? '已确认' : '确认消费贷信息'}
+              {isConfirmed && !hasDataChanged ? '已确认' : '确认消费贷信息'}
             </Button>
           </SharedConsumerLoanModule>
         ) : category.type === 'businessLoan' ? (
@@ -2055,14 +1923,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasPendingChanges
+                isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!businessLoans.some(isBusinessLoanComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasPendingChanges ? '已确认' : '确认经营贷信息'}
+              {isConfirmed && !hasDataChanged ? '已确认' : '确认经营贷信息'}
             </Button>
           </SharedBusinessLoanModule>
         ) : category.type === 'privateLoan' ? (
@@ -2109,14 +1977,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasPendingChanges
+                isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!privateLoans.some(isPrivateLoanComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasPendingChanges ? '已确认' : '确认民间借贷信息'}
+              {isConfirmed && !hasDataChanged ? '已确认' : '确认民间借贷信息'}
             </Button>
           </SharedPrivateLoanModule>
         ) : category.type === 'creditCard' ? (
@@ -2161,14 +2029,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
               }}
               className={`w-full h-12 font-semibold rounded-lg transition-all duration-300 ${
-                isConfirmed && !hasPendingChanges
+                isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
               disabled={!creditCards.some(isCreditCardComplete)}
             >
               <Check className="w-4 h-4 mr-2" />
-              {isConfirmed && !hasPendingChanges ? '已确认' : '确认信用卡信息'}
+              {isConfirmed && !hasDataChanged ? '已确认' : '确认信用卡信息'}
             </Button>
           </SharedCreditCardModule>
         ) : (
