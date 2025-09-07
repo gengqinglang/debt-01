@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, TrendingUp, PiggyBank, CreditCard, Check } from 'lucide-react';
 import FinancialConfigurationFlow from '@/components/financial-status-fs/FinancialConfigurationFlow';
 import { mockDebts, setMockDebts, clearMockDebts, isMockDebtsActive, getMockFormData } from '@/data/mockDebts';
+import { normalizeDebtData, calculateInterestFromNormalizedData } from '@/lib/debtAdapters';
 
 // 财务配置类型定义（移除信用卡类型）
 export interface DebtInfo {
@@ -117,26 +118,46 @@ const FinancialStatusPage = () => {
 
   // 计算债务汇总（优先使用实时数据）
   const calculateTotalDebt = () => {
+    let totalAmountWan = 0;
+    
+    // 计算已确认债务
     const confirmedDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
-    const mortgageLiveData = liveData['mortgage'];
-    if (mortgageLiveData && !configConfirmed['mortgage']) {
-      return confirmedDebt + mortgageLiveData.remainingPrincipal;
-    }
-    return confirmedDebt;
+    totalAmountWan += confirmedDebt;
+    
+    // 计算未确认但有实时数据的债务
+    debtCategories.forEach(category => {
+      if (!configConfirmed[category.type] && liveData[category.type]) {
+        const normalizedData = normalizeDebtData(category.type, liveData[category.type]);
+        totalAmountWan += normalizedData.amountWan;
+      }
+    });
+    
+    return totalAmountWan;
   };
 
   // 计算债务笔数（优先使用实时数据）
   const calculateDebtCount = () => {
+    let totalCount = 0;
+    
+    // 计算已确认债务笔数
     const confirmedCount = debts.filter(debt => debt.amount > 0).length;
-    const mortgageLiveData = liveData['mortgage'];
-    if (mortgageLiveData && mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedCount + mortgageLiveData.count;
-    }
-    return confirmedCount;
+    totalCount += confirmedCount;
+    
+    // 计算未确认但有实时数据的债务笔数
+    debtCategories.forEach(category => {
+      if (!configConfirmed[category.type] && liveData[category.type]) {
+        const normalizedData = normalizeDebtData(category.type, liveData[category.type]);
+        totalCount += normalizedData.count;
+      }
+    });
+    
+    return totalCount;
   };
 
   // 计算剩余本金（优先使用实时数据）
   const calculateRemainingPrincipal = () => {
+    return calculateTotalDebt();
+  };
     // 单位统一为“万”
     const confirmedPrincipalWan = debts.reduce((sum, debt) => {
       const val = Number(debt.amount) || 0;
@@ -152,6 +173,33 @@ const FinancialStatusPage = () => {
 
   // 计算待还利息（优先使用实时数据）
   const calculateRemainingInterest = () => {
+    let totalInterestWan = 0;
+    
+    // 计算已确认债务利息
+    const confirmedInterestWan = debts.reduce((sum, debt) => {
+      const monthly = Number((debt as any).monthlyPayment) || 0;
+      const months = Number((debt as any).remainingMonths) || 0;
+      const principalWan = Number(debt.amount) || 0;
+      if (monthly > 0 && months > 0 && principalWan >= 0) {
+        const totalPaymentsWan = (monthly * months) / 10000;
+        const interestWan = Math.max(0, totalPaymentsWan - principalWan);
+        return sum + interestWan;
+      }
+      return sum;
+    }, 0);
+    totalInterestWan += confirmedInterestWan;
+    
+    // 计算未确认但有实时数据的债务利息
+    debtCategories.forEach(category => {
+      if (!configConfirmed[category.type] && liveData[category.type]) {
+        const normalizedData = normalizeDebtData(category.type, liveData[category.type]);
+        const interestData = calculateInterestFromNormalizedData(normalizedData);
+        totalInterestWan += interestData.remainingInterestWan;
+      }
+    });
+    
+    return totalInterestWan;
+  };
     // 单位统一为“万”
     const confirmedInterestWan = debts.reduce((sum, debt) => {
       const monthly = Number((debt as any).monthlyPayment) || 0;
