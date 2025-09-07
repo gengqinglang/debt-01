@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, TrendingUp, PiggyBank, CreditCard, Check } from 'lucide-react';
 import FinancialConfigurationFlow from '@/components/financial-status-fs/FinancialConfigurationFlow';
 import { mockDebts, setMockDebts, clearMockDebts, isMockDebtsActive, getMockFormData } from '@/data/mockDebts';
+import { normalizeDebtData } from '@/loan-core/normalize';
+import { NormalizedDebtData } from '@/loan-core/types';
 
 // 财务配置类型定义（移除信用卡类型）
 export interface DebtInfo {
@@ -14,25 +16,14 @@ export interface DebtInfo {
   monthlyPayment: number;
   remainingMonths?: number;
   interestRate?: number;
-  // 房贷特有字段
-  loanType?: 'commercial' | 'housingFund' | 'combination';
-  commercialAmount?: number;
-  commercialRate?: number;
-  housingFundAmount?: number;
-  housingFundRate?: number;
-  principal?: number;
-  term?: number;
-  repaymentMethod?: string;
-  // 车贷特有字段
-  isInstallment?: boolean; // 是否分期还款
-  installmentAmount?: number; // 每期还款额
-  remainingInstallments?: number; // 还剩多少期
-  vehicleName?: string; // 车辆名称
-  carLoanType?: 'installment' | 'bankLoan'; // 贷款类型
-  carPrincipal?: number; // 银行贷款本金
-  carTerm?: number; // 银行贷款期限
-  carInterestRate?: number; // 银行贷款利率
-  carStartDate?: Date; // 银行贷款开始时间
+  normalized?: {
+    count: number;
+    amountWan: number;
+    monthlyPaymentYuan: number;
+    remainingMonths: number;
+  };
+  rawData?: any;
+  // ... keep existing code (all other fields)
 }
 
 const FinancialStatusPage = () => {
@@ -44,7 +35,7 @@ const FinancialStatusPage = () => {
   const [configConfirmed, setConfigConfirmed] = useState<{[key: string]: boolean}>({});
   
   // 实时数据状态（用于显示未确认但已填写的数据）
-  const [liveData, setLiveData] = useState<{[key: string]: any}>({});
+  const [liveData, setLiveData] = useState<{[key: string]: NormalizedDebtData}>({});
 
   // 初始化模拟数据
   useEffect(() => {
@@ -174,55 +165,24 @@ const FinancialStatusPage = () => {
   };
 
   
-  // 处理实时数据变化 - 合并数据而非覆盖
-  const handleDataChange = (categoryId: string, data: any) => {
-    setLiveData(prev => {
-      const existing = prev[categoryId] || {};
-      
-      // 检查是否有详细结构键（loans, carLoans等）
-      const hasDetailKeys = ['loans', 'carLoans', 'consumerLoans', 'businessLoans', 'privateLoans', 'creditCards'];
-      const hasExistingDetail = hasDetailKeys.some(key => existing[key]);
-      const hasNewDetail = hasDetailKeys.some(key => data[key]);
-      
-      // 如果存在详细结构，保留详细结构，只更新汇总字段
-      if (hasExistingDetail && !hasNewDetail) {
-        // 只更新汇总字段，保留详细结构
-        return {
-          ...prev,
-          [categoryId]: {
-            ...existing,
-            // 只更新非详细结构的字段
-            ...Object.keys(data).reduce((acc, key) => {
-              if (!hasDetailKeys.includes(key)) {
-                acc[key] = data[key];
-              }
-              return acc;
-            }, {} as any)
-          }
-        };
-      }
-      
-      // 否则正常合并
-      return {
-        ...prev,
-        [categoryId]: {
-          ...existing,
-          ...data
-        }
-      };
-    });
+  // 处理标准化的实时数据变化
+  const handleDataChange = (categoryId: string, normalizedData: NormalizedDebtData) => {
+    setLiveData(prev => ({
+      ...prev,
+      [categoryId]: normalizedData
+    }));
   };
 
   // 处理配置确认
-  const handleConfigConfirm = (categoryId: string, data: any) => {
+  const handleConfigConfirm = (categoryId: string, confirmPayload: any) => {
     // 负债配置
     const existingDebtIndex = debts.findIndex(debt => debt.type === categoryId);
     if (existingDebtIndex >= 0) {
       const updatedDebts = [...debts];
-      updatedDebts[existingDebtIndex] = { ...updatedDebts[existingDebtIndex], ...data };
+      updatedDebts[existingDebtIndex] = { ...updatedDebts[existingDebtIndex], ...confirmPayload };
       setDebts(updatedDebts);
     } else {
-      setDebts([...debts, { id: Date.now().toString(), type: categoryId as any, ...data }]);
+      setDebts([...debts, { id: Date.now().toString(), type: categoryId as any, ...confirmPayload }]);
     }
 
     setConfigConfirmed({
@@ -282,20 +242,14 @@ const FinancialStatusPage = () => {
   const getCurrentData = () => {
     const live = liveData[currentCategory.id];
     
-    // 检查 liveData 是否包含详细结构
-    const hasDetailStructure = live && (
-      live.loans || live.carLoans || live.consumerLoans || 
-      live.businessLoans || live.privateLoans || live.creditCards
-    );
-    
-    // 优先返回包含详细结构的 liveData
-    if (hasDetailStructure) {
-      return live;
+    // 优先返回实时数据的rawData
+    if (live && live.rawData) {
+      return live.rawData;
     }
     
-    // 回退到已确认的汇总数据
+    // 回退到已确认的数据
     const existingDebt = debts.find(debt => debt.type === currentCategory.id);
-    return existingDebt || live;
+    return existingDebt || null;
   };
 
   return (
