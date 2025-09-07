@@ -1775,7 +1775,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
-              disabled={!loans.some(loan => isLoanComplete(loan))}
+              disabled={loans.length === 0 || !loans.every(loan => isLoanComplete(loan))}
             >
               <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认房贷信息'}
@@ -1826,7 +1826,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
-              disabled={!carLoans.some(isCarLoanComplete)}
+              disabled={carLoans.length === 0 || !carLoans.every(isCarLoanComplete)}
             >
               <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认车贷信息'}
@@ -1878,7 +1878,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
-              disabled={!consumerLoans.some(isConsumerLoanComplete)}
+              disabled={consumerLoans.length === 0 || !consumerLoans.every(isConsumerLoanComplete)}
             >
               <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认消费贷信息'}
@@ -1930,7 +1930,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
-              disabled={!businessLoans.some(isBusinessLoanComplete)}
+              disabled={businessLoans.length === 0 || !businessLoans.every(isBusinessLoanComplete)}
             >
               <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认经营贷信息'}
@@ -1984,7 +1984,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
-              disabled={!privateLoans.some(isPrivateLoanComplete)}
+              disabled={privateLoans.length === 0 || !privateLoans.every(isPrivateLoanComplete)}
             >
               <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认民间借贷信息'}
@@ -2036,7 +2036,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
-              disabled={!creditCards.some(isCreditCardComplete)}
+              disabled={creditCards.length === 0 || !creditCards.every(isCreditCardComplete)}
             >
               <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认信用卡信息'}
