@@ -138,9 +138,23 @@ export const SharedCreditCardModule: React.FC<SharedCreditCardModuleProps> = ({
         </div>
       ))}
 
-      {/* 按钮区域 - 只显示确认按钮，不显示"再录一笔" */}
-      <div className="mt-6 mb-3">
-        {children}
+      {/* 按钮区域 - 左侧"再录一笔" + 右侧确认按钮 */}
+      <div className="grid grid-cols-2 gap-3 mt-6 mb-3">
+        {/* 左侧：再录一笔（虚线边框，青色） */}
+        <Button
+          onClick={addCreditCard}
+          variant="outline"
+          className="h-10 border-dashed text-sm"
+          style={{ borderColor: '#01BCD6', color: '#01BCD6' }}
+        >
+          <Plus className="w-3 h-3 mr-2" />
+          再录一笔
+        </Button>
+
+        {/* 右侧：确认信用卡信息（传入的children） */}
+        <div className="w-full">
+          {children}
+        </div>
       </div>
     </>
   );

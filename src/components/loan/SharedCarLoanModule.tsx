@@ -426,10 +426,10 @@ export const SharedCarLoanModule: React.FC<SharedCarLoanModuleProps> = ({
           <Button
             onClick={addCarLoan}
             variant="outline"
-            className="h-12 border-dashed"
+            className="h-10 border-dashed text-sm"
             style={{ borderColor: '#01BCD6', color: '#01BCD6' }}
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-3 h-3 mr-2" />
             再录一笔
           </Button>
           
