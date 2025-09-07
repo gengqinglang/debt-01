@@ -617,9 +617,19 @@ export const SharedConsumerLoanModule: React.FC<SharedConsumerLoanModuleProps> =
         </div>
       ))}
 
-      {/* 按钮区域 - 只显示确认按钮，不显示"再录一笔" */}
-      <div className="mt-6 mb-3">
-        {children}
+      {/* 按钮区域 - 左侧再录一笔，右侧确认按钮 */}
+      <div className="mt-6 mb-3 flex gap-3">
+        <Button
+          variant="outline"
+          onClick={addConsumerLoan}
+          className="flex-1 h-12 text-sm"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          再录一笔
+        </Button>
+        <div className="flex-1">
+          {children}
+        </div>
       </div>
     </>
   );
