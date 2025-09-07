@@ -17,6 +17,7 @@ interface PrivateLoanCardProps {
   index: number;
   updatePrivateLoan: (id: string, field: keyof PrivateLoanInfo, value: string) => void;
   removePrivateLoan: (id: string) => void;
+  resetPrivateLoan: (id: string) => void;
   privateLoansLength: number;
   updateRateFen: (id: string, value: string) => void;
   updateRateLi: (id: string, value: string) => void;
@@ -27,6 +28,7 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
   index,
   updatePrivateLoan,
   removePrivateLoan,
+  resetPrivateLoan,
   privateLoansLength,
   updateRateFen,
   updateRateLi,
@@ -39,32 +41,41 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
         <h4 className="text-sm font-medium text-gray-900">
           民间借贷 {index + 1}
         </h4>
-        {privateLoansLength > 1 && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button 
-                className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-                title="删除此民间借贷"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>确认删除</AlertDialogTitle>
-                <AlertDialogDescription>
-                  您确定要删除这笔民间借贷吗？此操作不可撤销。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
-                <AlertDialogAction onClick={() => removePrivateLoan(privateLoan.id)}>
-                  确定删除
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button 
+              className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+              title={privateLoansLength > 1 ? "删除此民间借贷" : "清空此民间借贷"}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {privateLoansLength > 1 ? '确认删除' : '确认清空'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {privateLoansLength > 1 
+                  ? '您确定要删除这笔民间借贷吗？此操作不可撤销。'
+                  : '您确定要清空这笔民间借贷信息吗？将恢复至默认值。'
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                if (privateLoansLength > 1) {
+                  removePrivateLoan(privateLoan.id);
+                } else {
+                  resetPrivateLoan(privateLoan.id);
+                }
+              }}>
+                {privateLoansLength > 1 ? '确定删除' : '确定清空'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       
       <div className="space-y-4">
@@ -282,6 +293,7 @@ interface SharedPrivateLoanModuleProps {
   privateLoans: PrivateLoanInfo[];
   addPrivateLoan: () => void;
   removePrivateLoan: (id: string) => void;
+  resetPrivateLoan: (id: string) => void;
   updatePrivateLoan: (id: string, field: keyof PrivateLoanInfo, value: string) => void;
   isPrivateLoanComplete: (privateLoan: PrivateLoanInfo) => boolean;
   updateRateFen: (id: string, value: string) => void;
@@ -294,6 +306,7 @@ export const SharedPrivateLoanModule: React.FC<SharedPrivateLoanModuleProps> = (
   privateLoans,
   addPrivateLoan,
   removePrivateLoan,
+  resetPrivateLoan,
   updatePrivateLoan,
   isPrivateLoanComplete,
   updateRateFen,
@@ -309,6 +322,7 @@ export const SharedPrivateLoanModule: React.FC<SharedPrivateLoanModuleProps> = (
             index={index}
             updatePrivateLoan={updatePrivateLoan}
             removePrivateLoan={removePrivateLoan}
+            resetPrivateLoan={resetPrivateLoan}
             privateLoansLength={privateLoans.length}
             updateRateFen={updateRateFen}
             updateRateLi={updateRateLi}

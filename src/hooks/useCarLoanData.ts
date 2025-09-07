@@ -70,6 +70,28 @@ export const useCarLoanData = (initialData?: CarLoanInfo[]) => {
     setCarLoans(prev => prev.length > 1 ? prev.filter(loan => loan.id !== id) : prev);
   }, []);
 
+  const resetCarLoan = useCallback((id: string) => {
+    const todayDate = getTodayDate();
+    setCarLoans(prev => prev.map(loan => 
+      loan.id === id ? {
+        id: loan.id,
+        vehicleName: '',
+        loanType: 'installment' as const,
+        installmentAmount: '',
+        remainingInstallments: '',
+        principal: '',
+        term: '',
+        interestRate: '',
+        startDate: new Date(todayDate),
+        endDate: new Date(todayDate),
+        repaymentMethod: 'equal-payment' as const,
+        remainingPrincipal: '',
+        startDateMonth: todayDate,
+        endDateMonth: todayDate,
+      } : loan
+    ));
+  }, []);
+
   const updateCarLoan = useCallback((id: string, field: keyof CarLoanInfo, value: string) => {
     setCarLoans(prev => prev.map(loan => 
       loan.id === id ? { ...loan, [field]: value } : loan
@@ -168,6 +190,7 @@ export const useCarLoanData = (initialData?: CarLoanInfo[]) => {
     carLoans,
     addCarLoan,
     removeCarLoan,
+    resetCarLoan,
     updateCarLoan,
     isCarLoanComplete,
     getAggregatedData

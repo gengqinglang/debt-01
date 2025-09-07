@@ -19,6 +19,7 @@ interface CarLoanCardProps {
   index: number;
   updateCarLoan: (id: string, field: keyof CarLoanInfo, value: string) => void;
   removeCarLoan: (id: string) => void;
+  resetCarLoan: (id: string) => void;
   carLoansLength: number;
 }
 
@@ -27,6 +28,7 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
   index,
   updateCarLoan,
   removeCarLoan,
+  resetCarLoan,
   carLoansLength,
 }) => {
   const calculateCarLoanMonthlyPayment = (loan: CarLoanInfo) => {
@@ -58,32 +60,41 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
         <h4 className="text-sm font-medium text-gray-900">
           {carLoan.vehicleName || `车贷 ${index + 1}`}
         </h4>
-        {carLoansLength > 1 && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button 
-                className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-                title="删除此车贷"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>确认删除</AlertDialogTitle>
-                <AlertDialogDescription>
-                  您确定要删除这笔车贷吗？此操作不可撤销。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
-                <AlertDialogAction onClick={() => removeCarLoan(carLoan.id)}>
-                  确定删除
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button 
+              className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+              title={carLoansLength > 1 ? "删除此车贷" : "清空此车贷"}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {carLoansLength > 1 ? '确认删除' : '确认清空'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {carLoansLength > 1 
+                  ? '您确定要删除这笔车贷吗？此操作不可撤销。'
+                  : '您确定要清空这笔车贷信息吗？将恢复至默认值。'
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                if (carLoansLength > 1) {
+                  removeCarLoan(carLoan.id);
+                } else {
+                  resetCarLoan(carLoan.id);
+                }
+              }}>
+                {carLoansLength > 1 ? '确定删除' : '确定清空'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       
       <div className="space-y-4">
@@ -381,6 +392,7 @@ interface SharedCarLoanModuleProps {
   carLoans: any[];
   addCarLoan: () => void;
   removeCarLoan: (id: string) => void;
+  resetCarLoan: (id: string) => void;
   updateCarLoan: (id: string, field: any, value: string) => void;
   isCarLoanComplete: (carLoan: any) => boolean;
 }
@@ -391,6 +403,7 @@ export const SharedCarLoanModule: React.FC<SharedCarLoanModuleProps> = ({
   carLoans,
   addCarLoan,
   removeCarLoan,
+  resetCarLoan,
   updateCarLoan,
   isCarLoanComplete
 }) => {
@@ -432,6 +445,7 @@ export const SharedCarLoanModule: React.FC<SharedCarLoanModuleProps> = ({
             index={index}
             updateCarLoan={updateCarLoan}
             removeCarLoan={removeCarLoan}
+            resetCarLoan={resetCarLoan}
             carLoansLength={carLoans.length}
           />
         </div>

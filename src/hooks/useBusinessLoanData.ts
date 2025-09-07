@@ -68,6 +68,23 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
     setBusinessLoans(prev => prev.length > 1 ? prev.filter(loan => loan.id !== id) : prev);
   }, []);
 
+  const resetBusinessLoan = useCallback((id: string) => {
+    const todayDate = getTodayDate();
+    setBusinessLoans(prev => prev.map(loan => 
+      loan.id === id ? {
+        id: loan.id,
+        name: '',
+        loanAmount: '',
+        startDate: todayDate,
+        endDate: '',
+        annualRate: '',
+        repaymentMethod: 'interest-first',
+        remainingPrincipal: '',
+        loanTerm: '',
+      } : loan
+    ));
+  }, []);
+
   const updateBusinessLoan = useCallback((id: string, field: keyof BusinessLoanInfo, value: string) => {
     setBusinessLoans(prev => prev.map(loan => 
       loan.id === id ? { ...loan, [field]: value } : loan
@@ -174,6 +191,7 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
     businessLoans,
     addBusinessLoan,
     removeBusinessLoan,
+    resetBusinessLoan,
     updateBusinessLoan,
     isBusinessLoanComplete,
     getAggregatedData

@@ -957,7 +957,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   const { 
     carLoans, 
     addCarLoan, 
-    removeCarLoan, 
+    removeCarLoan,
+    resetCarLoan,
     updateCarLoan, 
     isCarLoanComplete 
   } = useCarLoanData();
@@ -966,7 +967,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   const { 
     consumerLoans, 
     addConsumerLoan, 
-    removeConsumerLoan, 
+    removeConsumerLoan,
+    resetConsumerLoan,
     updateConsumerLoan, 
     isConsumerLoanComplete 
   } = useConsumerLoanData();
@@ -1703,6 +1705,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             carLoans={carLoans}
             addCarLoan={addCarLoan}
             removeCarLoan={removeCarLoan}
+            resetCarLoan={resetCarLoan}
             updateCarLoan={updateCarLoan}
             isCarLoanComplete={isCarLoanComplete}
           >
@@ -1754,6 +1757,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             consumerLoans={consumerLoans}
             addConsumerLoan={addConsumerLoan}
             removeConsumerLoan={removeConsumerLoan}
+            resetConsumerLoan={resetConsumerLoan}
             updateConsumerLoan={updateConsumerLoan}
             isConsumerLoanComplete={isConsumerLoanComplete}
           >

@@ -18,6 +18,7 @@ interface BusinessLoanCardProps {
   index: number;
   updateBusinessLoan: (id: string, field: keyof BusinessLoanInfo, value: string) => void;
   removeBusinessLoan: (id: string) => void;
+  resetBusinessLoan: (id: string) => void;
   businessLoansLength: number;
 }
 
@@ -26,6 +27,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
   index,
   updateBusinessLoan,
   removeBusinessLoan,
+  resetBusinessLoan,
   businessLoansLength,
 }) => {
   const [startDateOpen, setStartDateOpen] = useState(false);
@@ -91,32 +93,41 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
         <h4 className="text-sm font-medium text-gray-900">
           经营贷 {index + 1}
         </h4>
-        {businessLoansLength > 1 && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button 
-                className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-                title="删除此经营贷"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>确认删除</AlertDialogTitle>
-                <AlertDialogDescription>
-                  您确定要删除这笔经营贷吗？此操作不可撤销。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
-                <AlertDialogAction onClick={() => removeBusinessLoan(businessLoan.id)}>
-                  确定删除
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button 
+              className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+              title={businessLoansLength > 1 ? "删除此经营贷" : "清空此经营贷"}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {businessLoansLength > 1 ? '确认删除' : '确认清空'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {businessLoansLength > 1 
+                  ? '您确定要删除这笔经营贷吗？此操作不可撤销。'
+                  : '您确定要清空这笔经营贷信息吗？将恢复至默认值。'
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                if (businessLoansLength > 1) {
+                  removeBusinessLoan(businessLoan.id);
+                } else {
+                  resetBusinessLoan(businessLoan.id);
+                }
+              }}>
+                {businessLoansLength > 1 ? '确定删除' : '确定清空'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       
       <div className="space-y-4">
@@ -477,6 +488,7 @@ interface SharedBusinessLoanModuleProps {
   businessLoans: BusinessLoanInfo[];
   addBusinessLoan: () => void;
   removeBusinessLoan: (id: string) => void;
+  resetBusinessLoan: (id: string) => void;
   updateBusinessLoan: (id: string, field: keyof BusinessLoanInfo, value: string) => void;
   isBusinessLoanComplete: (businessLoan: BusinessLoanInfo) => boolean;
 }
@@ -487,6 +499,7 @@ export const SharedBusinessLoanModule: React.FC<SharedBusinessLoanModuleProps> =
   businessLoans,
   addBusinessLoan,
   removeBusinessLoan,
+  resetBusinessLoan,
   updateBusinessLoan,
   isBusinessLoanComplete
 }) => {
@@ -500,6 +513,7 @@ export const SharedBusinessLoanModule: React.FC<SharedBusinessLoanModuleProps> =
             index={index}
             updateBusinessLoan={updateBusinessLoan}
             removeBusinessLoan={removeBusinessLoan}
+            resetBusinessLoan={resetBusinessLoan}
             businessLoansLength={businessLoans.length}
           />
         </div>

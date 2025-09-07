@@ -68,6 +68,23 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
     setConsumerLoans(prev => prev.length > 1 ? prev.filter(loan => loan.id !== id) : prev);
   }, []);
 
+  const resetConsumerLoan = useCallback((id: string) => {
+    const todayDate = getTodayDate();
+    setConsumerLoans(prev => prev.map(loan => 
+      loan.id === id ? {
+        id: loan.id,
+        name: '',
+        loanAmount: '',
+        startDate: todayDate,
+        endDate: '',
+        loanTerm: '',
+        annualRate: '',
+        repaymentMethod: 'interest-first',
+        remainingPrincipal: '',
+      } : loan
+    ));
+  }, []);
+
   const updateConsumerLoan = useCallback((id: string, field: keyof ConsumerLoanInfo, value: string) => {
     setConsumerLoans(prev => prev.map(loan => 
       loan.id === id ? { ...loan, [field]: value } : loan
@@ -180,6 +197,7 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
     consumerLoans,
     addConsumerLoan,
     removeConsumerLoan,
+    resetConsumerLoan,
     updateConsumerLoan,
     isConsumerLoanComplete,
     getAggregatedData

@@ -18,6 +18,7 @@ interface ConsumerLoanCardProps {
   index: number;
   updateConsumerLoan: (id: string, field: keyof ConsumerLoanInfo, value: string) => void;
   removeConsumerLoan: (id: string) => void;
+  resetConsumerLoan: (id: string) => void;
   consumerLoansLength: number;
 }
 
@@ -26,6 +27,7 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
   index,
   updateConsumerLoan,
   removeConsumerLoan,
+  resetConsumerLoan,
   consumerLoansLength,
 }) => {
   const [startDateOpen, setStartDateOpen] = useState(false);
@@ -91,32 +93,41 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
         <h4 className="text-sm font-medium text-gray-900">
           消费贷 {index + 1}
         </h4>
-        {consumerLoansLength > 1 && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button 
-                className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-                title="删除此消费贷"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>确认删除</AlertDialogTitle>
-                <AlertDialogDescription>
-                  您确定要删除这笔消费贷吗？此操作不可撤销。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
-                <AlertDialogAction onClick={() => removeConsumerLoan(consumerLoan.id)}>
-                  确定删除
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button 
+              className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+              title={consumerLoansLength > 1 ? "删除此消费贷" : "清空此消费贷"}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {consumerLoansLength > 1 ? '确认删除' : '确认清空'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {consumerLoansLength > 1 
+                  ? '您确定要删除这笔消费贷吗？此操作不可撤销。'
+                  : '您确定要清空这笔消费贷信息吗？将恢复至默认值。'
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                if (consumerLoansLength > 1) {
+                  removeConsumerLoan(consumerLoan.id);
+                } else {
+                  resetConsumerLoan(consumerLoan.id);
+                }
+              }}>
+                {consumerLoansLength > 1 ? '确定删除' : '确定清空'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       
       <div className="space-y-4">
@@ -637,6 +648,7 @@ interface SharedConsumerLoanModuleProps {
   consumerLoans: ConsumerLoanInfo[];
   addConsumerLoan: () => void;
   removeConsumerLoan: (id: string) => void;
+  resetConsumerLoan: (id: string) => void;
   updateConsumerLoan: (id: string, field: keyof ConsumerLoanInfo, value: string) => void;
   isConsumerLoanComplete: (consumerLoan: ConsumerLoanInfo) => boolean;
 }
@@ -647,6 +659,7 @@ export const SharedConsumerLoanModule: React.FC<SharedConsumerLoanModuleProps> =
   consumerLoans,
   addConsumerLoan,
   removeConsumerLoan,
+  resetConsumerLoan,
   updateConsumerLoan,
   isConsumerLoanComplete
 }) => {
@@ -660,6 +673,7 @@ export const SharedConsumerLoanModule: React.FC<SharedConsumerLoanModuleProps> =
             index={index}
             updateConsumerLoan={updateConsumerLoan}
             removeConsumerLoan={removeConsumerLoan}
+            resetConsumerLoan={resetConsumerLoan}
             consumerLoansLength={consumerLoans.length}
           />
         </div>

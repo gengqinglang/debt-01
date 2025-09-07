@@ -11,6 +11,7 @@ interface CreditCardCardProps {
   index: number;
   updateCreditCard: (id: string, field: keyof CreditCardInfo, value: string) => void;
   removeCreditCard: (id: string) => void;
+  resetCreditCard: (id: string) => void;
   creditCardsLength: number;
 }
 
@@ -19,6 +20,7 @@ const CreditCardCard: React.FC<CreditCardCardProps> = ({
   index,
   updateCreditCard,
   removeCreditCard,
+  resetCreditCard,
   creditCardsLength,
 }) => {
   return (
@@ -27,32 +29,41 @@ const CreditCardCard: React.FC<CreditCardCardProps> = ({
         <h4 className="text-sm font-medium text-gray-900">
           信用卡 {index + 1}
         </h4>
-        {creditCardsLength > 1 && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button 
-                className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
-                title="删除此信用卡"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>确认删除</AlertDialogTitle>
-                <AlertDialogDescription>
-                  您确定要删除这张信用卡吗？此操作不可撤销。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
-                <AlertDialogAction onClick={() => removeCreditCard(creditCard.id)}>
-                  确定删除
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button 
+              className="p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+              title={creditCardsLength > 1 ? "删除此信用卡" : "清空此信用卡"}
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {creditCardsLength > 1 ? '确认删除' : '确认清空'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {creditCardsLength > 1 
+                  ? '您确定要删除这张信用卡吗？此操作不可撤销。'
+                  : '您确定要清空这张信用卡信息吗？将恢复至默认值。'
+                }
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                if (creditCardsLength > 1) {
+                  removeCreditCard(creditCard.id);
+                } else {
+                  resetCreditCard(creditCard.id);
+                }
+              }}>
+                {creditCardsLength > 1 ? '确定删除' : '确定清空'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       
       <div className="space-y-4">
@@ -128,6 +139,7 @@ interface SharedCreditCardModuleProps {
   creditCards: CreditCardInfo[];
   addCreditCard: () => void;
   removeCreditCard: (id: string) => void;
+  resetCreditCard: (id: string) => void;
   updateCreditCard: (id: string, field: keyof CreditCardInfo, value: string) => void;
   isCreditCardComplete: (creditCard: CreditCardInfo) => boolean;
 }
@@ -138,6 +150,7 @@ export const SharedCreditCardModule: React.FC<SharedCreditCardModuleProps> = ({
   creditCards,
   addCreditCard,
   removeCreditCard,
+  resetCreditCard,
   updateCreditCard,
   isCreditCardComplete
 }) => {
@@ -151,6 +164,7 @@ export const SharedCreditCardModule: React.FC<SharedCreditCardModuleProps> = ({
             index={index}
             updateCreditCard={updateCreditCard}
             removeCreditCard={removeCreditCard}
+            resetCreditCard={resetCreditCard}
             creditCardsLength={creditCards.length}
           />
         </div>

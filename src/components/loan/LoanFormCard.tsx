@@ -16,6 +16,7 @@ interface LoanFormCardProps {
   index: number;
   updateLoan: (id: string, field: keyof LoanInfo, value: string) => void;
   removeLoan: (id: string) => void;
+  resetLoan: (id: string) => void;
   loansLength: number;
   calculateLoanStats: (loan: LoanInfo) => any;
   isLoanComplete: (loan: LoanInfo) => boolean;
@@ -37,7 +38,8 @@ export const LoanFormCard: React.FC<LoanFormCardProps> = ({
   loan, 
   index, 
   updateLoan, 
-  removeLoan, 
+  removeLoan,
+  resetLoan,
   loansLength,
   calculateLoanStats,
   isLoanComplete,
@@ -172,33 +174,50 @@ export const LoanFormCard: React.FC<LoanFormCardProps> = ({
                 </CardTitle>
               </Button>
             </CollapsibleTrigger>
-            {loansLength > 1 && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="mobile"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-red-500"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="max-w-[320px] mx-auto">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-base">确认删除</AlertDialogTitle>
-                    <AlertDialogDescription className="text-sm">
-                      确定要删除这笔房贷信息吗？删除后无法恢复。
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="flex-row justify-end gap-2">
-                    <AlertDialogCancel className="mt-0">取消</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => removeLoan(loan.id)}>
-                      确认删除
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="mobile"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-red-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="max-w-[320px] mx-auto">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-base">
+                    {loansLength > 1 ? '确认删除' : '确认清空'}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-sm">
+                    {loansLength > 1 
+                      ? '确定要删除这笔房贷信息吗？删除后无法恢复。'
+                      : '确定要清空这笔房贷信息吗？将恢复至默认值。'
+                    }
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-row justify-end gap-2">
+                  <AlertDialogCancel className="mt-0">取消</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => {
+                    if (loansLength > 1) {
+                      removeLoan(loan.id);
+                      toast({
+                        title: "已删除",
+                        description: "房贷信息已删除",
+                      });
+                    } else {
+                      resetLoan(loan.id);
+                      toast({
+                        title: "已清空",
+                        description: "房贷信息已恢复至默认值",
+                      });
+                    }
+                  }}>
+                    {loansLength > 1 ? '确认删除' : '确认清空'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
           
           {/* 折叠时显示的进度摘要 */}

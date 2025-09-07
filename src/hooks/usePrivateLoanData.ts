@@ -68,6 +68,23 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
     setPrivateLoans(prev => prev.length > 1 ? prev.filter(loan => loan.id !== id) : prev);
   }, []);
 
+  const resetPrivateLoan = useCallback((id: string) => {
+    const todayDate = getTodayDate();
+    setPrivateLoans(prev => prev.map(loan => 
+      loan.id === id ? {
+        id: loan.id,
+        name: '',
+        loanAmount: '',
+        startDate: todayDate,
+        endDate: '',
+        annualRate: '',
+        rateFen: '',
+        rateLi: '',
+        repaymentMethod: 'interest-first',
+      } : loan
+    ));
+  }, []);
+
   const updatePrivateLoan = useCallback((id: string, field: keyof PrivateLoanInfo, value: string) => {
     setPrivateLoans(prev => prev.map(loan => 
       loan.id === id ? { ...loan, [field]: value } : loan
@@ -205,6 +222,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
     privateLoans,
     addPrivateLoan,
     removePrivateLoan,
+    resetPrivateLoan,
     updatePrivateLoan,
     updateRateFen,
     updateRateLi,

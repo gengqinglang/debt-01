@@ -196,11 +196,47 @@ export const useLoanData = (options: UseLoanDataOptions = { persist: true }) => 
     setLoans(prevLoans => prevLoans.filter(loan => loan.id !== id));
   };
 
+  const resetLoan = (id: string) => {
+    const today = getTodayDate();
+    setLoans(prevLoans => 
+      prevLoans.map(loan => 
+        loan.id === id ? {
+          ...loan,
+          propertyName: '',
+          loanType: 'commercial',
+          loanStartDate: today,
+          loanEndDate: today,
+          rateType: 'floating',
+          fixedRate: '',
+          floatingRateAdjustment: '',
+          paymentMethod: 'equal-payment',
+          loanAmount: '',
+          remainingPrincipal: '',
+          commercialLoanAmount: '',
+          commercialStartDate: today,
+          commercialEndDate: today,
+          commercialPaymentMethod: 'equal-payment',
+          commercialRateType: 'floating',
+          commercialFixedRate: '',
+          commercialFloatingRateAdjustment: '',
+          commercialRemainingPrincipal: '',
+          providentLoanAmount: '',
+          providentStartDate: today,
+          providentEndDate: today,
+          providentPaymentMethod: 'equal-payment',
+          providentRate: '',
+          providentRemainingPrincipal: '',
+        } : loan
+      )
+    );
+  };
+
   return {
     loans,
     updateLoan,
     addLoan,
     removeLoan,
+    resetLoan,
     setLoans
   };
 };

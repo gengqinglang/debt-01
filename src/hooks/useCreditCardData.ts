@@ -33,6 +33,17 @@ export const useCreditCardData = (initialData?: CreditCardInfo[]) => {
     setCreditCards(prev => prev.length > 1 ? prev.filter(card => card.id !== id) : prev);
   }, []);
 
+  const resetCreditCard = useCallback((id: string) => {
+    setCreditCards(prev => prev.map(card => 
+      card.id === id ? {
+        id: card.id,
+        name: '',
+        currentAmount: '',
+        unbilledAmount: ''
+      } : card
+    ));
+  }, []);
+
   const updateCreditCard = useCallback((id: string, field: keyof CreditCardInfo, value: string) => {
     setCreditCards(prev => prev.map(card => 
       card.id === id ? { ...card, [field]: value } : card
@@ -82,6 +93,7 @@ export const useCreditCardData = (initialData?: CreditCardInfo[]) => {
     creditCards,
     addCreditCard,
     removeCreditCard,
+    resetCreditCard,
     updateCreditCard,
     isCreditCardComplete,
     getAggregatedData

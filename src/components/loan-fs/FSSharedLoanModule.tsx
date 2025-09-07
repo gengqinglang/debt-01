@@ -50,7 +50,7 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
   onLoansChange,
   persist = false // FS version defaults to false
 }) => {
-  const { loans, updateLoan, addLoan, removeLoan } = useLoanData({ persist });
+  const { loans, updateLoan, addLoan, removeLoan, resetLoan } = useLoanData({ persist });
   const { toast } = useToast();
   
   // 确保至少有一笔贷款（初始状态）
@@ -78,6 +78,7 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
             index={index}
             updateLoan={updateLoan}
             removeLoan={removeLoan}
+            resetLoan={resetLoan}
             loansLength={loans.length}
             calculateLoanStats={calculateLoanStats}
             isLoanComplete={isLoanComplete}
