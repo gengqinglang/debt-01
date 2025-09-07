@@ -10,6 +10,7 @@ export interface DebtInfo {
   type: 'mortgage' | 'carLoan' | 'consumerLoan' | 'businessLoan' | 'privateLoan' | 'creditCard';
   name: string;
   amount: number;
+  count?: number; // 新增：债务笔数，主要用于房贷等可能包含多笔的债务类型
   monthlyPayment: number;
   remainingMonths?: number;
   interestRate?: number;
@@ -90,12 +91,32 @@ const FinancialStatusPage = () => {
 
   // 计算债务笔数（优先使用实时数据）
   const calculateDebtCount = () => {
-    const confirmedCount = debts.filter(debt => debt.amount > 0).length;
-    const mortgageLiveData = liveData['mortgage'];
-    if (mortgageLiveData && mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedCount + mortgageLiveData.count;
-    }
-    return confirmedCount;
+    let totalCount = 0;
+    
+    // 遍历所有债务类型
+    debtCategories.forEach(category => {
+      if (configConfirmed[category.id]) {
+        // 已确认的债务，从debts数组中获取数据
+        const debt = debts.find(d => d.type === category.id);
+        if (debt) {
+          if (category.id === 'mortgage') {
+            // 房贷使用count字段（表示贷款笔数）
+            totalCount += debt.count || 0;
+          } else {
+            // 其他债务类型按金额判断
+            totalCount += debt.amount > 0 ? 1 : 0;
+          }
+        }
+      } else {
+        // 未确认的债务，使用实时数据
+        const liveDataForCategory = liveData[category.id];
+        if (liveDataForCategory && liveDataForCategory.count > 0) {
+          totalCount += liveDataForCategory.count;
+        }
+      }
+    });
+    
+    return totalCount;
   };
 
   // 计算剩余本金（优先使用实时数据）
