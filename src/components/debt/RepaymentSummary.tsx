@@ -141,14 +141,13 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
                         className="w-3 h-3 rounded-full mr-2" 
                         style={{ backgroundColor: COLORS[index % COLORS.length] }}
                       />
-                      <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {item.name}（{item.percentage}%）
+                      </span>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-bold text-gray-900">
                         {Math.round(item.value).toLocaleString()}万
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        占比 {item.percentage}%
                       </div>
                     </div>
                   </div>
