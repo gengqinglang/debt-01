@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export interface CreditCardInfo {
   id: string;
@@ -18,6 +18,13 @@ export const useCreditCardData = (initialData?: CreditCardInfo[]) => {
           unbilledAmount: ''
         }]
   );
+
+  // Sync with initialData when it changes
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      setCreditCards(initialData);
+    }
+  }, [JSON.stringify(initialData)]);
 
   const addCreditCard = useCallback(() => {
     const newCreditCard: CreditCardInfo = {

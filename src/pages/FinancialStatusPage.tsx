@@ -165,18 +165,26 @@ const FinancialStatusPage = () => {
   const handleConfigConfirm = (categoryId: string, data: any) => {
     // 负债配置
     const existingDebtIndex = debts.findIndex(debt => debt.type === categoryId);
+    let updatedDebts;
     if (existingDebtIndex >= 0) {
-      const updatedDebts = [...debts];
+      updatedDebts = [...debts];
       updatedDebts[existingDebtIndex] = { ...updatedDebts[existingDebtIndex], ...data };
       setDebts(updatedDebts);
     } else {
-      setDebts([...debts, { id: Date.now().toString(), type: categoryId as any, ...data }]);
+      updatedDebts = [...debts, { id: Date.now().toString(), type: categoryId as any, ...data }];
+      setDebts(updatedDebts);
     }
 
-    setConfigConfirmed({
+    const updatedConfigConfirmed = {
       ...configConfirmed,
       [categoryId]: true
-    });
+    };
+    setConfigConfirmed(updatedConfigConfirmed);
+
+    // 立即持久化已确认的债务数据
+    const confirmedDebts = updatedDebts.filter(debt => updatedConfigConfirmed[debt.type]);
+    localStorage.setItem('confirmed_debts', JSON.stringify(confirmedDebts));
+    console.log('Saving confirmed_debts to localStorage immediately:', confirmedDebts);
 
     // 完成当前配置后不自动跳转，由用户通过上方类型选择切换
     // 保留数据与确认状态，不改变 currentIndex

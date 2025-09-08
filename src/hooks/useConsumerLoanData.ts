@@ -38,6 +38,13 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
         }]
   );
 
+  // Sync with initialData when it changes
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      setConsumerLoans(initialData);
+    }
+  }, [JSON.stringify(initialData)]);
+
   // Set default dates to today for existing loans with empty date fields
   useEffect(() => {
     const todayDate = getTodayDate();

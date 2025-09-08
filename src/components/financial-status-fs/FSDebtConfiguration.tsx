@@ -972,7 +972,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     resetCarLoan,
     updateCarLoan, 
     isCarLoanComplete 
-  } = useCarLoanData();
+  } = useCarLoanData(existingData?.carLoans);
   
   // Consumer loan hooks
   const { 
@@ -982,7 +982,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     resetConsumerLoan,
     updateConsumerLoan, 
     isConsumerLoanComplete 
-  } = useConsumerLoanData();
+  } = useConsumerLoanData(existingData?.consumerLoans);
   
   // Business loan hooks
   const { 
@@ -992,7 +992,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     resetBusinessLoan,
     updateBusinessLoan, 
     isBusinessLoanComplete 
-  } = useBusinessLoanData();
+  } = useBusinessLoanData(existingData?.businessLoans);
   
   // Private loan hooks
   const { 
@@ -1004,7 +1004,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     isPrivateLoanComplete,
     updateRateFen,
     updateRateLi 
-  } = usePrivateLoanData();
+  } = usePrivateLoanData(existingData?.privateLoans);
   
   // Credit card hooks
   const { 
@@ -1014,7 +1014,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     resetCreditCard,
     updateCreditCard, 
     isCreditCardComplete 
-  } = useCreditCardData();
+  } = useCreditCardData(existingData?.creditCards);
 
   // 基础表单数据
   const [formData, setFormData] = useState<{ [key: string]: string }>({});
