@@ -1750,7 +1750,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
                   : 'bg-[#B3EBEF] hover:bg-[#8FD8DC] text-gray-900'
               }`}
-              disabled={loans.length === 0 || !loans.every(loan => isLoanComplete(loan))}
+              disabled={loans.length > 0 && !loans.every(loan => isLoanComplete(loan))}
             >
               <Check className="w-3 h-3 mr-2" />
               {isConfirmed && !hasDataChanged ? '已确认' : '确认房贷信息'}
