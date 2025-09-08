@@ -124,7 +124,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
     if (debt.type === 'carLoan' && (debt as any).carLoans?.length) {
       (debt as any).carLoans.forEach((carLoan: any) => {
         const id = `carLoan-${carLoan.id}`;
-        const name = carLoan.carName || '车辆';
+        const name = carLoan.vehicleName || carLoan.carName || '车辆';
         
         let amount = 0;
         let interestRate = 0;
@@ -164,7 +164,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
     if (debt.type === 'consumerLoan' && (debt as any).consumerLoans?.length) {
       (debt as any).consumerLoans.forEach((consumerLoan: any) => {
         const id = `consumerLoan-${consumerLoan.id}`;
-        const name = consumerLoan.loanName || '消费贷';
+        const name = consumerLoan.name || consumerLoan.loanName || '消费贷';
         const amount = parseFloat(consumerLoan.loanAmount || '0'); // 数据已是万元单位
         const interestRate = parseFloat(consumerLoan.annualRate || '0');
         
@@ -190,7 +190,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
     if (debt.type === 'businessLoan' && (debt as any).businessLoans?.length) {
       (debt as any).businessLoans.forEach((businessLoan: any) => {
         const id = `businessLoan-${businessLoan.id}`;
-        const name = businessLoan.loanName || '经营贷';
+        const name = businessLoan.name || businessLoan.loanName || '经营贷';
         const amount = parseFloat(businessLoan.loanAmount || '0'); // 数据已是万元单位
         const interestRate = parseFloat(businessLoan.annualRate || '0');
         
@@ -219,7 +219,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
     if (debt.type === 'privateLoan' && (debt as any).privateLoans?.length) {
       (debt as any).privateLoans.forEach((privateLoan: any) => {
         const id = `privateLoan-${privateLoan.id}`;
-        const name = privateLoan.loanName || '民间借贷';
+        const name = privateLoan.name || privateLoan.loanName || '民间借贷';
         const amount = parseFloat(privateLoan.loanAmount || '0'); // 数据已是万元单位
         const interestRate = parseFloat(privateLoan.annualRate || '0');
         
