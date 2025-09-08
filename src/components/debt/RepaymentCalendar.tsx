@@ -77,20 +77,15 @@ const formatCurrency = (amount: number): string => {
 // 从localStorage加载各类贷款的详细数据
 const loadIndividualLoanData = () => {
   try {
-    const mortgageData = JSON.parse(localStorage.getItem('mortgage_loans') || '[]') as MortgageLoanInfo[];
-    const carLoanData = JSON.parse(localStorage.getItem('car_loans') || '[]') as CarLoanInfo[];
-    const consumerLoanData = JSON.parse(localStorage.getItem('consumer_loans') || '[]') as ConsumerLoanInfo[];
-    const businessLoanData = JSON.parse(localStorage.getItem('business_loans') || '[]') as BusinessLoanInfo[];
-    const privateLoanData = JSON.parse(localStorage.getItem('private_loans') || '[]') as PrivateLoanInfo[];
-    const creditCardData = JSON.parse(localStorage.getItem('credit_cards') || '[]') as CreditCardInfo[];
-    
+    const sharedMortgage = JSON.parse(localStorage.getItem('shared_loan_data') || '[]') as any[];
+    // 其他类型当前未持久化，返回空
     return {
-      mortgageLoans: mortgageData,
-      carLoans: carLoanData,
-      consumerLoans: consumerLoanData,
-      businessLoans: businessLoanData,
-      privateLoans: privateLoanData,
-      creditCards: creditCardData
+      mortgageLoans: Array.isArray(sharedMortgage) ? sharedMortgage : [],
+      carLoans: [],
+      consumerLoans: [],
+      businessLoans: [],
+      privateLoans: [],
+      creditCards: []
     };
   } catch (error) {
     console.error('Error loading individual loan data:', error);
@@ -138,166 +133,59 @@ const calculateMonthlyPayment = (
   }
 };
 
-// 处理个人贷款数据，生成还款计划
-const processIndividualLoans = (): RepaymentItem[] => {
-  const loanData = loadIndividualLoanData();
+// 处理个人贷款数据，生成还款计划（基于已持久化的详细数据）
+const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
+  const { mortgageLoans } = loadIndividualLoanData();
   const repaymentItems: RepaymentItem[] = [];
-  
-  // 处理房贷
-  loanData.mortgageLoans.forEach((loan) => {
-    if (loan.amount && parseFloat(loan.amount) > 0) {
-      const principal = parseFloat(loan.remainingPrincipal || loan.amount) * 10000; // 万元转元
-      const rate = parseFloat(loan.interestRate || '0') / 100;
-      const termMonths = parseFloat(loan.term || '0') * 12;
-      const monthlyPayment = calculateMonthlyPayment(principal, rate, termMonths, loan.repaymentMethod);
-      
-      if (monthlyPayment > 0) {
+
+  // 仅房贷有明确的本地持久化明细（shared_loan_data）
+  if (Array.isArray(mortgageLoans) && mortgageLoans.length > 0) {
+    type SubLoan = { label: string; dueDay: number; principal: number };
+    const subLoans: SubLoan[] = [];
+
+    mortgageLoans.forEach((loan: any, idx: number) => {
+      const safeName = loan.propertyName || `房贷${idx + 1}`;
+      const pushSingle = (label: string, startDate?: string, principalWan?: string) => {
+        const pWan = parseFloat(principalWan || loan.remainingPrincipal || loan.loanAmount || '0');
+        const principal = isNaN(pWan) ? 0 : pWan * 10000; // 万元转元
+        const dueDay = getDueDayFromDate(startDate || loan.loanStartDate);
+        subLoans.push({ label: `${safeName}-${label}`, dueDay, principal });
+      };
+
+      if (loan.loanType === 'combination') {
+        // 组合贷款拆分两笔
+        pushSingle('商贷', loan.commercialStartDate, loan.commercialRemainingPrincipal || loan.commercialLoanAmount);
+        pushSingle('公积金', loan.providentStartDate, loan.providentRemainingPrincipal || loan.providentLoanAmount);
+      } else if (loan.loanType === 'commercial') {
+        pushSingle('商贷', loan.loanStartDate, loan.remainingPrincipal || loan.loanAmount);
+      } else if (loan.loanType === 'provident') {
+        pushSingle('公积金', loan.loanStartDate, loan.remainingPrincipal || loan.loanAmount);
+      } else {
+        pushSingle('房贷', loan.loanStartDate, loan.remainingPrincipal || loan.loanAmount);
+      }
+    });
+
+    // 按剩余本金占比分摊月份总额（来自聚合数据）
+    const mortgageAgg = debts.find(d => d.type === 'mortgage');
+    const monthlyPool = Math.max(0, Number(mortgageAgg?.monthlyPayment || 0));
+    const totalPrincipal = subLoans.reduce((s, l) => s + (l.principal || 0), 0);
+
+    subLoans.forEach(sl => {
+      if (sl.principal <= 0) return;
+      const amount = totalPrincipal > 0 ? (monthlyPool * (sl.principal / totalPrincipal)) : 0;
+      if (amount > 0) {
         repaymentItems.push({
           type: '房贷',
-          subType: loan.loanType === 'commercial' ? '商业贷款' : loan.loanType === 'housingFund' ? '公积金贷款' : '组合贷款',
-          name: `房贷-${loan.loanType === 'commercial' ? '商贷' : loan.loanType === 'housingFund' ? '公积金' : '组合'}`,
-          amount: monthlyPayment,
-          dueDay: getDueDayFromDate(loan.startDate)
+          subType: undefined,
+          name: sl.label,
+          amount,
+          dueDay: sl.dueDay || 10,
         });
       }
-    }
-  });
-  
-  // 处理车贷
-  loanData.carLoans.forEach((loan) => {
-    let monthlyPayment = 0;
-    let dueDay = 10;
-    
-    if (loan.loanType === 'installment' && loan.installmentAmount) {
-      monthlyPayment = parseFloat(loan.installmentAmount);
-      // 分期贷款通常没有明确的开始日期，使用默认还款日
-    } else if (loan.loanType === 'bankLoan') {
-      const principal = parseFloat(loan.remainingPrincipal || loan.principal || '0') * 10000; // 万元转元
-      const rate = parseFloat(loan.interestRate || '0') / 100;
-      let termMonths = 0;
-      
-      if (loan.startDateMonth && loan.endDateMonth) {
-        const [sy, sm] = loan.startDateMonth.split('-').map(Number);
-        const [ey, em] = loan.endDateMonth.split('-').map(Number);
-        termMonths = (ey - sy) * 12 + (em - sm);
-        dueDay = sm; // 使用开始月份作为还款日
-      } else if (loan.term) {
-        termMonths = parseFloat(loan.term) * 12;
-      }
-      
-      monthlyPayment = calculateMonthlyPayment(principal, rate, termMonths, loan.repaymentMethod);
-    }
-    
-    if (monthlyPayment > 0) {
-      repaymentItems.push({
-        type: '车贷',
-        subType: loan.loanType === 'installment' ? '分期还款' : '银行贷款',
-        name: loan.vehicleName || `车贷-${loan.loanType === 'installment' ? '分期' : '银行'}`,
-        amount: monthlyPayment,
-        dueDay
-      });
-    }
-  });
-  
-  // 处理消费贷
-  loanData.consumerLoans.forEach((loan) => {
-    if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
-      let monthlyPayment = 0;
-      
-      if (loan.repaymentMethod === 'interest-first') {
-        // 先息后本：月供 = 本金 * 月利率
-        const principal = parseFloat(loan.loanAmount) * 10000;
-        const rate = parseFloat(loan.annualRate || '0') / 100 / 12;
-        monthlyPayment = principal * rate;
-      } else if (loan.repaymentMethod === 'lump-sum') {
-        // 一次性还本付息：月供为0
-        monthlyPayment = 0;
-      } else {
-        // 等额本息/等额本金
-        const principal = parseFloat(loan.remainingPrincipal || loan.loanAmount) * 10000;
-        const rate = parseFloat(loan.annualRate || '0') / 100;
-        const termMonths = parseFloat(loan.loanTerm || '0') * 12;
-        monthlyPayment = calculateMonthlyPayment(principal, rate, termMonths, loan.repaymentMethod);
-      }
-      
-      if (monthlyPayment > 0) {
-        repaymentItems.push({
-          type: '消费贷',
-          subType: loan.repaymentMethod,
-          name: loan.name || '消费贷',
-          amount: monthlyPayment,
-          dueDay: getDueDayFromDate(loan.startDate)
-        });
-      }
-    }
-  });
-  
-  // 处理经营贷
-  loanData.businessLoans.forEach((loan) => {
-    if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
-      let monthlyPayment = 0;
-      
-      if (loan.repaymentMethod === 'interest-first') {
-        const principal = parseFloat(loan.loanAmount) * 10000;
-        const rate = parseFloat(loan.annualRate || '0') / 100 / 12;
-        monthlyPayment = principal * rate;
-      } else if (loan.repaymentMethod === 'lump-sum') {
-        monthlyPayment = 0;
-      } else {
-        const principal = parseFloat(loan.loanAmount) * 10000;
-        const rate = parseFloat(loan.annualRate || '0') / 100;
-        const termMonths = parseFloat(loan.loanTerm || '0') * 12;
-        monthlyPayment = calculateMonthlyPayment(principal, rate, termMonths, loan.repaymentMethod);
-      }
-      
-      if (monthlyPayment > 0) {
-        repaymentItems.push({
-          type: '经营贷',
-          subType: loan.repaymentMethod,
-          name: loan.name || '经营贷',
-          amount: monthlyPayment,
-          dueDay: getDueDayFromDate(loan.startDate)
-        });
-      }
-    }
-  });
-  
-  // 处理民间贷
-  loanData.privateLoans.forEach((loan) => {
-    let monthlyPayment = 0;
-    
-    if (loan.monthlyPayment) {
-      monthlyPayment = parseFloat(loan.monthlyPayment);
-    } else if (loan.loanAmount && loan.remainingMonths) {
-      // 简单计算：贷款金额 / 剩余月数
-      monthlyPayment = parseFloat(loan.loanAmount) * 10000 / parseFloat(loan.remainingMonths);
-    }
-    
-    if (monthlyPayment > 0) {
-      repaymentItems.push({
-        type: '民间贷',
-        subType: '民间借贷',
-        name: loan.name || '民间贷',
-        amount: monthlyPayment,
-        dueDay: getDueDayFromDate(loan.startDate)
-      });
-    }
-  });
-  
-  // 处理信用卡
-  loanData.creditCards.forEach((card) => {
-    if (card.monthlyPayment && parseFloat(card.monthlyPayment) > 0) {
-      repaymentItems.push({
-        type: '信用卡',
-        subType: '信用卡还款',
-        name: card.bankName || '信用卡',
-        amount: parseFloat(card.monthlyPayment),
-        dueDay: 10 // 信用卡默认10号还款
-      });
-    }
-  });
-  
-  console.log('Processed repayment items:', repaymentItems);
+    });
+  }
+
+  console.log('Processed repayment items (from shared_loan_data):', repaymentItems);
   return repaymentItems;
 };
 
@@ -310,7 +198,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
     const repaymentMap = new Map<string, RepaymentItem[]>();
     
     // 获取所有个人贷款的还款计划
-    const repaymentItems = processIndividualLoans();
+    const repaymentItems = processIndividualLoans(debts);
     
     if (repaymentItems.length === 0) {
       console.log('No individual loan data found, using aggregated debt data as fallback');
