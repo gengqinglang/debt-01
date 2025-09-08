@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -663,6 +663,16 @@ export const SharedConsumerLoanModule: React.FC<SharedConsumerLoanModuleProps> =
   updateConsumerLoan,
   isConsumerLoanComplete
 }) => {
+  // 自动添加空白卡片
+  useEffect(() => {
+    const hasExistingData = existingData && existingData.length > 0;
+    const hasCurrentData = consumerLoans && consumerLoans.length > 0;
+    
+    if (!hasExistingData && !hasCurrentData) {
+      addConsumerLoan();
+    }
+  }, [existingData, addConsumerLoan]);
+
   return (
     <>
       {/* 消费贷列表 */}

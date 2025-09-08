@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -154,6 +154,16 @@ export const SharedCreditCardModule: React.FC<SharedCreditCardModuleProps> = ({
   updateCreditCard,
   isCreditCardComplete
 }) => {
+  // 自动添加空白卡片
+  useEffect(() => {
+    const hasExistingData = existingData && existingData.length > 0;
+    const hasCurrentData = creditCards && creditCards.length > 0;
+    
+    if (!hasExistingData && !hasCurrentData) {
+      addCreditCard();
+    }
+  }, [existingData, addCreditCard]);
+
   return (
     <>
       {/* 信用卡列表 */}
