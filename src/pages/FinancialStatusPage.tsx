@@ -287,18 +287,15 @@ const FinancialStatusPage = () => {
               // 改进hasData逻辑，特别处理房贷和车贷
               let hasData = false;
               if (configConfirmed[cat.id]) {
-                // 已确认的情况
+                // 已确认的情况才显示勾选框
                 if (cat.id === 'mortgage' || cat.id === 'carLoan') {
                   const debt = debts.find(d => d.type === cat.id);
                   hasData = debt && (debt.count || 0) > 0;
                 } else {
                   hasData = debts.some(debt => debt.type === cat.id && debt.amount > 0);
                 }
-              } else {
-                // 未确认的情况，检查实时数据
-                const liveDataForCategory = liveData[cat.id];
-                hasData = liveDataForCategory && liveDataForCategory.count > 0;
               }
+              // 未确认状态下不显示勾选框，必须点击确认按钮后才显示
               
               return (
                 <button
