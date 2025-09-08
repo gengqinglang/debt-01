@@ -130,7 +130,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
 
   return (
     <Card>
-      <CardHeader className="py-3">
+      <CardHeader className="pt-6 pb-3">
         <CardTitle className="flex items-center text-lg">
           <CalendarDays className="w-5 h-5 text-[#01BCD6] mr-2" />
           还款日历
