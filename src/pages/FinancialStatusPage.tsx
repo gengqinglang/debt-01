@@ -227,6 +227,15 @@ const FinancialStatusPage = () => {
     navigate('/debt-analysis');
   };
 
+  // 格式化金额显示 - 大于10万不显示小数，小于等于10万显示2位小数
+  const formatAmount = (amount: number) => {
+    if (amount > 10) {
+      return Math.round(amount).toLocaleString();
+    } else {
+      return amount.toFixed(2);
+    }
+  };
+
   const getCurrentData = () => {
     return debts.find(debt => debt.type === currentCategory.id);
   };
@@ -246,11 +255,11 @@ const FinancialStatusPage = () => {
                 <p className="text-xs text-gray-700">债务笔数</p>
               </div>
                 <div className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 rounded-lg p-3 border border-[#B3EBEF]/30">
-                  <div className="text-lg font-bold text-gray-900 mb-1">{Math.round(calculateRemainingPrincipal()).toLocaleString()}万</div>
+                  <div className="text-lg font-bold text-gray-900 mb-1">{formatAmount(calculateRemainingPrincipal())}万</div>
                   <p className="text-xs text-gray-700">剩余本金</p>
                 </div>
                 <div className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 rounded-lg p-3 border border-[#B3EBEF]/30">
-                  <div className="text-lg font-bold text-gray-900 mb-1">{Math.round(calculateRemainingInterest()).toLocaleString()}万</div>
+                  <div className="text-lg font-bold text-gray-900 mb-1">{formatAmount(calculateRemainingInterest())}万</div>
                   <p className="text-xs text-gray-700">待还利息</p>
                 </div>
               </div>
