@@ -351,7 +351,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
           </CardTitle>
           
           {/* 排序切换 */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex bg-gray-100 rounded-lg p-1 w-60">
             <Button
               variant={sortType === 'principal-desc' ? 'default' : 'ghost'}
               size="sm"
