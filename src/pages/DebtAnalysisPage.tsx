@@ -25,6 +25,8 @@ const DebtAnalysisPage = () => {
   }, []);
 
   const goBack = () => {
+    // Set return flag and preserve confirmation states for smoother flow
+    sessionStorage.setItem('fs_returning_expected', 'true');
     navigate('/');
   };
 

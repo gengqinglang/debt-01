@@ -59,17 +59,44 @@ const FinancialStatusPage = () => {
         const parsedDebts = JSON.parse(savedDebts);
         setDebts(parsedDebts);
         
+        // Auto-confirm categories that have data
+        const derivedConfirmed: {[key: string]: boolean} = {};
+        debtCategories.forEach(category => {
+          const categoryData = parsedDebts.find((debt: any) => debt.type === category.id);
+          if (categoryData) {
+            // Check if category has meaningful data
+            const hasData = category.id === 'mortgage' || category.id === 'carLoan' 
+              ? (categoryData.count && categoryData.count > 0)
+              : (categoryData.amount && categoryData.amount > 0);
+            
+            derivedConfirmed[category.id] = hasData;
+          } else {
+            derivedConfirmed[category.id] = false;
+          }
+        });
+        
+        // Merge with saved confirmation states if returning (prioritize true values)
+        let finalConfirmed = derivedConfirmed;
         if (isReturning) {
-          // 从债务分析页返回，恢复确认状态
           const savedConfigConfirmed = sessionStorage.getItem('fs_config_confirmed');
           if (savedConfigConfirmed) {
-            setConfigConfirmed(JSON.parse(savedConfigConfirmed));
+            try {
+              const parsedConfirmed = JSON.parse(savedConfigConfirmed);
+              finalConfirmed = {};
+              debtCategories.forEach(category => {
+                finalConfirmed[category.id] = derivedConfirmed[category.id] || parsedConfirmed[category.id] || false;
+              });
+            } catch (error) {
+              console.error('Error parsing saved config confirmed:', error);
+            }
           }
-          // 清除返回标记
+          
+          // Clear the returning flag after restoration
           sessionStorage.removeItem('fs_returning_expected');
           sessionStorage.removeItem('fs_config_confirmed');
         }
-        // 否则不设置 configConfirmed - 需要用户在当前会话中重新确认
+        
+        setConfigConfirmed(finalConfirmed);
       }
     } catch (error) {
       console.error('Error loading saved debt data:', error);
