@@ -348,6 +348,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
 
   // 处理日期点击
   const handleDateClick = (date: Date | undefined) => {
+    console.log('Selected date:', date);
     if (date) {
       setSelectedDate(date);
     }
@@ -398,14 +399,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
             day_hidden: "invisible",
           }}
           components={{
-            Day: ({ date, ...props }) => (
-              <button 
-                {...props}
-                className="w-full aspect-square p-1 font-normal aria-selected:opacity-100 relative border-0 bg-transparent cursor-pointer hover:bg-[#B3EBEF]/20"
-              >
-                {dayContent(date)}
-              </button>
-            )
+            DayContent: ({ date }) => dayContent(date)
           }}
         />
 
