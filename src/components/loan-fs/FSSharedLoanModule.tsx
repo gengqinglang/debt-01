@@ -31,6 +31,8 @@ interface FSSharedLoanModuleProps {
   onLoansChange?: (loans: LoanInfo[]) => void;
   // 新增：控制是否持久化到localStorage
   persist?: boolean;
+  // 新增：当最后一笔完成的贷款被清除时的回调
+  onLastItemCleared?: () => void;
 }
 
 export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
@@ -48,7 +50,8 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
   LoanFormCard: CustomLoanFormCard,
   children,
   onLoansChange,
-  persist = true // 修改默认值为true，确保数据持久化
+  persist = true, // 修改默认值为true，确保数据持久化
+  onLastItemCleared
 }) => {
   const { loans, updateLoan, addLoan, removeLoan, resetLoan } = useLoanData({ persist });
   const { toast } = useToast();
@@ -69,6 +72,40 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
     onLoansChange?.(loans);
   }, [loans, onLoansChange]);
 
+  // 包装 removeLoan 函数，检查是否删除了最后一笔完成的贷款
+  const handleRemoveLoan = (id: string) => {
+    const loanToRemove = loans.find(loan => loan.id === id);
+    removeLoan(id);
+    
+    // 检查删除后是否没有完成的贷款了
+    if (loanToRemove && isLoanComplete(loanToRemove)) {
+      const remainingCompleteLoans = loans.filter(loan => loan.id !== id && isLoanComplete(loan));
+      if (remainingCompleteLoans.length === 0) {
+        // 延迟调用以确保状态更新完成
+        setTimeout(() => {
+          onLastItemCleared?.();
+        }, 0);
+      }
+    }
+  };
+
+  // 包装 resetLoan 函数，检查是否重置了最后一笔完成的贷款
+  const handleResetLoan = (id: string) => {
+    const loanToReset = loans.find(loan => loan.id === id);
+    resetLoan(id);
+    
+    // 检查重置后是否没有完成的贷款了
+    if (loanToReset && isLoanComplete(loanToReset)) {
+      const remainingCompleteLoans = loans.filter(loan => loan.id !== id || !isLoanComplete(loan));
+      if (remainingCompleteLoans.length === 0) {
+        // 延迟调用以确保状态更新完成
+        setTimeout(() => {
+          onLastItemCleared?.();
+        }, 0);
+      }
+    }
+  };
+
   return (
     <>
       {/* 贷款列表 */}
@@ -78,8 +115,8 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
             loan={loan} 
             index={index}
             updateLoan={updateLoan}
-            removeLoan={removeLoan}
-            resetLoan={resetLoan}
+            removeLoan={handleRemoveLoan}
+            resetLoan={handleResetLoan}
             loansLength={loans.length}
             calculateLoanStats={calculateLoanStats}
             isLoanComplete={isLoanComplete}

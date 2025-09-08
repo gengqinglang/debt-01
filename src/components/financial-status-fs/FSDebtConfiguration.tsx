@@ -1662,6 +1662,19 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             LoanFormCard={LoanFormCard}
             onLoansChange={setLoans}
             persist={true}
+            onLastItemCleared={() => {
+              // 当最后一笔完成的贷款被清除时，立即确认空状态
+              setTimeout(() => {
+                const aggregatedData = {
+                  count: 0,
+                  amount: 0,
+                  monthlyPayment: 0,
+                  remainingMonths: 0,
+                  loans: []
+                };
+                onConfirm(category.id, aggregatedData);
+              }, 0);
+            }}
           >
             <Button 
               onClick={() => {
@@ -1774,8 +1787,48 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             existingData={existingData?.carLoans}
             carLoans={carLoans}
             addCarLoan={addCarLoan}
-            removeCarLoan={removeCarLoan}
-            resetCarLoan={resetCarLoan}
+            removeCarLoan={(id: string) => {
+              const loanToRemove = carLoans.find(loan => loan.id === id);
+              removeCarLoan(id);
+              
+              // 检查删除后是否没有完成的贷款了
+              if (loanToRemove && isCarLoanComplete(loanToRemove)) {
+                const remainingCompleteLoans = carLoans.filter(loan => loan.id !== id && isCarLoanComplete(loan));
+                if (remainingCompleteLoans.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      carLoans: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
+            resetCarLoan={(id: string) => {
+              const loanToReset = carLoans.find(loan => loan.id === id);
+              resetCarLoan(id);
+              
+              // 检查重置后是否没有完成的贷款了
+              if (loanToReset && isCarLoanComplete(loanToReset)) {
+                const remainingCompleteLoans = carLoans.filter(loan => loan.id !== id || !isCarLoanComplete(loan));
+                if (remainingCompleteLoans.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      carLoans: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
             updateCarLoan={updateCarLoan}
             isCarLoanComplete={isCarLoanComplete}
           >
@@ -1830,8 +1883,48 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             existingData={existingData?.consumerLoans}
             consumerLoans={consumerLoans}
             addConsumerLoan={addConsumerLoan}
-            removeConsumerLoan={removeConsumerLoan}
-            resetConsumerLoan={resetConsumerLoan}
+            removeConsumerLoan={(id: string) => {
+              const loanToRemove = consumerLoans.find(loan => loan.id === id);
+              removeConsumerLoan(id);
+              
+              // 检查删除后是否没有完成的贷款了
+              if (loanToRemove && isConsumerLoanComplete(loanToRemove)) {
+                const remainingCompleteLoans = consumerLoans.filter(loan => loan.id !== id && isConsumerLoanComplete(loan));
+                if (remainingCompleteLoans.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      consumerLoans: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
+            resetConsumerLoan={(id: string) => {
+              const loanToReset = consumerLoans.find(loan => loan.id === id);
+              resetConsumerLoan(id);
+              
+              // 检查重置后是否没有完成的贷款了
+              if (loanToReset && isConsumerLoanComplete(loanToReset)) {
+                const remainingCompleteLoans = consumerLoans.filter(loan => loan.id !== id || !isConsumerLoanComplete(loan));
+                if (remainingCompleteLoans.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      consumerLoans: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
             updateConsumerLoan={updateConsumerLoan}
             isConsumerLoanComplete={isConsumerLoanComplete}
           >
@@ -1883,8 +1976,48 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             existingData={existingData?.businessLoans}
             businessLoans={businessLoans}
             addBusinessLoan={addBusinessLoan}
-            removeBusinessLoan={removeBusinessLoan}
-            resetBusinessLoan={resetBusinessLoan}
+            removeBusinessLoan={(id: string) => {
+              const loanToRemove = businessLoans.find(loan => loan.id === id);
+              removeBusinessLoan(id);
+              
+              // 检查删除后是否没有完成的贷款了
+              if (loanToRemove && isBusinessLoanComplete(loanToRemove)) {
+                const remainingCompleteLoans = businessLoans.filter(loan => loan.id !== id && isBusinessLoanComplete(loan));
+                if (remainingCompleteLoans.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      businessLoans: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
+            resetBusinessLoan={(id: string) => {
+              const loanToReset = businessLoans.find(loan => loan.id === id);
+              resetBusinessLoan(id);
+              
+              // 检查重置后是否没有完成的贷款了  
+              if (loanToReset && isBusinessLoanComplete(loanToReset)) {
+                const remainingCompleteLoans = businessLoans.filter(loan => loan.id !== id || !isBusinessLoanComplete(loan));
+                if (remainingCompleteLoans.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      businessLoans: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
             updateBusinessLoan={updateBusinessLoan}
             isBusinessLoanComplete={isBusinessLoanComplete}
           >
@@ -1936,8 +2069,48 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             existingData={existingData?.privateLoans}
             privateLoans={privateLoans}
             addPrivateLoan={addPrivateLoan}
-            removePrivateLoan={removePrivateLoan}
-            resetPrivateLoan={resetPrivateLoan}
+            removePrivateLoan={(id: string) => {
+              const loanToRemove = privateLoans.find(loan => loan.id === id);
+              removePrivateLoan(id);
+              
+              // 检查删除后是否没有完成的贷款了
+              if (loanToRemove && isPrivateLoanComplete(loanToRemove)) {
+                const remainingCompleteLoans = privateLoans.filter(loan => loan.id !== id && isPrivateLoanComplete(loan));
+                if (remainingCompleteLoans.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      privateLoans: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
+            resetPrivateLoan={(id: string) => {
+              const loanToReset = privateLoans.find(loan => loan.id === id);
+              resetPrivateLoan(id);
+              
+              // 检查重置后是否没有完成的贷款了
+              if (loanToReset && isPrivateLoanComplete(loanToReset)) {
+                const remainingCompleteLoans = privateLoans.filter(loan => loan.id !== id || !isPrivateLoanComplete(loan));
+                if (remainingCompleteLoans.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      privateLoans: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
             updatePrivateLoan={updatePrivateLoan}
             isPrivateLoanComplete={isPrivateLoanComplete}
             updateRateFen={updateRateFen}
@@ -1991,8 +2164,48 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             existingData={existingData?.creditCards}
             creditCards={creditCards}
             addCreditCard={addCreditCard}
-            removeCreditCard={removeCreditCard}
-            resetCreditCard={resetCreditCard}
+            removeCreditCard={(id: string) => {
+              const cardToRemove = creditCards.find(card => card.id === id);
+              removeCreditCard(id);
+              
+              // 检查删除后是否没有完成的信用卡了
+              if (cardToRemove && isCreditCardComplete(cardToRemove)) {
+                const remainingCompleteCards = creditCards.filter(card => card.id !== id && isCreditCardComplete(card));
+                if (remainingCompleteCards.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      creditCards: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
+            resetCreditCard={(id: string) => {
+              const cardToReset = creditCards.find(card => card.id === id);
+              resetCreditCard(id);
+              
+              // 检查重置后是否没有完成的信用卡了
+              if (cardToReset && isCreditCardComplete(cardToReset)) {
+                const remainingCompleteCards = creditCards.filter(card => card.id !== id || !isCreditCardComplete(card));
+                if (remainingCompleteCards.length === 0) {
+                  setTimeout(() => {
+                    const aggregatedData = {
+                      count: 0,
+                      amount: 0,
+                      monthlyPayment: 0,
+                      remainingMonths: 0,
+                      creditCards: []
+                    };
+                    onConfirm(category.id, aggregatedData);
+                  }, 0);
+                }
+              }
+            }}
             updateCreditCard={updateCreditCard}
             isCreditCardComplete={isCreditCardComplete}
           >
