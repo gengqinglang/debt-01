@@ -1,19 +1,19 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PiggyBank, TrendingDown, PieChart } from 'lucide-react';
+import { PiggyBank, TrendingDown, PieChart, Home, Car, CreditCard, Wallet, Briefcase, Handshake } from 'lucide-react';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
 interface RepaymentSummaryProps {
   debts: DebtInfo[];
 }
 
-// 债务类型中文映射
-const debtTypeNames: Record<string, string> = {
-  mortgage: '房贷',
-  carLoan: '车贷',
-  consumerLoan: '消费贷',
-  businessLoan: '经营贷',
-  privateLoan: '民间贷',
-  creditCard: '信用卡'
+// 债务类型配置
+const debtTypeConfig: Record<string, { name: string; icon: React.ComponentType<any> }> = {
+  mortgage: { name: '房贷', icon: Home },
+  carLoan: { name: '车贷', icon: Car },
+  consumerLoan: { name: '消费贷', icon: CreditCard },
+  businessLoan: { name: '经营贷', icon: Briefcase },
+  privateLoan: { name: '民间贷', icon: Handshake },
+  creditCard: { name: '信用卡', icon: Wallet }
 };
 
 // 格式化金额
@@ -46,7 +46,8 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
 
   // 计算按分类的剩余本金数据
   const debtByCategory = debts.filter(debt => (debt.amount || 0) > 0).reduce((acc, debt) => {
-    const category = debtTypeNames[debt.type] || debt.type;
+    const config = debtTypeConfig[debt.type];
+    const category = config?.name || debt.type;
     const amount = debt.amount || 0;
     
     if (acc[category]) {
@@ -58,11 +59,18 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
   }, {} as Record<string, number>);
 
   // 准备分类数据
-  const pieData = Object.entries(debtByCategory).map(([category, amount]) => ({
-    name: category,
-    value: amount,
-    percentage: totalDebtWan > 0 ? ((amount / totalDebtWan) * 100).toFixed(1) : '0.0'
-  }));
+  const pieData = Object.entries(debtByCategory).map(([category, amount]) => {
+    // 找到对应的债务类型以获取图标
+    const debtType = Object.keys(debtTypeConfig).find(key => debtTypeConfig[key].name === category);
+    const config = debtType ? debtTypeConfig[debtType] : null;
+    
+    return {
+      name: category,
+      value: amount,
+      percentage: totalDebtWan > 0 ? ((amount / totalDebtWan) * 100).toFixed(1) : '0.0',
+      icon: config?.icon || Wallet
+    };
+  });
   return <div className="space-y-4">
       {/* 汇总卡片 */}
       <div className="grid grid-cols-2 gap-3">
@@ -102,34 +110,37 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
         <CardContent className="pt-0 pb-4 px-2">
           {pieData.length > 0 ? (
             <div className="space-y-3">
-              {pieData.map((item, index) => (
-                <div key={item.name} className="bg-gradient-to-r from-[#B3EBEF]/10 to-[#8FD8DC]/10 rounded-lg py-2 px-4 border border-[#B3EBEF]/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div 
-                        className="w-2 h-2 rounded-full" 
-                        style={{ backgroundColor: '#01BCD6' }}
-                      />
-                      <div>
-                        <div className="text-base font-semibold text-gray-900">
-                          {item.name}
+              {pieData.map((item, index) => {
+                const IconComponent = item.icon;
+                
+                return (
+                  <div key={item.name} className="bg-gradient-to-r from-[#B3EBEF]/10 to-[#8FD8DC]/10 rounded-lg py-2 px-4 border border-[#B3EBEF]/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#B3EBEF]/30 to-[#8FD8DC]/30 flex items-center justify-center">
+                          <IconComponent className="w-4 h-4 text-[#01BCD6]" />
                         </div>
-                        <div className="text-sm text-[#01BCD6] font-medium">
-                          占比 {item.percentage}%
+                        <div>
+                          <div className="text-base font-semibold text-gray-900">
+                            {item.name}
+                          </div>
+                          <div className="text-sm text-[#01BCD6] font-medium">
+                            占比 {item.percentage}%
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-base font-bold text-gray-900">
-                        {Math.round(item.value).toLocaleString()}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        万元
+                      <div className="text-right">
+                        <div className="text-base font-bold text-gray-900">
+                          {Math.round(item.value).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          万元
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="py-8 text-center text-gray-500">
