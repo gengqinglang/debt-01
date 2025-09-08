@@ -324,7 +324,7 @@ const FinancialStatusPage = () => {
         />
 
         {/* 底部导航 */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-2 space-y-3 bg-gradient-to-t from-white via-white/95 to-white/90 backdrop-blur-xl border-t border-gray-100 pb-safe" 
+        <div className="fixed bottom-0 left-0 right-0 z-50 py-1 space-y-3 bg-gradient-to-t from-white via-white/95 to-white/90 backdrop-blur-xl border-t border-gray-100 pb-safe" 
              style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
           <div className="flex gap-2">
             <Button 
