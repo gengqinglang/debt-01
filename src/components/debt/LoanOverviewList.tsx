@@ -343,7 +343,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
 
   return (
     <Card>
-      <CardHeader className="pt-2 pb-1">
+      <CardHeader className="pt-3 pb-1">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center text-lg">
             <ArrowUpDown className="w-5 h-5 text-[#01BCD6] mr-2" />
