@@ -342,102 +342,102 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
     });
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center text-lg font-semibold text-gray-900">
-          <ArrowUpDown className="w-5 h-5 text-[#01BCD6] mr-2" />
-          每笔债务概览
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center text-lg">
+            <ArrowUpDown className="w-5 h-5 text-[#01BCD6] mr-2" />
+            每笔债务概览
+          </CardTitle>
+          
+          {/* 排序切换 */}
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <Button
+              variant={sortType === 'principal-desc' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSortType('principal-desc')}
+              className={`text-xs px-2 py-1 ${
+                sortType === 'principal-desc' 
+                  ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              本金
+            </Button>
+            <Button
+              variant={sortType === 'interest-desc' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSortType('interest-desc')}
+              className={`text-xs px-2 py-1 ${
+                sortType === 'interest-desc' 
+                  ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              利率
+            </Button>
+            <Button
+              variant={sortType === 'term-desc' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSortType('term-desc')}
+              className={`text-xs px-2 py-1 ${
+                sortType === 'term-desc' 
+                  ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              期限
+            </Button>
+          </div>
         </div>
-        
-        {/* 排序切换 */}
-        <div className="flex bg-gray-100 rounded-lg px-3 py-1.5">
-          <Button
-            variant={sortType === 'principal-desc' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setSortType('principal-desc')}
-            className={`text-xs px-3 py-1 ${
-              sortType === 'principal-desc' 
-                ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            本金
-          </Button>
-          <Button
-            variant={sortType === 'interest-desc' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setSortType('interest-desc')}
-            className={`text-xs px-3 py-1 ${
-              sortType === 'interest-desc' 
-                ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            利率
-          </Button>
-          <Button
-            variant={sortType === 'term-desc' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setSortType('term-desc')}
-            className={`text-xs px-3 py-1 ${
-              sortType === 'term-desc' 
-                ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            期限
-          </Button>
-        </div>
-      </div>
-      
-      {validDebts.length > 0 ? (
-        <div className="divide-y divide-gray-100">
-          {validDebts.map((debt, index) => {
-            const config = debtConfig[debt.type];
-            const IconComponent = config?.icon || Wallet;
-            const isLastItem = index === validDebts.length - 1;
-            
-            return (
-              <div 
-                key={debt.id || index} 
-                className={`px-4 py-4 hover:bg-gray-50 cursor-pointer transition-colors border-t border-gray-100 ${
-                  isLastItem ? 'border-b border-gray-100' : ''
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center flex-1">
-                    <div className="flex-1">
-                      <div className="font-semibold text-gray-900 mb-1">
-                        {debt.name}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {config?.name} • 剩余期限 {formatRemainingTerm(debt.remainingMonths)}
+      </CardHeader>
+      <CardContent className="p-0">
+        {validDebts.length > 0 ? (
+          <div className="divide-y divide-gray-100">
+            {validDebts.map((debt, index) => {
+              const config = debtConfig[debt.type];
+              const IconComponent = config?.icon || Wallet;
+              
+              return (
+                <div 
+                  key={debt.id || index} 
+                  className="px-4 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center flex-1">
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">
+                          {debt.name}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {config?.name} • 剩余期限 {formatRemainingTerm(debt.remainingMonths)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-gray-900 mb-1">
-                      {debt.amount >= 10 
-                        ? `${Math.round(debt.amount).toLocaleString()}万`
-                        : `${debt.amount.toFixed(1)}万`
-                      }
-                    </div>
-                    <div className="text-sm text-[#01BCD6] font-medium">
-                      年化 {debt.interestRate === -1 ? '-' : (debt.interestRate > 0 ? debt.interestRate.toFixed(2) + '%' : '-')}
+                    
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-gray-900 mb-1">
+                        {debt.amount >= 10 
+                          ? `${Math.round(debt.amount).toLocaleString()}万`
+                          : `${debt.amount.toFixed(1)}万`
+                        }
+                      </div>
+                      <div className="text-sm text-[#01BCD6] font-medium">
+                        年化 {debt.interestRate === -1 ? '-' : (debt.interestRate > 0 ? debt.interestRate.toFixed(2) + '%' : '-')}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="px-4 py-8 text-center text-gray-500">
-          暂无债务信息
-        </div>
-      )}
-    </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="px-4 py-8 text-center text-gray-500">
+            暂无债务信息
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
