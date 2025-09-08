@@ -103,11 +103,11 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
           {pieData.length > 0 ? (
             <div className="space-y-3">
               {pieData.map((item, index) => (
-                <div key={item.name} className="bg-gradient-to-r from-[#B3EBEF]/10 to-[#8FD8DC]/10 rounded-lg p-4 border border-[#B3EBEF]/20">
+                <div key={item.name} className="bg-gradient-to-r from-[#B3EBEF]/10 to-[#8FD8DC]/10 rounded-lg p-2 border border-[#B3EBEF]/20">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div 
-                        className="w-4 h-4 rounded-full" 
+                        className="w-2 h-2 rounded-full" 
                         style={{ backgroundColor: '#01BCD6' }}
                       />
                       <div>
