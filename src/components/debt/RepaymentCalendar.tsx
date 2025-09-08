@@ -138,17 +138,35 @@ const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
   const { mortgageLoans } = loadIndividualLoanData();
   const repaymentItems: RepaymentItem[] = [];
 
+  console.log('Processing loans with data:', { mortgageLoans, debts });
+
   // 仅房贷有明确的本地持久化明细（shared_loan_data）
   if (Array.isArray(mortgageLoans) && mortgageLoans.length > 0) {
     type SubLoan = { label: string; dueDay: number; principal: number };
     const subLoans: SubLoan[] = [];
 
     mortgageLoans.forEach((loan: any, idx: number) => {
+      console.log(`Processing loan ${idx}:`, loan);
       const safeName = loan.propertyName || `房贷${idx + 1}`;
-      const pushSingle = (label: string, startDate?: string, principalWan?: string) => {
+      
+      const pushSingle = (label: string, startDate?: string, principalWan?: string, rate?: string) => {
         const pWan = parseFloat(principalWan || loan.remainingPrincipal || loan.loanAmount || '0');
         const principal = isNaN(pWan) ? 0 : pWan * 10000; // 万元转元
-        const dueDay = getDueDayFromDate(startDate || loan.loanStartDate);
+        
+        // 改进日期提取逻辑
+        let dueDay = 10; // 默认值
+        if (startDate) {
+          try {
+            const date = new Date(startDate);
+            if (!isNaN(date.getTime())) {
+              dueDay = date.getDate();
+            }
+          } catch (e) {
+            console.warn('Invalid date:', startDate);
+          }
+        }
+        
+        console.log(`Sub-loan: ${safeName}-${label}, dueDay: ${dueDay}, principal: ${principal}`);
         subLoans.push({ label: `${safeName}-${label}`, dueDay, principal });
       };
 
@@ -165,10 +183,14 @@ const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
       }
     });
 
+    console.log('Sub-loans extracted:', subLoans);
+
     // 按剩余本金占比分摊月份总额（来自聚合数据）
     const mortgageAgg = debts.find(d => d.type === 'mortgage');
     const monthlyPool = Math.max(0, Number(mortgageAgg?.monthlyPayment || 0));
     const totalPrincipal = subLoans.reduce((s, l) => s + (l.principal || 0), 0);
+
+    console.log('Mortgage aggregated data:', { monthlyPool, totalPrincipal });
 
     subLoans.forEach(sl => {
       if (sl.principal <= 0) return;
@@ -185,7 +207,43 @@ const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
     });
   }
 
-  console.log('Processed repayment items (from shared_loan_data):', repaymentItems);
+  // 处理其他类型债务（从聚合数据中获取，使用默认还款日）
+  debts.forEach(debt => {
+    if (debt.type === 'mortgage') return; // 已处理
+    
+    const monthlyPayment = debt.monthlyPayment || 0;
+    if (monthlyPayment <= 0) return;
+    
+    let dueDay = 10; // 默认还款日
+    
+    // 根据债务类型设置不同的还款日
+    if (debt.type === 'carLoan' && debt.carStartDate) {
+      try {
+        const carDate = new Date(debt.carStartDate);
+        if (!isNaN(carDate.getTime())) {
+          dueDay = carDate.getDate();
+        }
+      } catch (e) {
+        console.warn('Invalid car loan date:', debt.carStartDate);
+      }
+    }
+    
+    // 为不同债务类型设置不同的默认还款日（分散显示）
+    if (debt.type === 'consumerLoan') dueDay = 15;
+    else if (debt.type === 'businessLoan') dueDay = 20;
+    else if (debt.type === 'privateLoan') dueDay = 25;
+    else if (debt.type === 'creditCard') dueDay = 5;
+    
+    repaymentItems.push({
+      type: debtTypeNames[debt.type] || debt.type,
+      subType: undefined,
+      name: debt.name || debtTypeNames[debt.type],
+      amount: monthlyPayment,
+      dueDay,
+    });
+  });
+
+  console.log('Final processed repayment items:', repaymentItems);
   return repaymentItems;
 };
 
