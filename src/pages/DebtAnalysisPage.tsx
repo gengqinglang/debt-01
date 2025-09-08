@@ -90,7 +90,7 @@ const DebtAnalysisPage = () => {
         </div>
 
         {/* 内容区域 - 可滚动 */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide px-3 pb-6">
+        <div className="flex-1 overflow-y-auto scrollbar-hide pb-6">
           <div className="space-y-6">
             {/* 模块1: 汇总数据 */}
             <RepaymentSummary debts={debts} />
