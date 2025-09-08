@@ -405,9 +405,6 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center flex-1">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#B3EBEF]/30 to-[#8FD8DC]/30 flex items-center justify-center mr-3">
-                        <IconComponent className="w-5 h-5 text-[#01BCD6]" />
-                      </div>
                       <div className="flex-1">
                         <div className="font-semibold text-gray-900 mb-1">
                           {debt.name}
