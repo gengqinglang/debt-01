@@ -391,8 +391,8 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
     return (
       <div className="relative w-full h-full flex flex-col items-center justify-center">
         <span className="text-sm font-medium">{day.getDate()}</span>
-        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
-          <div className="bg-[#01BCD6] text-white text-xs px-1 py-0.5 rounded-full min-w-[24px] text-center">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="bg-[#01BCD6] text-white text-sm px-2 py-1 rounded-full min-w-[32px] min-h-[32px] flex items-center justify-center">
             ¥{displayAmount}
           </div>
         </div>
