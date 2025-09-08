@@ -355,7 +355,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="px-6 flex justify-center">
+        <div className="px-2 sm:px-4 md:px-6 flex justify-center">
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -375,7 +375,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </div>
 
         {/* 选中日期还款详情 */}
-        <div className="px-6 pb-6 pt-2">
+        <div className="px-2 sm:px-4 md:px-6 pb-6 pt-2">
           {!selectedDate ? (
             <div className="text-center py-8 text-gray-500">
               请选择日期查看还款计划
