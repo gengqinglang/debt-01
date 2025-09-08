@@ -355,21 +355,27 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={handleDateClick}
-          month={currentMonth}
-          onMonthChange={setCurrentMonth}
-          locale={zhCN}
-          className="w-full pointer-events-auto"
-          components={{
-            DayContent: ({ date }) => dayContent(date)
-          }}
-        />
+        <div className="px-6 flex justify-center">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateClick}
+            month={currentMonth}
+            onMonthChange={setCurrentMonth}
+            locale={zhCN}
+            className="w-full pointer-events-auto"
+            classNames={{
+              months: "w-full flex justify-center",
+              month: "scale-[1.06] md:scale-[1.12] origin-top"
+            }}
+            components={{
+              DayContent: ({ date }) => dayContent(date)
+            }}
+          />
+        </div>
 
         {/* 选中日期还款详情 */}
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 pt-2">
           {!selectedDate ? (
             <div className="text-center py-8 text-gray-500">
               请选择日期查看还款计划
