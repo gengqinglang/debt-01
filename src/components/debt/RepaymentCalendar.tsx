@@ -143,13 +143,13 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
           onSelect={handleDateClick}
           month={currentMonth}
           onMonthChange={setCurrentMonth}
-          className="w-full flex justify-center"
+          className="w-full mx-auto p-3 pointer-events-auto [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-table]:table-fixed"
           components={{
             Day: ({ date, ...props }) => (
               <div 
                 {...props}
                 className={`
-                  w-10 h-10 p-0 font-normal aria-selected:opacity-100 relative
+                  w-full aspect-square p-0 font-normal aria-selected:opacity-100 relative
                   ${getDateRepayments(date).length > 0 
                     ? 'cursor-pointer hover:bg-[#B3EBEF]/20' 
                     : ''
