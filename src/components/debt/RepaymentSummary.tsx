@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PiggyBank, TrendingDown, PieChart } from 'lucide-react';
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
 interface RepaymentSummaryProps {
   debts: DebtInfo[];
@@ -113,6 +113,7 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
                       data={pieData}
                       cx="50%"
                       cy="50%"
+                      innerRadius={40}
                       outerRadius={80}
                       dataKey="value"
                       label={({ name, percentage }) => `${name} ${percentage}%`}
@@ -127,7 +128,6 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
                         '剩余本金'
                       ]}
                     />
-                    <Legend />
                   </RechartsPieChart>
                 </ResponsiveContainer>
               </div>
