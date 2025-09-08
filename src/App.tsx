@@ -26,7 +26,7 @@ const App = () => (
       <ErrorBoundary>
         <UnifiedAppProvider>
           <div className="min-h-screen bg-gray-100">
-            <div className="max-w-md mx-auto bg-white shadow-lg min-h-screen px-2 py-safe relative">
+            <div className="max-w-md mx-auto bg-white shadow-lg min-h-screen px-3 py-safe relative">
               <Toaster />
               <Sonner />
               <BrowserRouter>
