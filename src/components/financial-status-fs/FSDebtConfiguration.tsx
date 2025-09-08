@@ -1650,7 +1650,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         count: aggregatedData.count,
         amount: aggregatedData.totalLoanAmount, // 消费贷使用总贷款金额
         monthlyPayment: aggregatedData.totalMonthlyPayment,
-        remainingMonths: aggregatedData.maxRemainingMonths
+        remainingMonths: aggregatedData.maxRemainingMonths,
+        remainingInterest: aggregatedData.totalRemainingInterest
       });
     }
   }, [consumerLoans, category.type, category.id, onDataChange, getConsumerLoanAggregatedData]);
@@ -1663,7 +1664,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         count: aggregatedData.count,
         amount: aggregatedData.totalLoanAmount,
         monthlyPayment: aggregatedData.totalMonthlyPayment,
-        remainingMonths: aggregatedData.maxRemainingMonths
+        remainingMonths: aggregatedData.maxRemainingMonths,
+        remainingInterest: aggregatedData.totalRemainingInterest
       });
     }
   }, [businessLoans, category.type, category.id, onDataChange, getBusinessLoanAggregatedData]);
@@ -1676,7 +1678,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         count: aggregatedData.count,
         amount: aggregatedData.totalLoanAmount,
         monthlyPayment: aggregatedData.totalMonthlyPayment,
-        remainingMonths: aggregatedData.maxRemainingMonths
+        remainingMonths: aggregatedData.maxRemainingMonths,
+        remainingInterest: aggregatedData.totalRemainingInterest
       });
     }
   }, [privateLoans, category.type, category.id, onDataChange, getPrivateLoanAggregatedData]);
@@ -2016,6 +2019,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                       amount: 0,
                       monthlyPayment: 0,
                       remainingMonths: 0,
+                      remainingInterest: 0,
                       consumerLoans: []
                     };
                     onConfirm(category.id, aggregatedData);
@@ -2037,6 +2041,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                       amount: 0,
                       monthlyPayment: 0,
                       remainingMonths: 0,
+                      remainingInterest: 0,
                       consumerLoans: []
                     };
                     onConfirm(category.id, aggregatedData);
@@ -2110,6 +2115,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                       amount: 0,
                       monthlyPayment: 0,
                       remainingMonths: 0,
+                      remainingInterest: 0,
                       businessLoans: []
                     };
                     onConfirm(category.id, aggregatedData);
@@ -2131,6 +2137,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                       amount: 0,
                       monthlyPayment: 0,
                       remainingMonths: 0,
+                      remainingInterest: 0,
                       businessLoans: []
                     };
                     onConfirm(category.id, aggregatedData);
@@ -2204,6 +2211,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                       amount: 0,
                       monthlyPayment: 0,
                       remainingMonths: 0,
+                      remainingInterest: 0,
                       privateLoans: []
                     };
                     onConfirm(category.id, aggregatedData);
@@ -2225,6 +2233,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                       amount: 0,
                       monthlyPayment: 0,
                       remainingMonths: 0,
+                      remainingInterest: 0,
                       privateLoans: []
                     };
                     onConfirm(category.id, aggregatedData);
