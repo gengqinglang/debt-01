@@ -1087,39 +1087,35 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     // 计算剩余本金和利息 - 根据车贷类型选择相应字段
     const totalRemainingPrincipal = completeCarLoans.reduce((sum, carLoan) => {
       if (carLoan.loanType === 'bankLoan') {
-        // 银行贷款类型，使用剩余本金或原始本金
-        const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0') / 10000;
+        // 银行贷款类型，使用剩余本金或原始本金（均为万元单位）
+        const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0');
         const originalPrincipal = parseFloat(carLoan.principal || '0');
         return sum + (remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal);
       } else {
-        // 分期类型，通过月供和剩余期数估算剩余本金
+        // 分期类型，剩余本金 = 每期分期金额 * 剩余期限
         const monthlyPayment = parseFloat(carLoan.installmentAmount || '0');
         const remainingMonths = parseInt(carLoan.remainingInstallments || '0');
-        // 简化估算：假设剩余本金约等于月供 * 剩余期数 * 0.8 (考虑利息因素)
-        return sum + (monthlyPayment * remainingMonths * 0.8) / 10000;
+        return sum + (monthlyPayment * remainingMonths) / 10000;
       }
     }, 0);
     
     const totalRemainingInterest = completeCarLoans.reduce((sum, carLoan) => {
-      const monthlyPayment = parseFloat(carLoan.installmentAmount || '0');
-      const remainingMonths = parseInt(carLoan.remainingInstallments || '0');
-      
-      if (monthlyPayment > 0 && remainingMonths > 0) {
-        const totalPayments = (monthlyPayment * remainingMonths) / 10000; // 万元
+      if (carLoan.loanType === 'bankLoan') {
+        const monthlyPayment = parseFloat(carLoan.installmentAmount || '0');
+        const remainingMonths = parseInt(carLoan.remainingInstallments || '0');
         
-        let principal = 0;
-        if (carLoan.loanType === 'bankLoan') {
-          const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0') / 10000;
+        if (monthlyPayment > 0 && remainingMonths > 0) {
+          const totalPayments = (monthlyPayment * remainingMonths) / 10000; // 万元
+          
+          const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0');
           const originalPrincipal = parseFloat(carLoan.principal || '0');
-          principal = remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal;
-        } else {
-          // 分期类型估算
-          principal = (monthlyPayment * remainingMonths * 0.8) / 10000;
+          const principal = remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal;
+          
+          const interest = Math.max(0, totalPayments - principal);
+          return sum + interest;
         }
-        
-        const interest = Math.max(0, totalPayments - principal);
-        return sum + interest;
       }
+      // 分期类型利息为0
       return sum;
     }, 0);
     
@@ -1498,7 +1494,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             }
           }
         } else {
-          const remainingWan = parseFloat(String(loan.remainingPrincipal || '0').replace(/[\,\s]/g, '')) / 10000;
+          const remainingWan = parseFloat(String(loan.remainingPrincipal || '0').replace(/[\,\s]/g, ''));
           if (isFinite(remainingWan) && remainingWan > 0) {
             validLoanCount++;
             totalRemainingPrincipal += remainingWan;
@@ -1657,101 +1653,6 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       hasOriginalAmount: hasOriginalAmount // 修复：明确赋值
     };
   };
-
-  // 提取房贷重新计算和确认的逻辑
-  const recalcAndConfirmMortgage = () => {
-    const completeLoanExists = loans.some(loan => isLoanComplete(loan));
-    
-    let aggregatedData;
-    
-    if (completeLoanExists) {
-      let totalRemainingPrincipal = 0;
-      let totalMonthlyPayment = 0;
-      let maxRemainingMonths = 0;
-      
-      loans.forEach(loan => {
-        if (isLoanComplete(loan)) {
-          if (loan.loanType === 'combination') {
-            const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0') / 10000;
-            const providentRemaining = parseFloat(loan.providentRemainingPrincipal || '0') / 10000;
-            totalRemainingPrincipal += commercialRemaining + providentRemaining;
-          } else {
-            const remaining = parseFloat(loan.remainingPrincipal || '0') / 10000;
-            totalRemainingPrincipal += remaining;
-          }
-          
-          totalMonthlyPayment += calculateMonthlyPayment(loan);
-          
-          // Calculate remaining months
-          const currentDate = new Date();
-          let endDate: Date;
-          
-          if (loan.loanType === 'combination') {
-            const commercialEndDateStr = loan.commercialEndDate || '';
-            const providentEndDateStr = loan.providentEndDate || '';
-            const commercialEndDateFormatted = commercialEndDateStr.includes('-') && commercialEndDateStr.split('-').length === 2 
-              ? commercialEndDateStr + '-01' 
-              : commercialEndDateStr;
-            const providentEndDateFormatted = providentEndDateStr.includes('-') && providentEndDateStr.split('-').length === 2 
-              ? providentEndDateStr + '-01' 
-              : providentEndDateStr;
-            const commercialEndDate = new Date(commercialEndDateFormatted);
-            const providentEndDate = new Date(providentEndDateFormatted);
-            endDate = commercialEndDate > providentEndDate ? commercialEndDate : providentEndDate;
-          } else {
-            const endDateStr = loan.loanEndDate.includes('-') && loan.loanEndDate.split('-').length === 2 
-              ? loan.loanEndDate + '-01' 
-              : loan.loanEndDate;
-            endDate = new Date(endDateStr);
-          }
-          
-          const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
-                                 (endDate.getMonth() - currentDate.getMonth()));
-          maxRemainingMonths = Math.max(maxRemainingMonths, remainingMonths);
-        }
-      });
-      
-      const completeLoansCount = loans.filter(loan => isLoanComplete(loan)).length;
-      
-      aggregatedData = {
-        count: completeLoansCount,
-        amount: totalRemainingPrincipal,
-        monthlyPayment: totalMonthlyPayment,
-        remainingMonths: maxRemainingMonths,
-        loans
-      };
-    } else {
-      // 没有完成的贷款时，确认空状态
-      aggregatedData = {
-        count: 0,
-        amount: 0,
-        monthlyPayment: 0,
-        remainingMonths: 0,
-        loans: []
-      };
-    }
-    
-    // 保存确认时的数据状态
-    setLastConfirmedData({
-      loans,
-      carLoans,
-      consumerLoans,
-      businessLoans,
-      privateLoans,
-      creditCards,
-      formData
-    });
-    setHasDataChanged(false);
-    
-    // Set skip flag to prevent existingData sync after confirmation
-    skipExistingSyncRef.current = true;
-    setTimeout(() => {
-      skipExistingSyncRef.current = false;
-    }, 100);
-    
-    onConfirm(category.id, aggregatedData);
-  };
-
   return (
     <Card className="border-0 shadow-none bg-transparent">
       <CardContent className="p-0 mt-4">
@@ -1774,15 +1675,112 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             persist={true}
             onLastItemCleared={() => {
               // 当最后一笔完成的贷款被清除时，立即确认空状态
-              recalcAndConfirmMortgage();
-            }}
-            onAfterRemoveOrReset={() => {
-              // 删除或重置任何贷款后，重新计算并确认
-              recalcAndConfirmMortgage();
+              setTimeout(() => {
+                const aggregatedData = {
+                  count: 0,
+                  amount: 0,
+                  monthlyPayment: 0,
+                  remainingMonths: 0,
+                  loans: []
+                };
+                onConfirm(category.id, aggregatedData);
+              }, 0);
             }}
           >
             <Button 
-              onClick={recalcAndConfirmMortgage}
+              onClick={() => {
+                // Aggregate loan data and confirm
+                const completeLoanExists = loans.some(loan => isLoanComplete(loan));
+                
+                let aggregatedData;
+                
+                if (completeLoanExists) {
+                  let totalRemainingPrincipal = 0;
+                  let totalMonthlyPayment = 0;
+                  let maxRemainingMonths = 0;
+                  
+                  loans.forEach(loan => {
+                    if (isLoanComplete(loan)) {
+                      if (loan.loanType === 'combination') {
+                        const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0');
+                        const providentRemaining = parseFloat(loan.providentRemainingPrincipal || '0');
+                        totalRemainingPrincipal += commercialRemaining + providentRemaining;
+                      } else {
+                        const remaining = parseFloat(loan.remainingPrincipal || '0');
+                        totalRemainingPrincipal += remaining;
+                      }
+                      
+                      totalMonthlyPayment += calculateMonthlyPayment(loan);
+                      
+                      // Calculate remaining months
+                      const currentDate = new Date();
+                      let endDate: Date;
+                      
+                      if (loan.loanType === 'combination') {
+                        const commercialEndDateStr = loan.commercialEndDate || '';
+                        const providentEndDateStr = loan.providentEndDate || '';
+                        const commercialEndDateFormatted = commercialEndDateStr.includes('-') && commercialEndDateStr.split('-').length === 2 
+                          ? commercialEndDateStr + '-01' 
+                          : commercialEndDateStr;
+                        const providentEndDateFormatted = providentEndDateStr.includes('-') && providentEndDateStr.split('-').length === 2 
+                          ? providentEndDateStr + '-01' 
+                          : providentEndDateStr;
+                        const commercialEndDate = new Date(commercialEndDateFormatted);
+                        const providentEndDate = new Date(providentEndDateFormatted);
+                        endDate = commercialEndDate > providentEndDate ? commercialEndDate : providentEndDate;
+                      } else {
+                        const endDateStr = loan.loanEndDate.includes('-') && loan.loanEndDate.split('-').length === 2 
+                          ? loan.loanEndDate + '-01' 
+                          : loan.loanEndDate;
+                        endDate = new Date(endDateStr);
+                      }
+                      
+                      const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
+                                             (endDate.getMonth() - currentDate.getMonth()));
+                      maxRemainingMonths = Math.max(maxRemainingMonths, remainingMonths);
+                    }
+                  });
+                  
+                  const completeLoansCount = loans.filter(loan => isLoanComplete(loan)).length;
+                  
+                  aggregatedData = {
+                    count: completeLoansCount,
+                    amount: totalRemainingPrincipal,
+                    monthlyPayment: totalMonthlyPayment,
+                    remainingMonths: maxRemainingMonths,
+                    loans
+                  };
+                } else {
+                  // 没有完成的贷款时，确认空状态
+                  aggregatedData = {
+                    count: 0,
+                    amount: 0,
+                    monthlyPayment: 0,
+                    remainingMonths: 0,
+                    loans: []
+                  };
+                }
+                
+                // 保存确认时的数据状态
+                setLastConfirmedData({
+                  loans,
+                  carLoans,
+                  consumerLoans,
+                  businessLoans,
+                  privateLoans,
+                  creditCards,
+                  formData
+                });
+                setHasDataChanged(false);
+                
+                // Set skip flag to prevent existingData sync after confirmation
+                skipExistingSyncRef.current = true;
+                setTimeout(() => {
+                  skipExistingSyncRef.current = false;
+                }, 100);
+                
+                onConfirm(category.id, aggregatedData);
+              }}
               className={`w-full h-10 text-sm font-semibold rounded-lg transition-all duration-300 ${
                 isConfirmed && !hasDataChanged
                   ? 'bg-[#B3EBEF]/50 text-gray-500'
