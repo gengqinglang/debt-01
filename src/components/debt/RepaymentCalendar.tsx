@@ -143,7 +143,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
           onSelect={handleDateClick}
           month={currentMonth}
           onMonthChange={setCurrentMonth}
-          className="w-full p-3 pointer-events-auto"
+          className="w-full pointer-events-auto"
           classNames={{
             months: "w-full flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
             month: "w-full space-y-4",
