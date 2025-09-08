@@ -89,7 +89,7 @@ const FinancialStatusPage = () => {
     return confirmedDebt;
   };
 
-  // 计算债务笔数（优先使用实时数据）
+  // 计算债务笔数（仅使用已确认的债务数据）
   const calculateDebtCount = () => {
     let totalCount = 0;
     
@@ -107,13 +107,8 @@ const FinancialStatusPage = () => {
             totalCount += debt.amount > 0 ? 1 : 0;
           }
         }
-      } else {
-        // 未确认的债务，使用实时数据
-        const liveDataForCategory = liveData[category.id];
-        if (liveDataForCategory && liveDataForCategory.count > 0) {
-          totalCount += liveDataForCategory.count;
-        }
       }
+      // 移除未确认债务的实时数据计算 - 只显示已确认的债务
     });
     
     return totalCount;
@@ -127,17 +122,7 @@ const FinancialStatusPage = () => {
       return sum + val;
     }, 0);
     
-    // 处理房贷实时数据
-    const mortgageLiveData = liveData['mortgage'] || {} as any;
-    if ((mortgageLiveData as any).count > 0 && !configConfirmed['mortgage']) {
-      totalPrincipalWan += Number(mortgageLiveData.remainingPrincipal) || 0;
-    }
-    
-    // 处理车贷实时数据
-    const carLoanLiveData = liveData['carLoan'] || {} as any;
-    if ((carLoanLiveData as any).count > 0 && !configConfirmed['carLoan']) {
-      totalPrincipalWan += Number(carLoanLiveData.remainingPrincipal) || 0;
-    }
+    // 移除实时数据计算 - 只显示已确认的债务
     
     return totalPrincipalWan;
   };
@@ -157,17 +142,7 @@ const FinancialStatusPage = () => {
       return sum;
     }, 0);
     
-    // 处理房贷实时数据
-    const mortgageLiveData = liveData['mortgage'] || {} as any;
-    if (mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
-      totalInterestWan += Number(mortgageLiveData.remainingInterest) || 0;
-    }
-    
-    // 处理车贷实时数据
-    const carLoanLiveData = liveData['carLoan'] || {} as any;
-    if (carLoanLiveData.count > 0 && !configConfirmed['carLoan']) {
-      totalInterestWan += Number(carLoanLiveData.remainingInterest) || 0;
-    }
+    // 移除实时数据计算 - 只显示已确认的债务
     
     return totalInterestWan;
   };

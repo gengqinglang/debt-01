@@ -1055,8 +1055,23 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       if (existingData.formData) {
         setFormData(existingData.formData);
       }
+      
+      // 如果已确认且有存在数据，初始化lastConfirmedData并重置hasDataChanged
+      if (isConfirmed && existingData) {
+        const currentData = {
+          loans: existingData.loans || [],
+          carLoans: existingData.carLoans || [],
+          consumerLoans: existingData.consumerLoans || [],
+          businessLoans: existingData.businessLoans || [],
+          privateLoans: existingData.privateLoans || [],
+          creditCards: existingData.creditCards || [],
+          formData: existingData.formData || {}
+        };
+        setLastConfirmedData(currentData);
+        setHasDataChanged(false);
+      }
     }
-  }, [existingData, category.type, setLoans]);
+  }, [existingData, category.type, setLoans, isConfirmed]);
 
   // 汇总车贷数据
   const getCarLoanAggregatedData = () => {
