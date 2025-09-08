@@ -136,7 +136,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
           还款日历
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <Calendar
           mode="single"
           selected={selectedDate}
