@@ -137,30 +137,32 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={handleDateClick}
-          month={currentMonth}
-          onMonthChange={setCurrentMonth}
-          className="mx-auto"
-          components={{
-            Day: ({ date, ...props }) => (
-              <div 
-                {...props}
-                className={`
-                  w-10 h-10 p-0 font-normal aria-selected:opacity-100 relative
-                  ${getDateRepayments(date).length > 0 
-                    ? 'cursor-pointer hover:bg-[#B3EBEF]/20' 
-                    : ''
-                  }
-                `}
-              >
-                {dayContent(date)}
-              </div>
-            )
-          }}
-        />
+        <div className="flex justify-center w-full">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateClick}
+            month={currentMonth}
+            onMonthChange={setCurrentMonth}
+            className="w-fit"
+            components={{
+              Day: ({ date, ...props }) => (
+                <div 
+                  {...props}
+                  className={`
+                    w-10 h-10 p-0 font-normal aria-selected:opacity-100 relative
+                    ${getDateRepayments(date).length > 0 
+                      ? 'cursor-pointer hover:bg-[#B3EBEF]/20' 
+                      : ''
+                    }
+                  `}
+                >
+                  {dayContent(date)}
+                </div>
+              )
+            }}
+          />
+        </div>
 
         {/* 底部抽屉 - 显示选中日期的还款详情 */}
         <Sheet open={!!selectedDate && selectedRepayments.length > 0} onOpenChange={(open) => !open && setSelectedDate(undefined)}>
