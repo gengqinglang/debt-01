@@ -1135,29 +1135,61 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       return sum + parseFloat(loan.loanAmount || '0');
     }, 0);
     
-    // Calculate monthly payment based on loan amount, term and rate
-    const totalMonthlyPayment = completeConsumerLoans.reduce((sum, loan) => {
-      const principal = parseFloat(loan.loanAmount || '0') * 10000; // Convert to yuan
-      const rate = parseFloat(loan.annualRate || '0') / 100 / 12; // Monthly rate
-      const term = parseFloat(loan.loanTerm || '0') * 12; // Total months
+    // Calculate remaining months using endDate
+    const getRemainingMonths = (endDate: string) => {
+      if (!endDate) return 0;
+      const today = new Date();
+      const end = new Date(endDate);
+      const diffTime = end.getTime() - today.getTime();
+      const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44)); // 30.44 days per month average
+      return Math.max(0, diffMonths);
+    };
+    
+    let totalMonthlyPayment = 0;
+    let totalRemainingInterest = 0; // 万元
+    
+    completeConsumerLoans.forEach(loan => {
+      const principalWan = parseFloat(loan.loanAmount || '0');
+      const principalYuan = principalWan * 10000;
+      const annualRate = parseFloat(loan.annualRate || '0') / 100;
+      const remainingMonths = getRemainingMonths(loan.endDate || '');
       
-      if (principal > 0 && rate > 0 && term > 0) {
-        const monthlyPayment = principal * rate * Math.pow(1 + rate, term) / (Math.pow(1 + rate, term) - 1);
-        return sum + monthlyPayment;
+      if (loan.repaymentMethod === 'interest-first') {
+        // 先息后本：待还利息 = 月利息 * 剩余月数
+        const monthlyInterest = principalYuan * annualRate / 12;
+        totalRemainingInterest += (monthlyInterest * remainingMonths) / 10000;
+        totalMonthlyPayment += monthlyInterest;
+      } else if (loan.repaymentMethod === 'lump-sum') {
+        // 一次性还本付息：计算总利息
+        if (loan.endDate) {
+          const today = new Date();
+          const endDate = new Date(loan.endDate);
+          const totalDays = Math.max(0, Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+          totalRemainingInterest += (principalYuan * annualRate * totalDays / 365) / 10000;
+        }
+      } else {
+        // 其他还款方式（等额本息、等额本金）
+        if (principalYuan > 0 && annualRate > 0 && remainingMonths > 0) {
+          const monthlyRate = annualRate / 12;
+          const monthlyPayment = principalYuan * monthlyRate * Math.pow(1 + monthlyRate, remainingMonths) / (Math.pow(1 + monthlyRate, remainingMonths) - 1);
+          const totalPayment = monthlyPayment * remainingMonths;
+          totalRemainingInterest += Math.max(0, (totalPayment - principalYuan) / 10000);
+          totalMonthlyPayment += monthlyPayment;
+        }
       }
-      return sum;
-    }, 0);
+    });
     
     const maxRemainingMonths = completeConsumerLoans.reduce((max, loan) => {
-      const termMonths = parseFloat(loan.loanTerm || '0') * 12;
-      return Math.max(max, termMonths);
+      const remainingMonths = getRemainingMonths(loan.endDate || '');
+      return Math.max(max, remainingMonths);
     }, 0);
     
     return {
       count: completeConsumerLoans.length,
       totalLoanAmount,
       totalMonthlyPayment,
-      maxRemainingMonths
+      maxRemainingMonths,
+      totalRemainingInterest
     };
   };
 
@@ -1168,29 +1200,61 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       return sum + parseFloat(loan.loanAmount || '0');
     }, 0);
     
-    // Calculate monthly payment based on loan amount, term and rate  
-    const totalMonthlyPayment = completeBusinessLoans.reduce((sum, loan) => {
-      const principal = parseFloat(loan.loanAmount || '0') * 10000; // Convert to yuan
-      const rate = parseFloat(loan.annualRate || '0') / 100 / 12; // Monthly rate
-      const term = parseFloat(loan.loanTerm || '0') * 12; // Total months
+    // Calculate remaining months using startDate (UI stores end date in startDate field)
+    const getRemainingMonths = (endDate: string) => {
+      if (!endDate) return 0;
+      const today = new Date();
+      const end = new Date(endDate);
+      const diffTime = end.getTime() - today.getTime();
+      const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44)); // 30.44 days per month average
+      return Math.max(0, diffMonths);
+    };
+    
+    let totalMonthlyPayment = 0;
+    let totalRemainingInterest = 0; // 万元
+    
+    completeBusinessLoans.forEach(loan => {
+      const principalWan = parseFloat(loan.loanAmount || '0');
+      const principalYuan = principalWan * 10000;
+      const annualRate = parseFloat(loan.annualRate || '0') / 100;
+      const remainingMonths = getRemainingMonths(loan.startDate || ''); // UI uses startDate for end date
       
-      if (principal > 0 && rate > 0 && term > 0) {
-        const monthlyPayment = principal * rate * Math.pow(1 + rate, term) / (Math.pow(1 + rate, term) - 1);
-        return sum + monthlyPayment;
+      if (loan.repaymentMethod === 'interest-first') {
+        // 先息后本：待还利息 = 月利息 * 剩余月数
+        const monthlyInterest = principalYuan * annualRate / 12;
+        totalRemainingInterest += (monthlyInterest * remainingMonths) / 10000;
+        totalMonthlyPayment += monthlyInterest;
+      } else if (loan.repaymentMethod === 'lump-sum') {
+        // 一次性还本付息：计算总利息
+        if (loan.startDate) {
+          const today = new Date();
+          const endDate = new Date(loan.startDate); // UI uses startDate for end date
+          const totalDays = Math.max(0, Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+          totalRemainingInterest += (principalYuan * annualRate * totalDays / 365) / 10000;
+        }
+      } else {
+        // 其他还款方式（等额本息、等额本金）
+        if (principalYuan > 0 && annualRate > 0 && remainingMonths > 0) {
+          const monthlyRate = annualRate / 12;
+          const monthlyPayment = principalYuan * monthlyRate * Math.pow(1 + monthlyRate, remainingMonths) / (Math.pow(1 + monthlyRate, remainingMonths) - 1);
+          const totalPayment = monthlyPayment * remainingMonths;
+          totalRemainingInterest += Math.max(0, (totalPayment - principalYuan) / 10000);
+          totalMonthlyPayment += monthlyPayment;
+        }
       }
-      return sum;
-    }, 0);
+    });
     
     const maxRemainingMonths = completeBusinessLoans.reduce((max, loan) => {
-      const termMonths = parseFloat(loan.loanTerm || '0') * 12;
-      return Math.max(max, termMonths);
+      const remainingMonths = getRemainingMonths(loan.startDate || ''); // UI uses startDate for end date
+      return Math.max(max, remainingMonths);
     }, 0);
     
     return {
       count: completeBusinessLoans.length,
       totalLoanAmount,
       totalMonthlyPayment,
-      maxRemainingMonths
+      maxRemainingMonths,
+      totalRemainingInterest
     };
   };
 
@@ -1201,18 +1265,62 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       return sum + parseFloat(loan.loanAmount || '0');
     }, 0);
     
-    // For private loans, we only have the loan amount, no specific monthly payment calculation
-    // Assume a default simple calculation or return 0 for monthly payment
-    const totalMonthlyPayment = 0; // Private loans don't have structured monthly payments
+    // Calculate remaining months using startDate (UI stores end date in startDate field)
+    const getRemainingMonths = (endDate: string) => {
+      if (!endDate) return 0;
+      const today = new Date();
+      const end = new Date(endDate);
+      const diffTime = end.getTime() - today.getTime();
+      const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44)); // 30.44 days per month average
+      return Math.max(0, diffMonths);
+    };
     
-    // Private loans don't have specific term, assume 12 months default
-    const maxRemainingMonths = 12;
+    let totalMonthlyPayment = 0;
+    let totalRemainingInterest = 0; // 万元
+    
+    completePrivateLoans.forEach(loan => {
+      const principalWan = parseFloat(loan.loanAmount || '0');
+      const principalYuan = principalWan * 10000;
+      const annualRate = parseFloat(loan.annualRate || '0') / 100;
+      const remainingMonths = getRemainingMonths(loan.startDate || ''); // UI uses startDate for end date
+      
+      if (loan.repaymentMethod === 'interest-first') {
+        // 先息后本：待还利息 = 月利息 * 剩余月数
+        const monthlyInterest = principalYuan * annualRate / 12;
+        totalRemainingInterest += (monthlyInterest * remainingMonths) / 10000;
+        totalMonthlyPayment += monthlyInterest;
+      } else if (loan.repaymentMethod === 'lump-sum') {
+        // 一次性还本付息：计算总利息
+        if (loan.startDate) {
+          const today = new Date();
+          const endDate = new Date(loan.startDate); // UI uses startDate for end date
+          const totalDays = Math.max(0, Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+          totalRemainingInterest += (principalYuan * annualRate * totalDays / 365) / 10000;
+        }
+      } else if (loan.endDate) {
+        // 有endDate的其他还款方式（等额本息、等额本金）
+        const endRemainingMonths = getRemainingMonths(loan.endDate);
+        if (principalYuan > 0 && annualRate > 0 && endRemainingMonths > 0) {
+          const monthlyRate = annualRate / 12;
+          const monthlyPayment = principalYuan * monthlyRate * Math.pow(1 + monthlyRate, endRemainingMonths) / (Math.pow(1 + monthlyRate, endRemainingMonths) - 1);
+          const totalPayment = monthlyPayment * endRemainingMonths;
+          totalRemainingInterest += Math.max(0, (totalPayment - principalYuan) / 10000);
+          totalMonthlyPayment += monthlyPayment;
+        }
+      }
+    });
+    
+    const maxRemainingMonths = completePrivateLoans.reduce((max, loan) => {
+      const remainingMonths = loan.endDate ? getRemainingMonths(loan.endDate) : getRemainingMonths(loan.startDate || '');
+      return Math.max(max, remainingMonths);
+    }, 0);
     
     return {
       count: completePrivateLoans.length,
       totalLoanAmount,
       totalMonthlyPayment,
-      maxRemainingMonths
+      maxRemainingMonths,
+      totalRemainingInterest
     };
   };
 
@@ -1966,6 +2074,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                     amount: aggregatedData.totalLoanAmount,
                     monthlyPayment: aggregatedData.totalMonthlyPayment,
                     remainingMonths: aggregatedData.maxRemainingMonths,
+                    remainingInterest: aggregatedData.totalRemainingInterest,
                     consumerLoans: consumerLoans // 保存原始消费贷数据用于后续编辑
                   });
                 }
@@ -2059,6 +2168,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                     amount: aggregatedData.totalLoanAmount,
                     monthlyPayment: aggregatedData.totalMonthlyPayment,
                     remainingMonths: aggregatedData.maxRemainingMonths,
+                    remainingInterest: aggregatedData.totalRemainingInterest,
                     businessLoans: businessLoans // 保存原始经营贷数据用于后续编辑
                   });
                 }
@@ -2154,6 +2264,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                     amount: aggregatedData.totalLoanAmount,
                     monthlyPayment: aggregatedData.totalMonthlyPayment,
                     remainingMonths: aggregatedData.maxRemainingMonths,
+                    remainingInterest: aggregatedData.totalRemainingInterest,
                     privateLoans: privateLoans // 保存原始民间借贷数据用于后续编辑
                   });
                 }

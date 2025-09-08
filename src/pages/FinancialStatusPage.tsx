@@ -13,6 +13,7 @@ export interface DebtInfo {
   count?: number; // 新增：债务笔数，主要用于房贷等可能包含多笔的债务类型
   monthlyPayment: number;
   remainingMonths?: number;
+  remainingInterest?: number; // 新增：待还利息（万元）
   interestRate?: number;
   // 房贷特有字段
   loanType?: 'commercial' | 'housingFund' | 'combination';
@@ -116,7 +117,7 @@ const FinancialStatusPage = () => {
 
   // 计算剩余本金（优先使用实时数据）
   const calculateRemainingPrincipal = () => {
-    // 单位统一为“万”
+    // 单位统一为"万"
     let totalPrincipalWan = debts.reduce((sum, debt) => {
       const val = Number(debt.amount) || 0;
       return sum + val;
@@ -129,8 +130,14 @@ const FinancialStatusPage = () => {
 
   // 计算待还利息（优先使用实时数据）
   const calculateRemainingInterest = () => {
-    // 单位统一为“万”
+    // 单位统一为"万"
     let totalInterestWan = debts.reduce((sum, debt) => {
+      // 优先使用 debt.remainingInterest 字段（已经是万元单位）
+      if (debt.remainingInterest !== undefined && debt.remainingInterest !== null) {
+        return sum + debt.remainingInterest;
+      }
+      
+      // 回退到原有算法
       const monthly = Number((debt as any).monthlyPayment) || 0;
       const months = Number((debt as any).remainingMonths) || 0;
       const principalWan = Number(debt.amount) || 0;
@@ -141,8 +148,6 @@ const FinancialStatusPage = () => {
       }
       return sum;
     }, 0);
-    
-    // 移除实时数据计算 - 只显示已确认的债务
     
     return totalInterestWan;
   };
