@@ -329,7 +329,7 @@ const FinancialStatusPage = () => {
           <div className="flex gap-2">
             <Button 
               onClick={goToNext}
-              className="flex-1 py-3 text-gray-900 font-bold rounded-xl text-sm shadow-xl transform hover:scale-[1.02] transition-all duration-300 border-0 bg-gradient-to-r from-[#B3EBEF] to-[#8FD8DC] hover:from-[#A0E2E6] hover:to-[#7BC9CE]"
+              className="flex-1 py-3 text-gray-900 font-bold rounded-xl text-sm shadow-xl transform hover:scale-[1.02] transition-all duration-300 border-0 bg-gradient-to-r from-[#B3EBEF] to-[#8FD8DC] hover:from-[#A0E2E6] hover:to-[#7BC9CE] flex items-center justify-center text-ellipsis overflow-hidden"
             >
               <span className="flex items-center justify-center gap-2">
                 {showSuccess ? '保存成功！' : '所有债务录入完毕，查看债务分析'}
