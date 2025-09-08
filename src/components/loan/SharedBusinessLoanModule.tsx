@@ -63,7 +63,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
     }
     const principalWan = parseFloat(businessLoan.loanAmount || '');
     const annualRatePct = parseFloat(businessLoan.annualRate || '');
-    const hasEndDate = Boolean(businessLoan.startDate); // 使用 startDate 作为结束日期
+    const hasEndDate = Boolean(businessLoan.endDate);
     const hasPrincipal = !isNaN(principalWan) && principalWan > 0;
     const hasRate = !isNaN(annualRatePct) && annualRatePct > 0;
     
@@ -79,7 +79,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
     } else {
       // 一次性还本付息：从今天到结束日期的利息
       const today = new Date();
-      const endDate = new Date(businessLoan.startDate || '');
+      const endDate = new Date(businessLoan.endDate || '');
       const diffTime = endDate.getTime() - today.getTime();
       const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
       const yearlyInterest = principal * annualRate;
@@ -195,19 +195,19 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                       variant="outline"
                        className={cn(
                          "h-9 w-full justify-start text-left font-normal mt-1",
-                         !businessLoan.startDate && "text-muted-foreground"
+                         !businessLoan.endDate && "text-muted-foreground"
                        )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {businessLoan.startDate ? format(new Date(businessLoan.startDate), "yyyy-MM-dd") : "选择日期"}
+                      {businessLoan.endDate ? format(new Date(businessLoan.endDate), "yyyy-MM-dd") : "选择日期"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
                      <Calendar
                        mode="single"
-                       selected={businessLoan.startDate ? new Date(businessLoan.startDate) : undefined}
+                       selected={businessLoan.endDate ? new Date(businessLoan.endDate) : undefined}
                        onSelect={(date) => {
-                         updateBusinessLoan(businessLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
+                         updateBusinessLoan(businessLoan.id, 'endDate', date ? format(date, "yyyy-MM-dd") : '');
                          setEndDateOpen(false);
                        }}
                        disabled={(date) => {
@@ -269,16 +269,16 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                            if (!basicRequired) return '--';
                            
                            if (businessLoan.repaymentMethod === 'interest-first') {
-                             // 先息后本必填项：剩余贷款本金 + 贷款结束日期 + 年化利率
-                             const requiredFilled = businessLoan.loanAmount && 
-                                    businessLoan.startDate && 
-                                    businessLoan.annualRate;
-                             if (!requiredFilled) return '--';
-                           } else if (businessLoan.repaymentMethod === 'lump-sum') {
-                             // 一次性还本付息必填项：剩余贷款本金 + 贷款结束日期 + 年化利率
-                             const requiredFilled = businessLoan.loanAmount && 
-                                    businessLoan.startDate && 
-                                    businessLoan.annualRate;
+                              // 先息后本必填项：剩余贷款本金 + 贷款结束日期 + 年化利率
+                              const requiredFilled = businessLoan.loanAmount && 
+                                     businessLoan.endDate && 
+                                     businessLoan.annualRate;
+                              if (!requiredFilled) return '--';
+                            } else if (businessLoan.repaymentMethod === 'lump-sum') {
+                              // 一次性还本付息必填项：剩余贷款本金 + 贷款结束日期 + 年化利率
+                              const requiredFilled = businessLoan.loanAmount && 
+                                     businessLoan.endDate && 
+                                     businessLoan.annualRate;
                              if (!requiredFilled) return '--';
                            }
                            

@@ -31,7 +31,7 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
           loanAmount: '', 
           remainingPrincipal: '',
           startDate: getTodayDate(),
-          endDate: getTodayDate(),
+          endDate: '',
           loanTerm: '',
           annualRate: '',
           repaymentMethod: 'interest-first'
@@ -45,13 +45,12 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
     }
   }, [JSON.stringify(initialData)]);
 
-  // Set default dates to today for existing loans with empty date fields
+  // Set default start date to today for existing loans with empty start date
   useEffect(() => {
     const todayDate = getTodayDate();
     setBusinessLoans(prev => prev.map(loan => ({
       ...loan,
       startDate: loan.startDate || todayDate,
-      endDate: loan.endDate || todayDate
     })));
   }, []);
 
@@ -63,7 +62,7 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
       loanAmount: '',
       remainingPrincipal: '',
       startDate: todayDate,
-      endDate: todayDate,
+      endDate: '',
       loanTerm: '',
       annualRate: '',
       repaymentMethod: 'interest-first'
@@ -105,7 +104,7 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
       return Boolean(
         businessLoan.loanAmount && 
         parseFloat(businessLoan.loanAmount) > 0 &&
-        businessLoan.startDate &&
+        businessLoan.endDate &&
         businessLoan.annualRate && 
         parseFloat(businessLoan.annualRate) > 0 &&
         businessLoan.repaymentMethod

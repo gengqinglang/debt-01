@@ -31,7 +31,7 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
           loanAmount: '', 
           remainingPrincipal: '',
           startDate: getTodayDate(),
-          endDate: getTodayDate(),
+          endDate: '',
           loanTerm: '',
           annualRate: '',
           repaymentMethod: 'interest-first'
@@ -45,13 +45,12 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
     }
   }, [JSON.stringify(initialData)]);
 
-  // Set default dates to today for existing loans with empty date fields
+  // Set default start date to today for existing loans with empty start date
   useEffect(() => {
     const todayDate = getTodayDate();
     setConsumerLoans(prev => prev.map(loan => ({
       ...loan,
       startDate: loan.startDate || todayDate,
-      endDate: loan.endDate || todayDate
     })));
   }, []);
 
