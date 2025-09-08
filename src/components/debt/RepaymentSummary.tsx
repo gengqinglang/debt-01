@@ -101,28 +101,35 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
         </CardHeader>
         <CardContent className="p-4">
           {pieData.length > 0 ? (
-            <div className="space-y-4">
-              {/* 分类明细 */}
-              <div className="space-y-2">
-                {pieData.map((item, index) => (
-                  <div key={item.name} className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <div className="flex items-center">
+            <div className="space-y-3">
+              {pieData.map((item, index) => (
+                <div key={item.name} className="bg-gradient-to-r from-[#B3EBEF]/10 to-[#8FD8DC]/10 rounded-lg p-4 border border-[#B3EBEF]/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
                       <div 
-                        className="w-3 h-3 rounded-full mr-2" 
+                        className="w-4 h-4 rounded-full" 
                         style={{ backgroundColor: '#01BCD6' }}
                       />
-                      <span className="text-sm font-medium text-gray-900">
-                        {item.name}（{item.percentage}%）
-                      </span>
+                      <div>
+                        <div className="text-base font-semibold text-gray-900">
+                          {item.name}
+                        </div>
+                        <div className="text-sm text-[#01BCD6] font-medium">
+                          占比 {item.percentage}%
+                        </div>
+                      </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-gray-900">
-                        {Math.round(item.value).toLocaleString()}万
+                      <div className="text-xl font-bold text-gray-900">
+                        {Math.round(item.value).toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        万元
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="py-8 text-center text-gray-500">
