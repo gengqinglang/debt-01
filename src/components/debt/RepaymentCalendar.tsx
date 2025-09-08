@@ -143,7 +143,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
           onSelect={handleDateClick}
           month={currentMonth}
           onMonthChange={setCurrentMonth}
-          className="mx-auto"
+          className="w-full flex justify-center"
           components={{
             Day: ({ date, ...props }) => (
               <div 
