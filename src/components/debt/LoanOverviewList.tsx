@@ -395,11 +395,14 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
           {validDebts.map((debt, index) => {
             const config = debtConfig[debt.type];
             const IconComponent = config?.icon || Wallet;
+            const isLastItem = index === validDebts.length - 1;
             
             return (
               <div 
                 key={debt.id || index} 
-                className="px-4 py-4 hover:bg-gray-50 cursor-pointer transition-colors border-t border-b border-gray-100"
+                className={`px-4 py-4 hover:bg-gray-50 cursor-pointer transition-colors border-t border-gray-100 ${
+                  isLastItem ? 'border-b border-gray-100' : ''
+                }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center flex-1">
