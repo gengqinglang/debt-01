@@ -33,6 +33,8 @@ interface FSSharedLoanModuleProps {
   persist?: boolean;
   // 新增：当最后一笔完成的贷款被清除时的回调
   onLastItemCleared?: () => void;
+  // 新增：删除或重置贷款后的回调（无论是否为最后一笔）
+  onAfterRemoveOrReset?: () => void;
 }
 
 export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
@@ -51,7 +53,8 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
   children,
   onLoansChange,
   persist = true, // 修改默认值为true，确保数据持久化
-  onLastItemCleared
+  onLastItemCleared,
+  onAfterRemoveOrReset
 }) => {
   const { loans, updateLoan, addLoan, removeLoan, resetLoan } = useLoanData({ persist });
   const { toast } = useToast();
@@ -77,16 +80,19 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
     const loanToRemove = loans.find(loan => loan.id === id);
     removeLoan(id);
     
-    // 检查删除后是否没有完成的贷款了
-    if (loanToRemove && isLoanComplete(loanToRemove)) {
-      const remainingCompleteLoans = loans.filter(loan => loan.id !== id && isLoanComplete(loan));
-      if (remainingCompleteLoans.length === 0) {
-        // 延迟调用以确保状态更新完成
-        setTimeout(() => {
+    // 延迟调用以确保状态更新完成
+    setTimeout(() => {
+      // 总是调用onAfterRemoveOrReset
+      onAfterRemoveOrReset?.();
+      
+      // 检查删除后是否没有完成的贷款了
+      if (loanToRemove && isLoanComplete(loanToRemove)) {
+        const remainingCompleteLoans = loans.filter(loan => loan.id !== id && isLoanComplete(loan));
+        if (remainingCompleteLoans.length === 0) {
           onLastItemCleared?.();
-        }, 0);
+        }
       }
-    }
+    }, 0);
   };
 
   // 包装 resetLoan 函数，检查是否重置了最后一笔完成的贷款
@@ -94,16 +100,19 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
     const loanToReset = loans.find(loan => loan.id === id);
     resetLoan(id);
     
-    // 检查重置后是否没有完成的贷款了
-    if (loanToReset && isLoanComplete(loanToReset)) {
-      const remainingCompleteLoans = loans.filter(loan => loan.id !== id || !isLoanComplete(loan));
-      if (remainingCompleteLoans.length === 0) {
-        // 延迟调用以确保状态更新完成
-        setTimeout(() => {
+    // 延迟调用以确保状态更新完成
+    setTimeout(() => {
+      // 总是调用onAfterRemoveOrReset
+      onAfterRemoveOrReset?.();
+      
+      // 检查重置后是否没有完成的贷款了
+      if (loanToReset && isLoanComplete(loanToReset)) {
+        const remainingCompleteLoans = loans.filter(loan => loan.id !== id || !isLoanComplete(loan));
+        if (remainingCompleteLoans.length === 0) {
           onLastItemCleared?.();
-        }, 0);
+        }
       }
-    }
+    }, 0);
   };
 
   return (
