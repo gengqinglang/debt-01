@@ -73,19 +73,36 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
           amount = remaining || principal;
         }
         
-        // 计算利率 - 优先使用fixedRate
+        // 计算利率 - 优先使用fixedRate，确保正确获取利率字段
         let interestRate = 0;
         if (loan.loanType === 'combined') {
-          const commercialRate = parseFloat(loan.commercialFixedRate || loan.commercialFloatingRate || '0');
-          const providentRate = parseFloat(loan.providentRate || '0');
+          // 组合贷：计算加权平均利率
           const commercialAmount = parseFloat(loan.commercialAmount || '0');
           const providentAmount = parseFloat(loan.providentAmount || '0');
           const totalAmount = commercialAmount + providentAmount;
+          
           if (totalAmount > 0) {
+            // 获取商贷利率
+            let commercialRate = 0;
+            if (loan.commercialRateType === 'fixed') {
+              commercialRate = parseFloat(loan.commercialFixedRate || '0');
+            } else if (loan.commercialRateType === 'floating') {
+              commercialRate = parseFloat(loan.commercialFloatingRate || '0');
+            }
+            
+            // 获取公积金利率
+            const providentRate = parseFloat(loan.providentRate || '0');
+            
+            // 计算加权平均
             interestRate = (commercialRate * commercialAmount + providentRate * providentAmount) / totalAmount;
           }
         } else {
-          interestRate = parseFloat(loan.fixedRate || loan.floatingRate || '0');
+          // 单一贷款：根据利率类型获取
+          if (loan.rateType === 'fixed') {
+            interestRate = parseFloat(loan.fixedRate || '0');
+          } else if (loan.rateType === 'floating') {
+            interestRate = parseFloat(loan.floatingRate || '0');
+          }
         }
         
         // 计算剩余期限 (月) - 优先使用最晚的loanEndDate
@@ -133,6 +150,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         if (carLoan.loanType === 'bank') {
           // 银行车贷 - 数据已是万元单位，无需除10000
           amount = parseFloat(carLoan.remainingPrincipal || carLoan.loanAmount || '0');
+          // 银行车贷显示利率
           interestRate = parseFloat(carLoan.interestRate || carLoan.annualRate || '0');
           
           if (carLoan.loanEndDate) {
@@ -145,7 +163,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
           const installment = parseFloat(carLoan.installmentAmount || '0');
           const term = parseInt(carLoan.installmentTerm || '0');
           amount = (installment * term) / 10000;
-          interestRate = 0; // 分期通常不显示年化利率
+          interestRate = -1; // 分期不显示利率，用-1标记
           remainingMonths = term;
         }
         
@@ -345,7 +363,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
                         }
                       </div>
                       <div className="text-sm text-[#01BCD6] font-medium">
-                        年化 {debt.interestRate > 0 ? debt.interestRate.toFixed(2) + '%' : '-'}
+                        年化 {debt.interestRate === -1 ? '-' : (debt.interestRate > 0 ? debt.interestRate.toFixed(2) + '%' : '-')}
                       </div>
                     </div>
                   </div>
