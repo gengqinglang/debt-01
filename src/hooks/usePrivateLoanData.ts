@@ -24,19 +24,7 @@ export interface PrivateLoanInfo {
 
 export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
   const [privateLoans, setPrivateLoans] = useState<PrivateLoanInfo[]>(
-    initialData && initialData.length > 0 
-      ? initialData 
-      : [{ 
-          id: crypto.randomUUID(), 
-          name: '',
-          loanAmount: '', 
-          startDate: getTodayDate(),
-          endDate: '',
-          annualRate: '',
-          rateFen: '',
-          rateLi: '',
-          repaymentMethod: 'interest-first'
-        }]
+    initialData && initialData.length > 0 ? initialData : []
   );
 
   // Sync with initialData when it changes
@@ -46,14 +34,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
     }
   }, [JSON.stringify(initialData)]);
 
-  // Set default dates to today for existing loans with empty date fields
-  useEffect(() => {
-    const todayDate = getTodayDate();
-    setPrivateLoans(prev => prev.map(loan => ({
-      ...loan,
-      startDate: loan.startDate || todayDate
-    })));
-  }, []);
+// Removed default date autofill to prevent unintended diffs on mount
 
   const addPrivateLoan = useCallback(() => {
     const todayDate = getTodayDate();

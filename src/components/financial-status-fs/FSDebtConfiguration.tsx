@@ -1028,23 +1028,35 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   const currentLPR_5Year = 3.50; // 5年期LPR（公积金）
   const currentLPR_5YearPlus = 3.50; // 5年期以上LPR（商业）
 
-  // Check if data has changed since last confirmation
-  useEffect(() => {
-    if (!lastConfirmedData) return;
-    
-    const currentData = {
-      loans,
-      carLoans,
-      consumerLoans,
-      businessLoans,
-      privateLoans,
-      creditCards,
-      formData
-    };
-    
-    const changed = JSON.stringify(currentData) !== JSON.stringify(lastConfirmedData);
-    setHasDataChanged(changed);
-  }, [loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData, lastConfirmedData]);
+// Check if data has changed since last confirmation (per-category)
+useEffect(() => {
+  if (!lastConfirmedData) return;
+  let currentData: any = {};
+  switch (category.type) {
+    case 'mortgage':
+      currentData = { loans, formData };
+      break;
+    case 'carLoan':
+      currentData = { carLoans };
+      break;
+    case 'consumerLoan':
+      currentData = { consumerLoans };
+      break;
+    case 'businessLoan':
+      currentData = { businessLoans };
+      break;
+    case 'privateLoan':
+      currentData = { privateLoans };
+      break;
+    case 'creditCard':
+      currentData = { creditCards };
+      break;
+    default:
+      currentData = {};
+  }
+  const changed = JSON.stringify(currentData) !== JSON.stringify(lastConfirmedData);
+  setHasDataChanged(changed);
+}, [category.type, loans, carLoans, consumerLoans, businessLoans, privateLoans, creditCards, formData, lastConfirmedData]);
 
   // Sync with existing data when component mounts or existingData changes
   useEffect(() => {
@@ -1056,18 +1068,32 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         setFormData(existingData.formData);
       }
       
-      // 如果已确认且有存在数据，初始化lastConfirmedData并重置hasDataChanged
+// 如果已确认且有存在数据，初始化lastConfirmedData（仅当前类别）并重置hasDataChanged
       if (isConfirmed && existingData) {
-        const currentData = {
-          loans: existingData.loans || [],
-          carLoans: existingData.carLoans || [],
-          consumerLoans: existingData.consumerLoans || [],
-          businessLoans: existingData.businessLoans || [],
-          privateLoans: existingData.privateLoans || [],
-          creditCards: existingData.creditCards || [],
-          formData: existingData.formData || {}
-        };
-        setLastConfirmedData(currentData);
+        let snapshot: any = {};
+        switch (category.type) {
+          case 'mortgage':
+            snapshot = { loans: existingData.loans || [], formData: existingData.formData || {} };
+            break;
+          case 'carLoan':
+            snapshot = { carLoans: existingData.carLoans || [] };
+            break;
+          case 'consumerLoan':
+            snapshot = { consumerLoans: existingData.consumerLoans || [] };
+            break;
+          case 'businessLoan':
+            snapshot = { businessLoans: existingData.businessLoans || [] };
+            break;
+          case 'privateLoan':
+            snapshot = { privateLoans: existingData.privateLoans || [] };
+            break;
+          case 'creditCard':
+            snapshot = { creditCards: existingData.creditCards || [] };
+            break;
+          default:
+            snapshot = {};
+        }
+        setLastConfirmedData(snapshot);
         setHasDataChanged(false);
       }
     }
@@ -1548,15 +1574,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         formData
       };
       
-      setLastConfirmedData({
-        loans,
-        carLoans,
-        consumerLoans,
-        businessLoans,
-        privateLoans,
-        creditCards,
-        formData
-      });
+setLastConfirmedData({ loans, formData });
       setHasDataChanged(false);
       
       skipExistingSyncRef.current = true;
@@ -1883,15 +1901,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 }
                 
                 // 保存确认时的数据状态
-                setLastConfirmedData({
-                  loans,
-                  carLoans,
-                  consumerLoans,
-                  businessLoans,
-                  privateLoans,
-                  creditCards,
-                  formData
-                });
+setLastConfirmedData({ loans, formData });
                 setHasDataChanged(false);
                 
                 // Set skip flag to prevent existingData sync after confirmation
@@ -1972,15 +1982,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 const aggregatedData = getCarLoanAggregatedData();
                 if (aggregatedData.count > 0) {
                   // 保存确认时的数据状态
-                  setLastConfirmedData({
-                    loans,
-                    carLoans,
-                    consumerLoans,
-                    businessLoans,
-                    privateLoans,
-                    creditCards,
-                    formData
-                  });
+setLastConfirmedData({ carLoans });
                   setHasDataChanged(false);
                   
                   // Set skip flag to prevent existingData sync after confirmation
@@ -2070,15 +2072,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 const aggregatedData = getConsumerLoanAggregatedData();
                 if (aggregatedData.count > 0) {
                   // 保存确认时的数据状态
-                  setLastConfirmedData({
-                    loans,
-                    carLoans,
-                    consumerLoans,
-                    businessLoans,
-                    privateLoans,
-                    creditCards,
-                    formData
-                  });
+setLastConfirmedData({ consumerLoans });
                   setHasDataChanged(false);
                   
                   // Set skip flag to prevent existingData sync after confirmation
@@ -2166,15 +2160,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 const aggregatedData = getBusinessLoanAggregatedData();
                 if (aggregatedData.count > 0) {
                   // 保存确认时的数据状态
-                  setLastConfirmedData({
-                    loans,
-                    carLoans,
-                    consumerLoans,
-                    businessLoans,
-                    privateLoans,
-                    creditCards,
-                    formData
-                  });
+setLastConfirmedData({ businessLoans });
                   setHasDataChanged(false);
                   
                   // Set skip flag to prevent existingData sync after confirmation
@@ -2264,15 +2250,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 const aggregatedData = getPrivateLoanAggregatedData();
                 if (aggregatedData.count > 0) {
                   // 保存确认时的数据状态
-                  setLastConfirmedData({
-                    loans,
-                    carLoans,
-                    consumerLoans,
-                    businessLoans,
-                    privateLoans,
-                    creditCards,
-                    formData
-                  });
+setLastConfirmedData({ privateLoans });
                   setHasDataChanged(false);
                   
                   // Set skip flag to prevent existingData sync after confirmation
@@ -2358,15 +2336,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                 const aggregatedData = getCreditCardAggregatedData();
                 if (aggregatedData.count > 0) {
                   // 保存确认时的数据状态
-                  setLastConfirmedData({
-                    loans,
-                    carLoans,
-                    consumerLoans,
-                    businessLoans,
-                    privateLoans,
-                    creditCards,
-                    formData
-                  });
+setLastConfirmedData({ creditCards });
                   setHasDataChanged(false);
                   
                   // Set skip flag to prevent existingData sync after confirmation

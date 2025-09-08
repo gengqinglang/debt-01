@@ -31,15 +31,7 @@ export interface CarLoanInfo {
 
 export const useCarLoanData = (initialData?: CarLoanInfo[]) => {
   const [carLoans, setCarLoans] = useState<CarLoanInfo[]>(
-    initialData && initialData.length > 0 
-      ? initialData 
-      : [{ 
-          id: crypto.randomUUID(), 
-          vehicleName: '', 
-          loanType: 'installment',
-          installmentAmount: '', 
-          remainingInstallments: '' 
-         }]
+    initialData && initialData.length > 0 ? initialData : []
   );
 
   // Sync with initialData when it changes
@@ -49,15 +41,7 @@ export const useCarLoanData = (initialData?: CarLoanInfo[]) => {
     }
   }, [JSON.stringify(initialData)]);
 
-  // Set default dates to today for existing loans with empty date fields
-  useEffect(() => {
-    const todayDate = getTodayDate();
-    setCarLoans(prev => prev.map(loan => ({
-      ...loan,
-      startDateMonth: loan.startDateMonth || todayDate,
-      endDateMonth: loan.endDateMonth || todayDate
-    })));
-  }, []);
+// Removed default date autofill to prevent unintended diffs on mount
 
   const addCarLoan = useCallback(() => {
     const todayDate = getTodayDate();

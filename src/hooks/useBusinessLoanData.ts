@@ -23,19 +23,7 @@ export interface BusinessLoanInfo {
 
 export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
   const [businessLoans, setBusinessLoans] = useState<BusinessLoanInfo[]>(
-    initialData && initialData.length > 0 
-      ? initialData 
-      : [{ 
-          id: crypto.randomUUID(), 
-          name: '',
-          loanAmount: '', 
-          remainingPrincipal: '',
-          startDate: getTodayDate(),
-          endDate: '',
-          loanTerm: '',
-          annualRate: '',
-          repaymentMethod: 'interest-first'
-        }]
+    initialData && initialData.length > 0 ? initialData : []
   );
 
   // Sync with initialData when it changes
@@ -45,14 +33,7 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
     }
   }, [JSON.stringify(initialData)]);
 
-  // Set default start date to today for existing loans with empty start date
-  useEffect(() => {
-    const todayDate = getTodayDate();
-    setBusinessLoans(prev => prev.map(loan => ({
-      ...loan,
-      startDate: loan.startDate || todayDate,
-    })));
-  }, []);
+// Removed default start date autofill to prevent unintended diffs on mount
 
   const addBusinessLoan = useCallback(() => {
     const todayDate = getTodayDate();

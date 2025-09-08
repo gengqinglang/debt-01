@@ -9,14 +9,7 @@ export interface CreditCardInfo {
 
 export const useCreditCardData = (initialData?: CreditCardInfo[]) => {
   const [creditCards, setCreditCards] = useState<CreditCardInfo[]>(
-    initialData && initialData.length > 0 
-      ? initialData 
-      : [{ 
-          id: crypto.randomUUID(), 
-          name: '',
-          currentAmount: '',
-          unbilledAmount: ''
-        }]
+    initialData && initialData.length > 0 ? initialData : []
   );
 
   // Sync with initialData when it changes
