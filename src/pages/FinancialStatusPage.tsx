@@ -50,18 +50,12 @@ const FinancialStatusPage = () => {
   // 初始化时从localStorage加载数据
   useEffect(() => {
     try {
-      // 加载已确认的债务数据
+      // 加载已确认的债务数据，但不自动标记为已确认
       const savedDebts = localStorage.getItem('confirmed_debts');
       if (savedDebts) {
         const parsedDebts = JSON.parse(savedDebts);
         setDebts(parsedDebts);
-        
-        // 标记这些债务为已确认
-        const confirmed: {[key: string]: boolean} = {};
-        parsedDebts.forEach((debt: DebtInfo) => {
-          confirmed[debt.type] = true;
-        });
-        setConfigConfirmed(confirmed);
+        // 不设置 configConfirmed - 需要用户在当前会话中重新确认
       }
     } catch (error) {
       console.error('Error loading saved debt data:', error);
@@ -115,23 +109,27 @@ const FinancialStatusPage = () => {
     return totalCount;
   };
 
-  // 计算剩余本金（优先使用实时数据）
+  // 计算剩余本金（仅统计当前会话已确认的债务）
   const calculateRemainingPrincipal = () => {
     // 单位统一为"万"
     let totalPrincipalWan = debts.reduce((sum, debt) => {
+      // 只计算当前会话已确认的债务
+      if (!configConfirmed[debt.type]) return sum;
+      
       const val = Number(debt.amount) || 0;
       return sum + val;
     }, 0);
     
-    // 移除实时数据计算 - 只显示已确认的债务
-    
     return totalPrincipalWan;
   };
 
-  // 计算待还利息（优先使用实时数据）
+  // 计算待还利息（仅统计当前会话已确认的债务）
   const calculateRemainingInterest = () => {
     // 单位统一为"万"
     let totalInterestWan = debts.reduce((sum, debt) => {
+      // 只计算当前会话已确认的债务
+      if (!configConfirmed[debt.type]) return sum;
+      
       // 优先使用 debt.remainingInterest 字段（已经是万元单位）
       if (debt.remainingInterest !== undefined && debt.remainingInterest !== null) {
         return sum + debt.remainingInterest;
