@@ -1092,30 +1092,34 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         const originalPrincipal = parseFloat(carLoan.principal || '0');
         return sum + (remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal);
       } else {
-        // 分期类型，剩余本金 = 每期分期金额 * 剩余期限
+        // 分期类型，通过月供和剩余期数估算剩余本金
         const monthlyPayment = parseFloat(carLoan.installmentAmount || '0');
         const remainingMonths = parseInt(carLoan.remainingInstallments || '0');
-        return sum + (monthlyPayment * remainingMonths) / 10000;
+        // 简化估算：假设剩余本金约等于月供 * 剩余期数 * 0.8 (考虑利息因素)
+        return sum + (monthlyPayment * remainingMonths * 0.8) / 10000;
       }
     }, 0);
     
     const totalRemainingInterest = completeCarLoans.reduce((sum, carLoan) => {
-      if (carLoan.loanType === 'bankLoan') {
-        const monthlyPayment = parseFloat(carLoan.installmentAmount || '0');
-        const remainingMonths = parseInt(carLoan.remainingInstallments || '0');
+      const monthlyPayment = parseFloat(carLoan.installmentAmount || '0');
+      const remainingMonths = parseInt(carLoan.remainingInstallments || '0');
+      
+      if (monthlyPayment > 0 && remainingMonths > 0) {
+        const totalPayments = (monthlyPayment * remainingMonths) / 10000; // 万元
         
-        if (monthlyPayment > 0 && remainingMonths > 0) {
-          const totalPayments = (monthlyPayment * remainingMonths) / 10000; // 万元
-          
+        let principal = 0;
+        if (carLoan.loanType === 'bankLoan') {
           const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0') / 10000;
           const originalPrincipal = parseFloat(carLoan.principal || '0');
-          const principal = remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal;
-          
-          const interest = Math.max(0, totalPayments - principal);
-          return sum + interest;
+          principal = remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal;
+        } else {
+          // 分期类型估算
+          principal = (monthlyPayment * remainingMonths * 0.8) / 10000;
         }
+        
+        const interest = Math.max(0, totalPayments - principal);
+        return sum + interest;
       }
-      // 分期类型利息为0
       return sum;
     }, 0);
     
