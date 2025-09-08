@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PiggyBank, TrendingDown, Calendar } from 'lucide-react';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
-
 interface RepaymentSummaryProps {
   debts: DebtInfo[];
 }
@@ -10,7 +9,7 @@ interface RepaymentSummaryProps {
 // 债务类型中文映射
 const debtTypeNames: Record<string, string> = {
   mortgage: '房贷',
-  carLoan: '车贷', 
+  carLoan: '车贷',
   consumerLoan: '消费贷',
   businessLoan: '经营贷',
   privateLoan: '民间贷',
@@ -23,7 +22,7 @@ const formatCurrency = (amount: number): string => {
     style: 'currency',
     currency: 'CNY',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(amount);
 };
 
@@ -33,8 +32,9 @@ const addMonths = (date: Date, months: number): Date => {
   result.setMonth(result.getMonth() + months);
   return result;
 };
-
-const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({ debts }) => {
+const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
+  debts
+}) => {
   // 计算汇总数据
   const totalDebtWan = debts.reduce((sum, debt) => sum + (debt.amount || 0), 0);
   const monthlyTotalYuan = debts.reduce((sum, debt) => {
@@ -45,26 +45,21 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({ debts }) => {
   }, 0);
 
   // 准备还款计划清单
-  const repaymentPlan = debts
-    .filter(debt => (debt.amount || 0) > 0)
-    .map(debt => {
-      const today = new Date();
-      const estimatedClearDate = addMonths(today, debt.remainingMonths || 0);
-      
-      return {
-        category: debtTypeNames[debt.type] || debt.type,
-        monthlyPayment: debt.monthlyPayment || 0,
-        remainingMonths: debt.remainingMonths || 0,
-        clearDate: estimatedClearDate.toLocaleDateString('zh-CN', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        })
-      };
-    });
-
-  return (
-    <div className="space-y-4">
+  const repaymentPlan = debts.filter(debt => (debt.amount || 0) > 0).map(debt => {
+    const today = new Date();
+    const estimatedClearDate = addMonths(today, debt.remainingMonths || 0);
+    return {
+      category: debtTypeNames[debt.type] || debt.type,
+      monthlyPayment: debt.monthlyPayment || 0,
+      remainingMonths: debt.remainingMonths || 0,
+      clearDate: estimatedClearDate.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+    };
+  });
+  return <div className="space-y-4">
       {/* 汇总卡片 */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 border-[#B3EBEF]/30">
@@ -83,7 +78,7 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({ debts }) => {
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center mb-2">
               <TrendingDown className="w-5 h-5 text-[#01BCD6] mr-2" />
-              <span className="text-sm text-gray-600">月还总额</span>
+              <span className="text-sm text-gray-600">下期还款额</span>
             </div>
             <div className="text-xl font-bold text-gray-900">
               {formatCurrency(monthlyTotalYuan)}
@@ -101,10 +96,8 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({ debts }) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {repaymentPlan.length > 0 ? (
-            <div className="divide-y divide-gray-100">
-              {repaymentPlan.map((plan, index) => (
-                <div key={index} className="px-4 py-3 hover:bg-gray-50">
+          {repaymentPlan.length > 0 ? <div className="divide-y divide-gray-100">
+              {repaymentPlan.map((plan, index) => <div key={index} className="px-4 py-3 hover:bg-gray-50">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="font-medium text-gray-900 mb-1">{plan.category}</div>
@@ -118,18 +111,12 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({ debts }) => {
                       <div>{plan.clearDate}</div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-4 py-8 text-center text-gray-500">
+                </div>)}
+            </div> : <div className="px-4 py-8 text-center text-gray-500">
               暂无还款计划
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default RepaymentSummary;
