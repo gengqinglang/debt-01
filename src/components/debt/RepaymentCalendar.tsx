@@ -366,10 +366,13 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
             month={currentMonth}
             onMonthChange={setCurrentMonth}
             locale={zhCN}
-            className={`w-full pointer-events-auto ${debug ? 'border-2 border-blue-500' : ''}`}
+            className={`w-full pointer-events-auto p-0 ${debug ? 'border-2 border-blue-500' : ''}`}
             classNames={{
               months: "w-full flex justify-center",
-              month: "scale-[1.06] md:scale-[1.12] origin-top"
+              month: "scale-[1.06] md:scale-[1.12] origin-top",
+              table: "w-full border-collapse space-y-0",
+              row: "flex w-full mt-0",
+              caption: "relative flex justify-center pt-0 mb-1"
             }}
             components={{
               DayContent: ({ date }) => dayContent(date)
