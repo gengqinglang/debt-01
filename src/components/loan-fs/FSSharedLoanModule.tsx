@@ -53,12 +53,13 @@ export const FSSharedLoanModule: React.FC<FSSharedLoanModuleProps> = ({
   const { loans, updateLoan, addLoan, removeLoan, resetLoan } = useLoanData({ persist });
   const { toast } = useToast();
   
-  // 确保至少有一笔贷款（初始状态）
+  // 确保至少有一笔贷款（初始状态）- 仅在初始化时添加
   useEffect(() => {
-    if (loans.length === 0) {
+    if (loans.length === 0 && !persist) {
+      // 只在非持久化模式下自动添加，避免删除最后一笔后自动恢复
       addLoan();
     }
-  }, [loans.length, addLoan]);
+  }, []); // 移除依赖，只在组件挂载时执行一次
   
   // 使用传入的LoanFormCard或默认的LoanFormCard
   const LoanCardComponent = CustomLoanFormCard || LoanFormCard;

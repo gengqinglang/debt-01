@@ -1667,6 +1667,9 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
               onClick={() => {
                 // Aggregate loan data and confirm
                 const completeLoanExists = loans.some(loan => isLoanComplete(loan));
+                
+                let aggregatedData;
+                
                 if (completeLoanExists) {
                   let totalRemainingPrincipal = 0;
                   let totalMonthlyPayment = 0;
@@ -1716,34 +1719,43 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   
                   const completeLoansCount = loans.filter(loan => isLoanComplete(loan)).length;
                   
-                  const aggregatedData = {
+                  aggregatedData = {
                     count: completeLoansCount,
                     amount: totalRemainingPrincipal,
                     monthlyPayment: totalMonthlyPayment,
                     remainingMonths: maxRemainingMonths,
                     loans
                   };
-                  
-                  // 保存确认时的数据状态
-                  setLastConfirmedData({
-                    loans,
-                    carLoans,
-                    consumerLoans,
-                    businessLoans,
-                    privateLoans,
-                    creditCards,
-                    formData
-                  });
-                  setHasDataChanged(false);
-                  
-                  // Set skip flag to prevent existingData sync after confirmation
-                  skipExistingSyncRef.current = true;
-                  setTimeout(() => {
-                    skipExistingSyncRef.current = false;
-                  }, 100);
-                  
-                  onConfirm(category.id, aggregatedData);
+                } else {
+                  // 没有完成的贷款时，确认空状态
+                  aggregatedData = {
+                    count: 0,
+                    amount: 0,
+                    monthlyPayment: 0,
+                    remainingMonths: 0,
+                    loans: []
+                  };
                 }
+                
+                // 保存确认时的数据状态
+                setLastConfirmedData({
+                  loans,
+                  carLoans,
+                  consumerLoans,
+                  businessLoans,
+                  privateLoans,
+                  creditCards,
+                  formData
+                });
+                setHasDataChanged(false);
+                
+                // Set skip flag to prevent existingData sync after confirmation
+                skipExistingSyncRef.current = true;
+                setTimeout(() => {
+                  skipExistingSyncRef.current = false;
+                }, 100);
+                
+                onConfirm(category.id, aggregatedData);
               }}
               className={`w-full h-10 text-sm font-semibold rounded-lg transition-all duration-300 ${
                 isConfirmed && !hasDataChanged
