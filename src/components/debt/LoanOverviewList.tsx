@@ -48,6 +48,9 @@ interface FlattenedLoan {
 
 type SortType = 'principal-desc' | 'interest-desc' | 'term-desc';
 
+// LPR基准利率 (当前3.5%)
+const LPR_BASE_RATE = 3.5;
+
 // 展平债务数据，将各类型的贷款数组展开为单个贷款条目
 const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
   const flattened: FlattenedLoan[] = [];
@@ -62,8 +65,8 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         // 计算剩余本金 (万元) - 数据已是万元单位，无需除10000
         let amount = 0;
         if (loan.loanType === 'combined') {
-          const commercial = parseFloat(loan.commercialAmount || '0');
-          const provident = parseFloat(loan.providentAmount || '0');
+          const commercial = parseFloat(loan.commercialLoanAmount || '0');
+          const provident = parseFloat(loan.providentLoanAmount || '0');
           const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0');
           const providentRemaining = parseFloat(loan.providentRemainingPrincipal || '0');
           amount = (commercialRemaining || commercial) + (providentRemaining || provident);
@@ -73,12 +76,12 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
           amount = remaining || principal;
         }
         
-        // 计算利率 - 优先使用fixedRate，确保正确获取利率字段
+        // 计算利率 - 修正字段名称和浮动利率计算
         let interestRate = 0;
         if (loan.loanType === 'combined') {
           // 组合贷：计算加权平均利率
-          const commercialAmount = parseFloat(loan.commercialAmount || '0');
-          const providentAmount = parseFloat(loan.providentAmount || '0');
+          const commercialAmount = parseFloat(loan.commercialLoanAmount || '0');
+          const providentAmount = parseFloat(loan.providentLoanAmount || '0');
           const totalAmount = commercialAmount + providentAmount;
           
           if (totalAmount > 0) {
@@ -87,7 +90,9 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
             if (loan.commercialRateType === 'fixed') {
               commercialRate = parseFloat(loan.commercialFixedRate || '0');
             } else if (loan.commercialRateType === 'floating') {
-              commercialRate = parseFloat(loan.commercialFloatingRate || '0');
+              // 浮动利率 = LPR基准利率 + 调整值
+              const adjustment = parseFloat(loan.commercialFloatingRateAdjustment || '0');
+              commercialRate = LPR_BASE_RATE + adjustment;
             }
             
             // 获取公积金利率
@@ -101,16 +106,18 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
           if (loan.rateType === 'fixed') {
             interestRate = parseFloat(loan.fixedRate || '0');
           } else if (loan.rateType === 'floating') {
-            interestRate = parseFloat(loan.floatingRate || '0');
+            // 浮动利率 = LPR基准利率 + 调整值
+            const adjustment = parseFloat(loan.floatingRateAdjustment || '0');
+            interestRate = LPR_BASE_RATE + adjustment;
           }
         }
         
-        // 计算剩余期限 (月) - 优先使用最晚的loanEndDate
+        // 计算剩余期限 (月) - 修正字段名称
         let remainingMonths = 0;
         let endDateToUse = '';
         if (loan.loanType === 'combined') {
-          const commercialEnd = loan.commercialLoanEndDate;
-          const providentEnd = loan.providentLoanEndDate;
+          const commercialEnd = loan.commercialEndDate;
+          const providentEnd = loan.providentEndDate;
           if (commercialEnd && providentEnd) {
             endDateToUse = new Date(commercialEnd) > new Date(providentEnd) ? commercialEnd : providentEnd;
           } else {
@@ -147,21 +154,23 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         let interestRate = 0;
         let remainingMonths = 0;
         
-        if (carLoan.loanType === 'bank') {
-          // 银行车贷 - 数据已是万元单位，无需除10000
-          amount = parseFloat(carLoan.remainingPrincipal || carLoan.loanAmount || '0');
+        if (carLoan.loanType === 'bankLoan') {
+          // 银行车贷 - 使用principal字段，数据已是万元单位
+          amount = parseFloat(carLoan.remainingPrincipal || carLoan.principal || '0');
           // 银行车贷显示利率
-          interestRate = parseFloat(carLoan.interestRate || carLoan.annualRate || '0');
+          interestRate = parseFloat(carLoan.interestRate || '0');
           
-          if (carLoan.loanEndDate) {
+          // 使用endDateMonth计算剩余期限
+          if (carLoan.endDateMonth) {
             const now = new Date();
-            const end = new Date(carLoan.loanEndDate);
-            remainingMonths = Math.max(0, Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+            const endDate = new Date(carLoan.endDateMonth + '-01'); // 添加日期部分
+            endDate.setMonth(endDate.getMonth() + 1); // 月末
+            remainingMonths = Math.max(0, Math.round((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)));
           }
-        } else {
-          // 分期车贷 - 月供是元，需要转换
+        } else if (carLoan.loanType === 'installment') {
+          // 分期车贷 - 月供是元，需要转换为万元
           const installment = parseFloat(carLoan.installmentAmount || '0');
-          const term = parseInt(carLoan.installmentTerm || '0');
+          const term = parseInt(carLoan.remainingInstallments || '0');
           amount = (installment * term) / 10000;
           interestRate = -1; // 分期不显示利率，用-1标记
           remainingMonths = term;
