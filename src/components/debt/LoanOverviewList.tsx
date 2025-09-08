@@ -222,9 +222,17 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         const interestRate = parseFloat(consumerLoan.annualRate || '0');
         
         let remainingMonths = 0;
-        if (consumerLoan.loanEndDate) {
+        if (consumerLoan.endDate) {
           const now = new Date();
-          const end = new Date(consumerLoan.loanEndDate);
+          const end = new Date(consumerLoan.endDate);
+          remainingMonths = calculateMonthsDifference(now, end);
+        } else if (consumerLoan.startDate && consumerLoan.loanTerm) {
+          // 如果没有结束日期但有开始日期和贷款期限，计算结束日期
+          const start = new Date(consumerLoan.startDate);
+          const termYears = parseFloat(consumerLoan.loanTerm);
+          const end = new Date(start);
+          end.setFullYear(end.getFullYear() + termYears);
+          const now = new Date();
           remainingMonths = calculateMonthsDifference(now, end);
         }
         
@@ -248,11 +256,16 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         const interestRate = parseFloat(businessLoan.annualRate || '0');
         
         let remainingMonths = 0;
-        if (businessLoan.loanStartDate && businessLoan.loanTerm) {
-          const start = new Date(businessLoan.loanStartDate);
-          const termMonths = parseInt(businessLoan.loanTerm);
+        if (businessLoan.endDate) {
+          const now = new Date();
+          const end = new Date(businessLoan.endDate);
+          remainingMonths = calculateMonthsDifference(now, end);
+        } else if (businessLoan.startDate && businessLoan.loanTerm) {
+          // 如果没有结束日期但有开始日期和贷款期限，计算结束日期
+          const start = new Date(businessLoan.startDate);
+          const termYears = parseFloat(businessLoan.loanTerm); // 经营贷期限是年
           const end = new Date(start);
-          end.setMonth(end.getMonth() + termMonths);
+          end.setFullYear(end.getFullYear() + termYears);
           const now = new Date();
           remainingMonths = calculateMonthsDifference(now, end);
         }
@@ -277,9 +290,24 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         const interestRate = parseFloat(privateLoan.annualRate || '0');
         
         let remainingMonths = 0;
-        if (privateLoan.loanEndDate) {
+        if (privateLoan.endDate) {
           const now = new Date();
-          const end = new Date(privateLoan.loanEndDate);
+          const end = new Date(privateLoan.endDate);
+          remainingMonths = calculateMonthsDifference(now, end);
+        } else if (privateLoan.startDate) {
+          // 民间贷如果没有结束日期，根据还款方式估算
+          const start = new Date(privateLoan.startDate);
+          let estimatedTermMonths = 12; // 默认12个月
+          
+          if (privateLoan.repaymentMethod === 'lump-sum') {
+            estimatedTermMonths = 12; // 到期还本付息通常1年
+          } else if (privateLoan.repaymentMethod === 'interest-first') {
+            estimatedTermMonths = 24; // 先息后本通常2年
+          }
+          
+          const end = new Date(start);
+          end.setMonth(end.getMonth() + estimatedTermMonths);
+          const now = new Date();
           remainingMonths = calculateMonthsDifference(now, end);
         }
         
