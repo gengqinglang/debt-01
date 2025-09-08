@@ -50,12 +50,26 @@ const FinancialStatusPage = () => {
   // 初始化时从localStorage加载数据
   useEffect(() => {
     try {
-      // 加载已确认的债务数据，但不自动标记为已确认
+      // 检查是否从债务分析页返回
+      const isReturning = sessionStorage.getItem('fs_returning_expected');
+      
+      // 加载已确认的债务数据
       const savedDebts = localStorage.getItem('confirmed_debts');
       if (savedDebts) {
         const parsedDebts = JSON.parse(savedDebts);
         setDebts(parsedDebts);
-        // 不设置 configConfirmed - 需要用户在当前会话中重新确认
+        
+        if (isReturning) {
+          // 从债务分析页返回，恢复确认状态
+          const savedConfigConfirmed = sessionStorage.getItem('fs_config_confirmed');
+          if (savedConfigConfirmed) {
+            setConfigConfirmed(JSON.parse(savedConfigConfirmed));
+          }
+          // 清除返回标记
+          sessionStorage.removeItem('fs_returning_expected');
+          sessionStorage.removeItem('fs_config_confirmed');
+        }
+        // 否则不设置 configConfirmed - 需要用户在当前会话中重新确认
       }
     } catch (error) {
       console.error('Error loading saved debt data:', error);
@@ -228,6 +242,10 @@ const FinancialStatusPage = () => {
     localStorage.setItem('confirmed_debts', JSON.stringify(confirmedDebts));
 
     console.log('Saving confirmed_debts to localStorage (by confirmed flag):', confirmedDebts);
+
+    // 保存返回标记和确认状态到sessionStorage
+    sessionStorage.setItem('fs_returning_expected', 'true');
+    sessionStorage.setItem('fs_config_confirmed', JSON.stringify(configConfirmed));
 
     // 跳转到债务分析页面
     navigate('/debt-analysis');
