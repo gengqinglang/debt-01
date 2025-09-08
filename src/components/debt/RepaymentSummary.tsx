@@ -93,7 +93,7 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
 
       {/* 按分类汇总 */}
       <Card>
-        <CardHeader className="p-2">
+        <CardHeader className="pt-4 pb-2 px-2">
           <CardTitle className="flex items-center text-lg">
             <PieChart className="w-5 h-5 text-[#01BCD6] mr-2" />
             按分类汇总
