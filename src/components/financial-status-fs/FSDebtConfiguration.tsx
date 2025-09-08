@@ -1791,6 +1791,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   }, 100);
                   
                   onConfirm(category.id, {
+                    amount: aggregatedData.totalRemainingPrincipal,
                     count: aggregatedData.count,
                     monthlyPayment: aggregatedData.totalMonthlyPayment,
                     remainingMonths: aggregatedData.maxRemainingMonths,

@@ -99,8 +99,8 @@ const FinancialStatusPage = () => {
         // 已确认的债务，从debts数组中获取数据
         const debt = debts.find(d => d.type === category.id);
         if (debt) {
-          if (category.id === 'mortgage') {
-            // 房贷使用count字段（表示贷款笔数）
+          if (category.id === 'mortgage' || category.id === 'carLoan') {
+            // 房贷和车贷使用count字段（表示贷款笔数）
             totalCount += debt.count || 0;
           } else {
             // 其他债务类型按金额判断
@@ -284,11 +284,11 @@ const FinancialStatusPage = () => {
             {debtCategories.map((cat, idx) => {
               const active = idx === currentIndex;
               
-              // 改进hasData逻辑，特别处理房贷
+              // 改进hasData逻辑，特别处理房贷和车贷
               let hasData = false;
               if (configConfirmed[cat.id]) {
                 // 已确认的情况
-                if (cat.id === 'mortgage') {
+                if (cat.id === 'mortgage' || cat.id === 'carLoan') {
                   const debt = debts.find(d => d.type === cat.id);
                   hasData = debt && (debt.count || 0) > 0;
                 } else {
