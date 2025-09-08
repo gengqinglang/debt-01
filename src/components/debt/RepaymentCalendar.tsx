@@ -4,6 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CalendarDays, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
 
 interface RepaymentCalendarProps {
@@ -143,6 +144,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
           onSelect={handleDateClick}
           month={currentMonth}
           onMonthChange={setCurrentMonth}
+          locale={zhCN}
           className="w-full pointer-events-auto"
           classNames={{
             months: "w-full flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
@@ -191,7 +193,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
             <SheetHeader>
               <SheetTitle className="flex items-center">
                 <DollarSign className="w-5 h-5 text-[#01BCD6] mr-2" />
-                {selectedDate && format(selectedDate, 'yyyy年MM月dd日')} 还款明细
+                {selectedDate && format(selectedDate, 'yyyy年MM月dd日', { locale: zhCN })} 还款明细
               </SheetTitle>
             </SheetHeader>
             
