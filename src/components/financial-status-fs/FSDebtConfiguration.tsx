@@ -1155,6 +1155,14 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     
     // 计算待还利息 - 根据还款方式
     const totalRemainingInterest = completeConsumerLoans.reduce((sum, loan) => {
+      console.log('计算消费贷利息:', {
+        loanId: loan.id,
+        repaymentMethod: loan.repaymentMethod,
+        loanAmount: loan.loanAmount,
+        annualRate: loan.annualRate,
+        endDate: loan.endDate
+      });
+      
       if (loan.repaymentMethod === 'interest-first') {
         // 先息后本：每月利息 * 剩余期数
         const principal = parseFloat(loan.loanAmount || '0') * 10000; // 转换为元
@@ -1168,6 +1176,16 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
           (endDate.getFullYear() - now.getFullYear()) * 12 + 
           (endDate.getMonth() - now.getMonth())
         ) : 0;
+        
+        console.log('先息后本计算详情:', {
+          principal,
+          annualRate,
+          monthlyInterest,
+          now: now.toISOString(),
+          endDate: endDate?.toISOString(),
+          remainingMonths,
+          totalInterest: (monthlyInterest * remainingMonths) / 10000
+        });
         
         return sum + (monthlyInterest * remainingMonths) / 10000; // 转换为万元
       } else if (loan.repaymentMethod === 'lump-sum') {
@@ -1578,6 +1596,11 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   useEffect(() => {
     if (category.type === 'consumerLoan' && onDataChange) {
       const aggregatedData = getConsumerLoanAggregatedData();
+      console.log('消费贷实时数据更新:', {
+        category: category.type,
+        aggregatedData,
+        consumerLoans: consumerLoans.length
+      });
       onDataChange(category.id, {
         count: aggregatedData.count,
         amount: aggregatedData.totalLoanAmount, // 消费贷使用总贷款金额
