@@ -143,13 +143,36 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
           onSelect={handleDateClick}
           month={currentMonth}
           onMonthChange={setCurrentMonth}
-          className="w-full mx-auto p-3 pointer-events-auto [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-table]:table-fixed"
+          className="w-full p-3 pointer-events-auto"
+          classNames={{
+            months: "w-full flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+            month: "w-full space-y-4",
+            caption: "flex justify-center pt-1 relative items-center",
+            caption_label: "text-sm font-medium",
+            nav: "space-x-1 flex items-center",
+            nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+            nav_button_previous: "absolute left-1",
+            nav_button_next: "absolute right-1",
+            table: "w-full border-collapse space-y-1",
+            head_row: "grid grid-cols-7 w-full",
+            head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] flex items-center justify-center",
+            row: "grid grid-cols-7 w-full mt-2",
+            cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 w-full",
+            day: "h-auto w-full p-0 font-normal aria-selected:opacity-100",
+            day_range_end: "day-range-end",
+            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+            day_today: "bg-accent text-accent-foreground",
+            day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+            day_disabled: "text-muted-foreground opacity-50",
+            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+            day_hidden: "invisible",
+          }}
           components={{
             Day: ({ date, ...props }) => (
-              <div 
+              <button 
                 {...props}
                 className={`
-                  w-full aspect-square p-0 font-normal aria-selected:opacity-100 relative
+                  w-full aspect-square p-1 font-normal aria-selected:opacity-100 relative border-0 bg-transparent
                   ${getDateRepayments(date).length > 0 
                     ? 'cursor-pointer hover:bg-[#B3EBEF]/20' 
                     : ''
@@ -157,7 +180,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
                 `}
               >
                 {dayContent(date)}
-              </div>
+              </button>
             )
           }}
         />
