@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PiggyBank, TrendingDown, Calendar } from 'lucide-react';
+import { PiggyBank, TrendingDown, PieChart } from 'lucide-react';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
 interface RepaymentSummaryProps {
   debts: DebtInfo[];
@@ -44,21 +45,28 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
     return sum;
   }, 0);
 
-  // 准备还款计划清单
-  const repaymentPlan = debts.filter(debt => (debt.amount || 0) > 0).map(debt => {
-    const today = new Date();
-    const estimatedClearDate = addMonths(today, debt.remainingMonths || 0);
-    return {
-      category: debtTypeNames[debt.type] || debt.type,
-      monthlyPayment: debt.monthlyPayment || 0,
-      remainingMonths: debt.remainingMonths || 0,
-      clearDate: estimatedClearDate.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      })
-    };
-  });
+  // 计算按分类的剩余本金数据
+  const debtByCategory = debts.filter(debt => (debt.amount || 0) > 0).reduce((acc, debt) => {
+    const category = debtTypeNames[debt.type] || debt.type;
+    const amount = debt.amount || 0;
+    
+    if (acc[category]) {
+      acc[category] += amount;
+    } else {
+      acc[category] = amount;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  // 准备饼图数据
+  const pieData = Object.entries(debtByCategory).map(([category, amount]) => ({
+    name: category,
+    value: amount,
+    percentage: totalDebtWan > 0 ? ((amount / totalDebtWan) * 100).toFixed(1) : '0.0'
+  }));
+
+  // 饼图颜色
+  const COLORS = ['#01BCD6', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
   return <div className="space-y-4">
       {/* 汇总卡片 */}
       <div className="grid grid-cols-2 gap-3">
@@ -87,34 +95,71 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
         </Card>
       </div>
 
-      {/* 还款计划清单 */}
+      {/* 按分类汇总 */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-lg">
-            <Calendar className="w-5 h-5 text-[#01BCD6] mr-2" />
-            整体还款计划
+            <PieChart className="w-5 h-5 text-[#01BCD6] mr-2" />
+            按分类汇总
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          {repaymentPlan.length > 0 ? <div className="divide-y divide-gray-100">
-              {repaymentPlan.map((plan, index) => <div key={index} className="px-4 py-3 hover:bg-gray-50">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 mb-1">{plan.category}</div>
-                      <div className="text-sm text-gray-500 space-x-4">
-                        <span>月供: {formatCurrency(plan.monthlyPayment)}</span>
-                        <span>剩余: {plan.remainingMonths}期</span>
+        <CardContent className="p-4">
+          {pieData.length > 0 ? (
+            <div className="space-y-4">
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, percentage }) => `${name} ${percentage}%`}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number) => [
+                        `${Math.round(value).toLocaleString()}万`,
+                        '剩余本金'
+                      ]}
+                    />
+                    <Legend />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
+              
+              {/* 分类明细 */}
+              <div className="space-y-2">
+                {pieData.map((item, index) => (
+                  <div key={item.name} className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <div className="flex items-center">
+                      <div 
+                        className="w-3 h-3 rounded-full mr-2" 
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      />
+                      <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-gray-900">
+                        {Math.round(item.value).toLocaleString()}万
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        占比 {item.percentage}%
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600 text-right">
-                      <div className="text-xs text-gray-400 mb-1">预计结清</div>
-                      <div>{plan.clearDate}</div>
-                    </div>
                   </div>
-                </div>)}
-            </div> : <div className="px-4 py-8 text-center text-gray-500">
-              暂无还款计划
-            </div>}
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center text-gray-500">
+              暂无债务数据
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>;
