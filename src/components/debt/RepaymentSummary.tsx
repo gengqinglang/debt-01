@@ -100,55 +100,52 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
       </div>
 
       {/* 按分类汇总 */}
-      <Card>
-        <CardHeader className="pt-6 pb-4 px-4">
-          <CardTitle className="flex items-center text-lg">
-            <PieChart className="w-5 h-5 text-[#01BCD6] mr-2" />
-            按分类汇总
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0 pb-4 px-2">
-          {pieData.length > 0 ? (
-            <div className="space-y-3">
-              {pieData.map((item, index) => {
-                const IconComponent = item.icon;
-                
-                return (
-                  <div key={item.name} className="bg-gradient-to-r from-[#B3EBEF]/10 to-[#8FD8DC]/10 rounded-lg py-2 px-4 border border-[#B3EBEF]/20">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#B3EBEF]/30 to-[#8FD8DC]/30 flex items-center justify-center">
-                          <IconComponent className="w-4 h-4 text-[#01BCD6]" />
-                        </div>
-                        <div>
-                          <div className="text-base font-semibold text-gray-900">
-                            {item.name}
-                          </div>
-                          <div className="text-sm text-[#01BCD6] font-medium">
-                            占比 {item.percentage}%
-                          </div>
-                        </div>
+      <div className="space-y-3">
+        <div className="flex items-center mb-4">
+          <PieChart className="w-5 h-5 text-[#01BCD6] mr-2" />
+          <span className="text-lg font-semibold text-gray-900">按分类汇总</span>
+        </div>
+        
+        {pieData.length > 0 ? (
+          <div className="space-y-3">
+            {pieData.map((item, index) => {
+              const IconComponent = item.icon;
+              
+              return (
+                <div key={item.name} className="bg-gradient-to-r from-[#B3EBEF]/10 to-[#8FD8DC]/10 rounded-lg py-2 px-4 border border-[#B3EBEF]/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#B3EBEF]/30 to-[#8FD8DC]/30 flex items-center justify-center">
+                        <IconComponent className="w-4 h-4 text-[#01BCD6]" />
                       </div>
-                      <div className="text-right">
-                        <div className="text-base font-bold text-gray-900">
-                          {Math.round(item.value).toLocaleString()}
+                      <div>
+                        <div className="text-base font-semibold text-gray-900">
+                          {item.name}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          万元
+                        <div className="text-sm text-[#01BCD6] font-medium">
+                          占比 {item.percentage}%
                         </div>
                       </div>
                     </div>
+                    <div className="text-right">
+                      <div className="text-base font-bold text-gray-900">
+                        {Math.round(item.value).toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        万元
+                      </div>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="py-8 text-center text-gray-500">
-              暂无债务数据
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-gray-500">
+            暂无债务数据
+          </div>
+        )}
+      </div>
     </div>;
 };
 export default RepaymentSummary;
