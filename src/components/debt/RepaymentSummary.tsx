@@ -71,7 +71,7 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
       icon: config?.icon || Wallet
     };
   });
-  return <div className="space-y-4">
+  return <div className="space-y-6">
       {/* 汇总卡片 */}
       <div className="grid grid-cols-2 gap-3">
         <Card className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 border-[#B3EBEF]/30">
