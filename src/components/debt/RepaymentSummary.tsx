@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PiggyBank, TrendingDown, PieChart } from 'lucide-react';
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
 interface RepaymentSummaryProps {
   debts: DebtInfo[];
@@ -58,15 +57,12 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
     return acc;
   }, {} as Record<string, number>);
 
-  // 准备饼图数据
+  // 准备分类数据
   const pieData = Object.entries(debtByCategory).map(([category, amount]) => ({
     name: category,
     value: amount,
     percentage: totalDebtWan > 0 ? ((amount / totalDebtWan) * 100).toFixed(1) : '0.0'
   }));
-
-  // 饼图颜色
-  const COLORS = ['#01BCD6', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
   return <div className="space-y-4">
       {/* 汇总卡片 */}
       <div className="grid grid-cols-2 gap-3">
@@ -106,32 +102,6 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
         <CardContent className="p-4">
           {pieData.length > 0 ? (
             <div className="space-y-4">
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsPieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={80}
-                      dataKey="value"
-                      label={({ name, percentage }) => `${name} ${percentage}%`}
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value: number) => [
-                        `${Math.round(value).toLocaleString()}万`,
-                        '剩余本金'
-                      ]}
-                    />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
-              </div>
-              
               {/* 分类明细 */}
               <div className="space-y-2">
                 {pieData.map((item, index) => (
@@ -139,7 +109,7 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
                     <div className="flex items-center">
                       <div 
                         className="w-3 h-3 rounded-full mr-2" 
-                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        style={{ backgroundColor: '#01BCD6' }}
                       />
                       <span className="text-sm font-medium text-gray-900">
                         {item.name}（{item.percentage}%）
