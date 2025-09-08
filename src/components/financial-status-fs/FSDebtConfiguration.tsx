@@ -1475,17 +1475,12 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     }
   }, [loans, category.type, category.id, onDataChange, calculateMonthlyPayment]);
   
-  // 车贷实时数据更新
+  // 车贷实时数据更新（根据需求：仅在点击“确认车贷信息”后再更新，不在录入时实时更新）
   useEffect(() => {
-    if (category.type === 'carLoan' && onDataChange) {
-      const aggregatedData = getCarLoanAggregatedData();
-      onDataChange(category.id, {
-        count: aggregatedData.count,
-        monthlyPayment: aggregatedData.totalMonthlyPayment,
-        remainingMonths: aggregatedData.maxRemainingMonths
-      });
-    }
-  }, [carLoans, category.type, category.id, onDataChange, getCarLoanAggregatedData]);
+    // 故意不触发 onDataChange：避免录入必填项时提前更新“债务笔数”
+    // 车贷的“债务笔数”等聚合数据应在 onConfirm 时由父组件接收
+    return;
+  }, [carLoans, category.type]);
   
   // 消费贷实时数据更新
   useEffect(() => {
@@ -1755,6 +1750,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   }, 100);
                   
                   onConfirm(category.id, {
+                    count: aggregatedData.count,
                     installmentAmount: aggregatedData.totalMonthlyPayment,
                     remainingInstallments: aggregatedData.maxRemainingMonths,
                     carLoans: carLoans // 保存原始车贷数据用于后续编辑
