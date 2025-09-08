@@ -1153,69 +1153,11 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       return Math.max(max, termMonths);
     }, 0);
     
-    // 计算待还利息 - 根据还款方式
-    const totalRemainingInterest = completeConsumerLoans.reduce((sum, loan) => {
-      console.log('计算消费贷利息:', {
-        loanId: loan.id,
-        repaymentMethod: loan.repaymentMethod,
-        loanAmount: loan.loanAmount,
-        annualRate: loan.annualRate,
-        endDate: loan.endDate
-      });
-      
-      if (loan.repaymentMethod === 'interest-first') {
-        // 先息后本：每月利息 * 剩余期数
-        const principal = parseFloat(loan.loanAmount || '0') * 10000; // 转换为元
-        const annualRate = parseFloat(loan.annualRate || '0') / 100;
-        const monthlyInterest = (principal * annualRate) / 12;
-        
-        // 计算剩余期数
-        const now = new Date();
-        const endDate = loan.endDate ? new Date(loan.endDate + '-01') : null;
-        const remainingMonths = endDate ? Math.max(0, 
-          (endDate.getFullYear() - now.getFullYear()) * 12 + 
-          (endDate.getMonth() - now.getMonth())
-        ) : 0;
-        
-        console.log('先息后本计算详情:', {
-          principal,
-          annualRate,
-          monthlyInterest,
-          now: now.toISOString(),
-          endDate: endDate?.toISOString(),
-          remainingMonths,
-          totalInterest: (monthlyInterest * remainingMonths) / 10000
-        });
-        
-        return sum + (monthlyInterest * remainingMonths) / 10000; // 转换为万元
-      } else if (loan.repaymentMethod === 'lump-sum') {
-        // 一次性还本付息：剩余本金 * 年化利率 * 剩余年数
-        const principal = parseFloat(loan.loanAmount || '0') * 10000;
-        const annualRate = parseFloat(loan.annualRate || '0') / 100;
-        
-        const now = new Date();
-        const startDate = loan.startDate ? new Date(loan.startDate + '-01') : null;
-        const endDate = loan.endDate ? new Date(loan.endDate + '-01') : null;
-        
-        if (startDate && endDate) {
-          const totalYears = (endDate.getFullYear() - startDate.getFullYear()) + 
-                           (endDate.getMonth() - startDate.getMonth()) / 12;
-          const passedYears = (now.getFullYear() - startDate.getFullYear()) + 
-                            (now.getMonth() - startDate.getMonth()) / 12;
-          const remainingYears = Math.max(0, totalYears - passedYears);
-          
-          return sum + (principal * annualRate * remainingYears) / 10000; // 转换为万元
-        }
-      }
-      return sum;
-    }, 0);
-    
     return {
       count: completeConsumerLoans.length,
       totalLoanAmount,
       totalMonthlyPayment,
-      maxRemainingMonths,
-      totalRemainingInterest
+      maxRemainingMonths
     };
   };
 
@@ -1596,16 +1538,9 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
   useEffect(() => {
     if (category.type === 'consumerLoan' && onDataChange) {
       const aggregatedData = getConsumerLoanAggregatedData();
-      console.log('消费贷实时数据更新:', {
-        category: category.type,
-        aggregatedData,
-        consumerLoans: consumerLoans.length
-      });
       onDataChange(category.id, {
         count: aggregatedData.count,
         amount: aggregatedData.totalLoanAmount, // 消费贷使用总贷款金额
-        remainingPrincipal: aggregatedData.totalLoanAmount, // 剩余本金等于贷款金额
-        remainingInterest: aggregatedData.totalRemainingInterest, // 待还利息
         monthlyPayment: aggregatedData.totalMonthlyPayment,
         remainingMonths: aggregatedData.maxRemainingMonths
       });
@@ -2029,8 +1964,6 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   
                   onConfirm(category.id, {
                     amount: aggregatedData.totalLoanAmount,
-                    remainingPrincipal: aggregatedData.totalLoanAmount, // 剩余本金等于贷款金额
-                    remainingInterest: aggregatedData.totalRemainingInterest, // 待还利息
                     monthlyPayment: aggregatedData.totalMonthlyPayment,
                     remainingMonths: aggregatedData.maxRemainingMonths,
                     consumerLoans: consumerLoans // 保存原始消费贷数据用于后续编辑
