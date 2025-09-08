@@ -120,7 +120,7 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-gray-900">
+                      <div className="text-base font-bold text-gray-900">
                         {Math.round(item.value).toLocaleString()}
                       </div>
                       <div className="text-sm text-gray-500">
