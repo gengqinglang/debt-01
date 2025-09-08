@@ -122,22 +122,30 @@ const FinancialStatusPage = () => {
   // 计算剩余本金（优先使用实时数据）
   const calculateRemainingPrincipal = () => {
     // 单位统一为“万”
-    const confirmedPrincipalWan = debts.reduce((sum, debt) => {
+    let totalPrincipalWan = debts.reduce((sum, debt) => {
       const val = Number(debt.amount) || 0;
       return sum + val;
     }, 0);
+    
+    // 处理房贷实时数据
     const mortgageLiveData = liveData['mortgage'] || {} as any;
-    const livePrincipalWan = Number(mortgageLiveData.remainingPrincipal) || 0;
     if ((mortgageLiveData as any).count > 0 && !configConfirmed['mortgage']) {
-      return confirmedPrincipalWan + livePrincipalWan;
+      totalPrincipalWan += Number(mortgageLiveData.remainingPrincipal) || 0;
     }
-    return confirmedPrincipalWan;
+    
+    // 处理车贷实时数据
+    const carLoanLiveData = liveData['carLoan'] || {} as any;
+    if ((carLoanLiveData as any).count > 0 && !configConfirmed['carLoan']) {
+      totalPrincipalWan += Number(carLoanLiveData.remainingPrincipal) || 0;
+    }
+    
+    return totalPrincipalWan;
   };
 
   // 计算待还利息（优先使用实时数据）
   const calculateRemainingInterest = () => {
     // 单位统一为“万”
-    const confirmedInterestWan = debts.reduce((sum, debt) => {
+    let totalInterestWan = debts.reduce((sum, debt) => {
       const monthly = Number((debt as any).monthlyPayment) || 0;
       const months = Number((debt as any).remainingMonths) || 0;
       const principalWan = Number(debt.amount) || 0;
@@ -149,12 +157,19 @@ const FinancialStatusPage = () => {
       return sum;
     }, 0);
     
+    // 处理房贷实时数据
     const mortgageLiveData = liveData['mortgage'] || {} as any;
-    const liveInterestWan = Number(mortgageLiveData.remainingInterest) || 0;
     if (mortgageLiveData.count > 0 && !configConfirmed['mortgage']) {
-      return confirmedInterestWan + liveInterestWan;
+      totalInterestWan += Number(mortgageLiveData.remainingInterest) || 0;
     }
-    return confirmedInterestWan;
+    
+    // 处理车贷实时数据
+    const carLoanLiveData = liveData['carLoan'] || {} as any;
+    if (carLoanLiveData.count > 0 && !configConfirmed['carLoan']) {
+      totalInterestWan += Number(carLoanLiveData.remainingInterest) || 0;
+    }
+    
+    return totalInterestWan;
   };
 
   

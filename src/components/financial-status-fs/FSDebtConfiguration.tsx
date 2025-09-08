@@ -1069,10 +1069,51 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
       return Math.max(max, parseInt(carLoan.remainingInstallments || '0'));
     }, 0);
     
+    // 计算剩余本金和利息 - 根据车贷类型选择相应字段
+    const totalRemainingPrincipal = completeCarLoans.reduce((sum, carLoan) => {
+      if (carLoan.loanType === 'bankLoan') {
+        // 银行贷款类型，使用剩余本金或原始本金
+        const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0') / 10000;
+        const originalPrincipal = parseFloat(carLoan.principal || '0');
+        return sum + (remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal);
+      } else {
+        // 分期类型，通过月供和剩余期数估算剩余本金
+        const monthlyPayment = parseFloat(carLoan.installmentAmount || '0');
+        const remainingMonths = parseInt(carLoan.remainingInstallments || '0');
+        // 简化估算：假设剩余本金约等于月供 * 剩余期数 * 0.8 (考虑利息因素)
+        return sum + (monthlyPayment * remainingMonths * 0.8) / 10000;
+      }
+    }, 0);
+    
+    const totalRemainingInterest = completeCarLoans.reduce((sum, carLoan) => {
+      const monthlyPayment = parseFloat(carLoan.installmentAmount || '0');
+      const remainingMonths = parseInt(carLoan.remainingInstallments || '0');
+      
+      if (monthlyPayment > 0 && remainingMonths > 0) {
+        const totalPayments = (monthlyPayment * remainingMonths) / 10000; // 万元
+        
+        let principal = 0;
+        if (carLoan.loanType === 'bankLoan') {
+          const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0') / 10000;
+          const originalPrincipal = parseFloat(carLoan.principal || '0');
+          principal = remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal;
+        } else {
+          // 分期类型估算
+          principal = (monthlyPayment * remainingMonths * 0.8) / 10000;
+        }
+        
+        const interest = Math.max(0, totalPayments - principal);
+        return sum + interest;
+      }
+      return sum;
+    }, 0);
+    
     return {
       count: completeCarLoans.length,
       totalMonthlyPayment,
-      maxRemainingMonths
+      maxRemainingMonths,
+      totalRemainingPrincipal,
+      totalRemainingInterest
     };
   };
 
@@ -1751,8 +1792,10 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   
                   onConfirm(category.id, {
                     count: aggregatedData.count,
-                    installmentAmount: aggregatedData.totalMonthlyPayment,
-                    remainingInstallments: aggregatedData.maxRemainingMonths,
+                    monthlyPayment: aggregatedData.totalMonthlyPayment,
+                    remainingMonths: aggregatedData.maxRemainingMonths,
+                    remainingPrincipal: aggregatedData.totalRemainingPrincipal,
+                    remainingInterest: aggregatedData.totalRemainingInterest,
                     carLoans: carLoans // 保存原始车贷数据用于后续编辑
                   });
                 }
