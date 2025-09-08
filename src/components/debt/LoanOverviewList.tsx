@@ -51,6 +51,22 @@ type SortType = 'principal-desc' | 'interest-desc' | 'term-desc';
 // LPR基准利率 (当前3.5%)
 const LPR_BASE_RATE = 3.5;
 
+// 精确计算两个日期之间的月数差
+const calculateMonthsDifference = (startDate: Date, endDate: Date): number => {
+  const yearDiff = endDate.getFullYear() - startDate.getFullYear();
+  const monthDiff = endDate.getMonth() - startDate.getMonth();
+  const dayDiff = endDate.getDate() - startDate.getDate();
+  
+  let totalMonths = yearDiff * 12 + monthDiff;
+  
+  // 如果结束日期的天数小于开始日期，说明还没到完整月份
+  if (dayDiff < 0) {
+    totalMonths -= 1;
+  }
+  
+  return Math.max(0, totalMonths);
+};
+
 // 展平债务数据，将各类型的贷款数组展开为单个贷款条目
 const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
   const flattened: FlattenedLoan[] = [];
@@ -136,7 +152,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         if (endDateToUse) {
           const now = new Date();
           const end = new Date(endDateToUse);
-          remainingMonths = Math.max(0, Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+          remainingMonths = calculateMonthsDifference(now, end);
         }
         
         flattened.push({
@@ -169,9 +185,13 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
           // 使用endDateMonth计算剩余期限
           if (carLoan.endDateMonth) {
             const now = new Date();
-            const endDate = new Date(carLoan.endDateMonth + '-01'); // 添加日期部分
-            endDate.setMonth(endDate.getMonth() + 1); // 月末
-            remainingMonths = Math.max(0, Math.round((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+            let endDate = new Date(carLoan.endDateMonth);
+            // 如果是YYYY-MM格式，补充日期部分
+            if (carLoan.endDateMonth.length === 7) {
+              endDate = new Date(carLoan.endDateMonth + '-01');
+              endDate.setMonth(endDate.getMonth() + 1, 0); // 设置为该月最后一天
+            }
+            remainingMonths = calculateMonthsDifference(now, endDate);
           }
         } else if (carLoan.loanType === 'installment') {
           // 分期车贷 - 月供是元，需要转换为万元
@@ -205,7 +225,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         if (consumerLoan.loanEndDate) {
           const now = new Date();
           const end = new Date(consumerLoan.loanEndDate);
-          remainingMonths = Math.max(0, Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+          remainingMonths = calculateMonthsDifference(now, end);
         }
         
         flattened.push({
@@ -234,7 +254,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
           const end = new Date(start);
           end.setMonth(end.getMonth() + termMonths);
           const now = new Date();
-          remainingMonths = Math.max(0, Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+          remainingMonths = calculateMonthsDifference(now, end);
         }
         
         flattened.push({
@@ -260,7 +280,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         if (privateLoan.loanEndDate) {
           const now = new Date();
           const end = new Date(privateLoan.loanEndDate);
-          remainingMonths = Math.max(0, Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+          remainingMonths = calculateMonthsDifference(now, end);
         }
         
         flattened.push({
