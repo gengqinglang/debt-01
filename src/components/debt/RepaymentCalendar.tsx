@@ -249,6 +249,9 @@ const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
 const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  // Debug flag to show container outlines
+  const debug = true;
 
   // 计算当月每日的还款信息 - 使用个人贷款数据
   const monthlyRepayments = useMemo(() => {
@@ -355,7 +358,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="px-2 sm:px-4 md:px-6 flex justify-center">
+        <div className={`px-2 sm:px-4 md:px-6 flex justify-center ${debug ? 'border-2 border-red-500' : ''}`}>
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -363,7 +366,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
             month={currentMonth}
             onMonthChange={setCurrentMonth}
             locale={zhCN}
-            className="w-full pointer-events-auto"
+            className={`w-full pointer-events-auto ${debug ? 'border-2 border-blue-500' : ''}`}
             classNames={{
               months: "w-full flex justify-center",
               month: "scale-[1.06] md:scale-[1.12] origin-top"
@@ -375,7 +378,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </div>
 
         {/* 选中日期还款详情 */}
-        <div className="px-2 sm:px-4 md:px-6 pb-6 pt-2">
+        <div className={`px-2 sm:px-4 md:px-6 pb-6 pt-2 ${debug ? 'border-2 border-green-500' : ''}`}>
           {!selectedDate ? (
             <div className="text-center py-8 text-gray-500">
               请选择日期查看还款计划
