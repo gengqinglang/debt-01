@@ -1498,7 +1498,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
             }
           }
         } else {
-          const remainingWan = parseFloat(String(loan.remainingPrincipal || '0').replace(/[\,\s]/g, '')) / 10000;
+          const remainingWan = parseFloat(String(loan.remainingPrincipal || '0').replace(/[\,\s]/g, ''));
           if (isFinite(remainingWan) && remainingWan > 0) {
             validLoanCount++;
             totalRemainingPrincipal += remainingWan;
@@ -1706,11 +1706,11 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
                   loans.forEach(loan => {
                     if (isLoanComplete(loan)) {
                       if (loan.loanType === 'combination') {
-                        const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0') / 10000;
-                        const providentRemaining = parseFloat(loan.providentRemainingPrincipal || '0') / 10000;
+                        const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0');
+                        const providentRemaining = parseFloat(loan.providentRemainingPrincipal || '0');
                         totalRemainingPrincipal += commercialRemaining + providentRemaining;
                       } else {
-                        const remaining = parseFloat(loan.remainingPrincipal || '0') / 10000;
+                        const remaining = parseFloat(loan.remainingPrincipal || '0');
                         totalRemainingPrincipal += remaining;
                       }
                       
