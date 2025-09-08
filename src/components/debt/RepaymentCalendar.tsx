@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { CalendarDays, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -325,23 +324,12 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
   const dayContent = (day: Date) => {
     const repayments = getDateRepayments(day);
     
-    if (repayments.length === 0) {
-      return <span>{day.getDate()}</span>;
-    }
-
-    const totalAmount = repayments.reduce((sum, r) => sum + r.amount, 0);
-    const displayAmount = totalAmount >= 10000 
-      ? `${(totalAmount / 10000).toFixed(1)}万`
-      : `${(totalAmount / 1000).toFixed(1)}k`;
-
     return (
-      <div className="relative w-full h-full flex flex-col items-center justify-center">
-        <span className="text-sm font-medium">{day.getDate()}</span>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="bg-[#01BCD6] text-white text-sm rounded-full w-12 h-12 flex items-center justify-center font-medium">
-            ¥{displayAmount}
-          </div>
-        </div>
+      <div className="flex flex-col items-center justify-center">
+        <span className="text-sm">{day.getDate()}</span>
+        {repayments.length > 0 && (
+          <div className="h-1.5 w-1.5 bg-[#01BCD6] rounded-full mt-0.5"></div>
+        )}
       </div>
     );
   };
@@ -375,93 +363,66 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
           onMonthChange={setCurrentMonth}
           locale={zhCN}
           className="w-full pointer-events-auto"
-          classNames={{
-            months: "w-full flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-            month: "w-full space-y-4",
-            caption: "flex justify-center pt-1 relative items-center",
-            caption_label: "text-sm font-medium",
-            nav: "space-x-1 flex items-center",
-            nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-            nav_button_previous: "absolute left-1",
-            nav_button_next: "absolute right-1",
-            table: "w-full border-collapse",
-            head_row: "grid grid-cols-7 w-full",
-            head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] flex items-center justify-center",
-            row: "grid grid-cols-7 w-full",
-            cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 w-full",
-            day: "h-auto w-full p-0 font-normal aria-selected:opacity-100",
-            day_range_end: "day-range-end",
-            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-            day_today: "bg-accent text-accent-foreground",
-            day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
-            day_disabled: "text-muted-foreground opacity-50",
-            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-            day_hidden: "invisible",
-          }}
           components={{
             DayContent: ({ date }) => dayContent(date)
           }}
         />
 
-        {/* 底部抽屉 - 显示选中日期的还款详情 */}
-        <Sheet open={!!selectedDate} onOpenChange={(open) => !open && setSelectedDate(undefined)}>
-          <SheetContent side="bottom" className="h-auto max-h-[50vh]">
-            <SheetHeader>
-              <SheetTitle className="flex items-center">
-                <DollarSign className="w-5 h-5 text-[#01BCD6] mr-2" />
-                {selectedDate && format(selectedDate, 'yyyy年MM月dd日', { locale: zhCN })} 
-                {selectedRepayments.length > 0 ? ' 还款明细' : ' 无还款计划'}
-              </SheetTitle>
-            </SheetHeader>
-            
-            <div className="mt-4 space-y-4">
-              {selectedRepayments.length > 0 ? (
-                <>
-                  {/* 总计 */}
-                  <div className="bg-gradient-to-r from-[#B3EBEF]/20 to-[#8FD8DC]/20 rounded-lg p-4">
-                    <div className="text-center">
-                      <div className="text-sm text-gray-600 mb-1">当日还款总额</div>
-                      <div className="text-2xl font-bold text-gray-900">
-                        {formatCurrency(selectedTotal)}
-                      </div>
-                    </div>
+        {/* 选中日期还款详情 */}
+        <div className="px-6 pb-6">
+          {!selectedDate ? (
+            <div className="text-center py-8 text-gray-500">
+              请选择日期查看还款计划
+            </div>
+          ) : selectedRepayments.length > 0 ? (
+            <>
+              {/* 总计卡片 */}
+              <div className="bg-gradient-to-r from-[#B3EBEF]/20 to-[#8FD8DC]/20 rounded-lg p-4 mb-4">
+                <div className="text-center">
+                  <div className="text-sm text-gray-600 mb-1">
+                    {format(selectedDate, 'yyyy年MM月dd日', { locale: zhCN })} 还款总额
                   </div>
-
-                  {/* 还款清单 */}
-                  <div className="space-y-3">
-                    {selectedRepayments.map((repayment, index) => (
-                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">
-                            {repayment.type}
-                          </div>
-                          {repayment.name && (
-                            <div className="text-sm text-gray-500">{repayment.name}</div>
-                          )}
-                          {repayment.subType && (
-                            <div className="text-xs text-gray-400">{repayment.subType}</div>
-                          )}
-                        </div>
-                        <div className="text-lg font-bold text-[#01BCD6]">
-                          {formatCurrency(repayment.amount)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                /* 空状态 */
-                <div className="flex flex-col items-center justify-center py-8">
-                  <CalendarDays className="w-12 h-12 text-gray-300 mb-3" />
-                  <div className="text-gray-500 text-center">
-                    <div className="font-medium mb-1">当天无还款计划</div>
-                    <div className="text-sm">您在此日期没有安排任何还款</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {formatCurrency(selectedTotal)}
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* 还款清单 */}
+              <div className="space-y-3">
+                {selectedRepayments.map((repayment, index) => (
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">
+                        {repayment.type}
+                      </div>
+                      {repayment.name && (
+                        <div className="text-sm text-gray-500">{repayment.name}</div>
+                      )}
+                      {repayment.subType && (
+                        <div className="text-xs text-gray-400">{repayment.subType}</div>
+                      )}
+                    </div>
+                    <div className="text-lg font-bold text-[#01BCD6]">
+                      {formatCurrency(repayment.amount)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            /* 空状态 */
+            <div className="flex flex-col items-center justify-center py-8">
+              <CalendarDays className="w-12 h-12 text-gray-300 mb-3" />
+              <div className="text-gray-500 text-center">
+                <div className="font-medium mb-1">
+                  {format(selectedDate, 'yyyy年MM月dd日', { locale: zhCN })} 无还款计划
+                </div>
+                <div className="text-sm">您在此日期没有安排任何还款</div>
+              </div>
             </div>
-          </SheetContent>
-        </Sheet>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
