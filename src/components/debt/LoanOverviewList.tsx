@@ -25,10 +25,22 @@ const normalizeRate = (rate: number | undefined): number => {
   return rate < 1 ? rate * 100 : rate;
 };
 
-type SortType = 'interest-desc' | 'principal-desc';
+// 格式化剩余期限为"X年X月"格式
+const formatRemainingTerm = (months: number | undefined): string => {
+  if (!months || months <= 0) return '已结清';
+  
+  const years = Math.floor(months / 12);
+  const remainingMonths = months % 12;
+  
+  if (years === 0) return `${remainingMonths}月`;
+  if (remainingMonths === 0) return `${years}年`;
+  return `${years}年${remainingMonths}月`;
+};
+
+type SortType = 'principal-desc' | 'interest-desc' | 'term-desc';
 
 const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
-  const [sortType, setSortType] = useState<SortType>('interest-desc');
+  const [sortType, setSortType] = useState<SortType>('principal-desc');
 
   // 过滤有效债务并排序
   const validDebts = debts
@@ -40,6 +52,8 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
     .sort((a, b) => {
       if (sortType === 'interest-desc') {
         return b.normalizedRate - a.normalizedRate;
+      } else if (sortType === 'term-desc') {
+        return (b.remainingMonths || 0) - (a.remainingMonths || 0);
       } else {
         return (b.amount || 0) - (a.amount || 0);
       }
@@ -57,30 +71,40 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
           {/* 排序切换 */}
           <div className="flex bg-gray-100 rounded-lg p-1">
             <Button
-              variant={sortType === 'interest-desc' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setSortType('interest-desc')}
-              className={`text-xs px-3 py-1 ${
-                sortType === 'interest-desc' 
-                  ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <TrendingUp className="w-3 h-3 mr-1" />
-              利率
-            </Button>
-            <Button
               variant={sortType === 'principal-desc' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setSortType('principal-desc')}
-              className={`text-xs px-3 py-1 ${
+              className={`text-xs px-2 py-1 ${
                 sortType === 'principal-desc' 
                   ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <TrendingDown className="w-3 h-3 mr-1" />
               本金
+            </Button>
+            <Button
+              variant={sortType === 'interest-desc' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSortType('interest-desc')}
+              className={`text-xs px-2 py-1 ${
+                sortType === 'interest-desc' 
+                  ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              利率
+            </Button>
+            <Button
+              variant={sortType === 'term-desc' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSortType('term-desc')}
+              className={`text-xs px-2 py-1 ${
+                sortType === 'term-desc' 
+                  ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              期限
             </Button>
           </div>
         </div>
@@ -97,17 +121,17 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
                   key={debt.id || index} 
                   className="px-4 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start justify-between">
                     <div className="flex items-center flex-1">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#B3EBEF]/30 to-[#8FD8DC]/30 flex items-center justify-center mr-3">
                         <IconComponent className="w-5 h-5 text-[#01BCD6]" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900 mb-1">
-                          {config?.name || debt.type}
+                        <div className="font-semibold text-gray-900 mb-1">
+                          {debt.name || config?.name || debt.type}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {debt.name && <span>{debt.name}</span>}
+                          {config?.name} • 剩余期限 {formatRemainingTerm(debt.remainingMonths)}
                         </div>
                       </div>
                     </div>
@@ -117,7 +141,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
                         {Math.round(debt.amount || 0).toLocaleString()}万
                       </div>
                       <div className="text-sm text-[#01BCD6] font-medium">
-                        {debt.normalizedRate.toFixed(2)}%
+                        年化 {debt.normalizedRate.toFixed(2)}%
                       </div>
                     </div>
                   </div>
