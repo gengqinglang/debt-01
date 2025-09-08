@@ -1087,8 +1087,8 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
     // 计算剩余本金和利息 - 根据车贷类型选择相应字段
     const totalRemainingPrincipal = completeCarLoans.reduce((sum, carLoan) => {
       if (carLoan.loanType === 'bankLoan') {
-        // 银行贷款类型，使用剩余本金或原始本金（均为万元单位）
-        const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0');
+        // 银行贷款类型，使用剩余本金或原始本金
+        const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0') / 10000;
         const originalPrincipal = parseFloat(carLoan.principal || '0');
         return sum + (remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal);
       } else {
@@ -1107,7 +1107,7 @@ const DebtConfiguration: React.FC<DebtConfigurationProps> = ({
         if (monthlyPayment > 0 && remainingMonths > 0) {
           const totalPayments = (monthlyPayment * remainingMonths) / 10000; // 万元
           
-          const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0');
+          const remainingPrincipal = parseFloat(carLoan.remainingPrincipal || '0') / 10000;
           const originalPrincipal = parseFloat(carLoan.principal || '0');
           const principal = remainingPrincipal > 0 ? remainingPrincipal : originalPrincipal;
           
