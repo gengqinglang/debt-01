@@ -355,7 +355,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
             variant={sortType === 'principal-desc' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setSortType('principal-desc')}
-            className={`text-xs px-2 py-1 ${
+            className={`text-xs px-3 py-1 ${
               sortType === 'principal-desc' 
                 ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
                 : 'text-gray-600 hover:text-gray-900'
@@ -367,7 +367,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
             variant={sortType === 'interest-desc' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setSortType('interest-desc')}
-            className={`text-xs px-2 py-1 ${
+            className={`text-xs px-3 py-1 ${
               sortType === 'interest-desc' 
                 ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
                 : 'text-gray-600 hover:text-gray-900'
@@ -379,7 +379,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
             variant={sortType === 'term-desc' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setSortType('term-desc')}
-            className={`text-xs px-2 py-1 ${
+            className={`text-xs px-3 py-1 ${
               sortType === 'term-desc' 
                 ? 'bg-[#B3EBEF] text-gray-900 hover:bg-[#A0E2E6]' 
                 : 'text-gray-600 hover:text-gray-900'
