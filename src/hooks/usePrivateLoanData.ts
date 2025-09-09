@@ -47,7 +47,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
       annualRate: '',
       rateFen: '',
       rateLi: '',
-      repaymentMethod: 'lump-sum'
+      repaymentMethod: 'interest-first'
     };
     setPrivateLoans(prev => [...prev, newPrivateLoan]);
   }, []);
@@ -68,7 +68,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
         annualRate: '',
         rateFen: '',
         rateLi: '',
-        repaymentMethod: 'lump-sum',
+        repaymentMethod: 'interest-first',
       } : loan
     ));
   }, []);
