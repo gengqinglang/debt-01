@@ -379,7 +379,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
               cell: "text-center text-sm relative p-0 w-10 h-10 sm:w-13 sm:h-13 focus-within:relative focus-within:z-20",
               day: cn(
                 buttonVariants({ variant: "ghost" }),
-                "h-10 w-10 sm:h-13 sm:w-13 p-0 font-normal aria-selected:opacity-100"
+                "h-10 w-10 sm:h-13 sm:w-13 p-0 font-normal aria-selected:opacity-100 flex items-center justify-center"
               )
             }}
             components={{
