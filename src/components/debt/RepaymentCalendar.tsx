@@ -205,9 +205,11 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
   // Debug flag to show container outlines
   const debug = false;
 
-  // 计算当月每日的还款信息 - 使用个人贷款数据
+  // 计算当月每日的还款信息 - 使用个人贷款数据，只计算今天及以后的日期
   const monthlyRepayments = useMemo(() => {
     const repaymentMap = new Map<string, RepaymentItem[]>();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // 设置为当天0点，便于比较
     
     // 获取所有个人贷款的还款计划
     const repaymentItems = processIndividualLoans(debts);
@@ -228,7 +230,10 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         const dueDay = getDueDayFromDate(debt.carStartDate?.toString(), 10);
         
         const dueDate = new Date(year, month, dueDay);
-        if (dueDate.getMonth() === month) {
+        dueDate.setHours(0, 0, 0, 0);
+        
+        // 只处理今天及以后的日期
+        if (dueDate.getMonth() === month && dueDate >= today) {
           const dateKey = format(dueDate, 'yyyy-MM-dd');
           
           if (!repaymentMap.has(dateKey)) {
@@ -251,9 +256,10 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
       repaymentItems.forEach(item => {
         // 为当前显示的月份创建还款日期
         const dueDate = new Date(year, month, item.dueDay);
+        dueDate.setHours(0, 0, 0, 0);
         
-        // 确保日期在当前月份内
-        if (dueDate.getMonth() === month) {
+        // 只处理今天及以后的日期，且在当前月份内
+        if (dueDate.getMonth() === month && dueDate >= today) {
           const dateKey = format(dueDate, 'yyyy-MM-dd');
           
           if (!repaymentMap.has(dateKey)) {
@@ -336,6 +342,13 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
             month={currentMonth}
             onMonthChange={setCurrentMonth}
             locale={zhCN}
+            disabled={(date) => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const checkDate = new Date(date);
+              checkDate.setHours(0, 0, 0, 0);
+              return checkDate < today; // 禁用今天之前的日期
+            }}
             className={`w-full pointer-events-auto p-0 ${debug ? 'border-2 border-blue-500' : ''}`}
             classNames={{
               months: "w-full flex justify-center",
@@ -351,7 +364,8 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
                 "h-10 w-10 sm:h-14 sm:w-14 p-0 font-normal aria-selected:opacity-100 flex items-start justify-center pt-0.5 sm:pt-1 hover:bg-transparent"
               ),
               day_selected: "bg-gradient-to-r from-[#B3EBEF]/20 to-[#8FD8DC]/20 text-primary-foreground focus:bg-gradient-to-r focus:from-[#B3EBEF]/20 focus:to-[#8FD8DC]/20 focus:text-primary-foreground",
-              day_today: "bg-transparent"
+              day_today: "bg-transparent",
+              day_disabled: "text-gray-300 opacity-50 cursor-not-allowed" // 过去日期样式
             }}
             components={{
               DayContent: ({ date }) => dayContent(date)
