@@ -42,8 +42,10 @@ interface FlattenedLoan {
   type: string;
   name: string;
   amount: number; // 万元
-  interestRate: number; // 年化利率
+  interestRate: number; // 年化利率（组合贷款时为商业贷款利率）
   remainingMonths: number; // 剩余月数
+  providentRate?: number; // 公积金利率（仅组合贷款）
+  loanType?: string; // 贷款类型
 }
 
 type SortType = 'principal-desc' | 'interest-desc' | 'term-desc';
@@ -92,37 +94,21 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
           amount = remaining || principal;
         }
         
-        // 计算利率 - 修正字段名称和浮动利率计算
+        // 计算利率 - 组合贷款直接使用商业贷款利率，不计算加权平均
         let interestRate = 0;
+        let providentRate = 0;
         if (loan.loanType === 'combination') {
-          // 组合贷：计算加权平均利率
-          const commercialRemainingPrincipal = parseFloat(loan.commercialRemainingPrincipal || '0');
-          const providentRemainingPrincipal = parseFloat(loan.providentRemainingPrincipal || '0');
-          const commercialAmount = parseFloat(loan.commercialLoanAmount || '0');
-          const providentAmount = parseFloat(loan.providentLoanAmount || '0');
-          
-          // 优先使用剩余本金作为权重，否则使用原始贷款金额
-          const commercialWeight = commercialRemainingPrincipal || commercialAmount;
-          const providentWeight = providentRemainingPrincipal || providentAmount;
-          const totalWeight = commercialWeight + providentWeight;
-          
-          if (totalWeight > 0) {
-            // 获取商贷利率
-            let commercialRate = 0;
-            if (loan.commercialRateType === 'fixed') {
-              commercialRate = parseFloat(loan.commercialFixedRate || '0');
-            } else if (loan.commercialRateType === 'floating') {
-              // 浮动利率 = LPR基准利率 + 调整值(BP转换为百分点)
-              const adjustment = parseFloat(loan.commercialFloatingRateAdjustment || '0');
-              commercialRate = LPR_BASE_RATE + (adjustment / 100);
-            }
-            
-            // 获取公积金利率
-            const providentRate = parseFloat(loan.providentRate || '0');
-            
-            // 计算加权平均
-            interestRate = (commercialRate * commercialWeight + providentRate * providentWeight) / totalWeight;
+          // 组合贷：获取商业贷款利率作为主要利率
+          if (loan.commercialRateType === 'fixed') {
+            interestRate = parseFloat(loan.commercialFixedRate || '0');
+          } else if (loan.commercialRateType === 'floating') {
+            // 浮动利率 = LPR基准利率 + 调整值(BP转换为百分点)
+            const adjustment = parseFloat(loan.commercialFloatingRateAdjustment || '0');
+            interestRate = LPR_BASE_RATE + (adjustment / 100);
           }
+          
+          // 获取公积金利率
+          providentRate = parseFloat(loan.providentRate || '0');
         } else {
           // 单一贷款：根据利率类型获取
           if (loan.rateType === 'fixed') {
@@ -161,7 +147,9 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
           name,
           amount,
           interestRate,
-          remainingMonths
+          remainingMonths,
+          providentRate: loan.loanType === 'combination' ? providentRate : undefined,
+          loanType: loan.loanType
         });
       });
     }
@@ -423,7 +411,12 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
                         }
                       </div>
                       <div className="text-sm text-[#01BCD6] font-medium">
-                        年化 {debt.interestRate === -1 ? '-' : (debt.interestRate > 0 ? debt.interestRate.toFixed(2) + '%' : '-')}
+                        年化 {
+                          debt.interestRate === -1 ? '-' : 
+                          debt.loanType === 'combination' && debt.providentRate !== undefined ?
+                            `商${debt.interestRate.toFixed(2)}%/公${debt.providentRate.toFixed(2)}%` :
+                            (debt.interestRate > 0 ? debt.interestRate.toFixed(2) + '%' : '-')
+                        }
                       </div>
                     </div>
                   </div>
