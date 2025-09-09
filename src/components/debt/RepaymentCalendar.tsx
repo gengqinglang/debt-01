@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarDays, DollarSign } from 'lucide-react';
@@ -318,6 +318,20 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
     console.log('Monthly repayments for', format(currentMonth, 'yyyy-MM', { locale: zhCN }), repaymentMap);
     return repaymentMap;
   }, [debts, currentMonth]);
+
+  // 自动选择当月有还款计划的最早日期
+  useEffect(() => {
+    if (monthlyRepayments.size > 0) {
+      // 获取所有有还款的日期并排序
+      const repaymentDates = Array.from(monthlyRepayments.keys())
+        .map(dateKey => new Date(dateKey))
+        .sort((a, b) => a.getTime() - b.getTime());
+      
+      if (repaymentDates.length > 0) {
+        setSelectedDate(repaymentDates[0]);
+      }
+    }
+  }, [monthlyRepayments]);
 
   // 获取指定日期的还款信息
   const getDateRepayments = (date: Date) => {
