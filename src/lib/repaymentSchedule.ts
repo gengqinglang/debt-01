@@ -6,6 +6,9 @@ import {
 } from '@/lib/loanCalculations';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
 import type { CarLoanInfo } from '@/hooks/useCarLoanData';
+import type { ConsumerLoanInfo } from '@/hooks/useConsumerLoanData';
+import type { BusinessLoanInfo } from '@/hooks/useBusinessLoanData';
+import type { PrivateLoanInfo } from '@/hooks/usePrivateLoanData';
 
 // Detailed repayment item with precise due date information
 export interface RepaymentItem {
@@ -84,6 +87,121 @@ const calculateCarLoanMonthlyPayment = (loan: CarLoanInfo): number => {
   );
 };
 
+// Calculate consumer loan monthly payment
+const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => {
+  const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+  const annualRate = parseFloat(loan.annualRate || '0') / 100;
+  
+  if (principalWan <= 0 || annualRate <= 0) return 0;
+  
+  // Handle different repayment methods
+  if (loan.repaymentMethod === 'interest-first') {
+    // Interest-only payment: principal × annual rate / 12
+    return principalWan * 10000 * annualRate / 12;
+  } else if (loan.repaymentMethod === 'lump-sum') {
+    // Lump sum at maturity: no monthly payment
+    return 0;
+  }
+  
+  // For equal payment/principal methods, calculate remaining months
+  let remainingMonths = 0;
+  if (loan.endDate) {
+    remainingMonths = calculateRemainingMonths(loan.endDate);
+  } else if (loan.startDate && loan.loanTerm) {
+    const startDate = new Date(loan.startDate);
+    const termYears = parseFloat(loan.loanTerm);
+    const endDate = new Date(startDate.getFullYear() + termYears, startDate.getMonth(), startDate.getDate());
+    remainingMonths = calculateRemainingMonths(endDate.toISOString().split('T')[0]);
+  }
+  
+  if (remainingMonths <= 0) return 0;
+  
+  return calculateSingleLoanMonthlyPayment(
+    principalWan,
+    annualRate,
+    loan.repaymentMethod,
+    remainingMonths
+  );
+};
+
+// Calculate business loan monthly payment
+const calculateBusinessLoanMonthlyPayment = (loan: BusinessLoanInfo): number => {
+  const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+  const annualRate = parseFloat(loan.annualRate || '0') / 100;
+  
+  if (principalWan <= 0 || annualRate <= 0) return 0;
+  
+  // Handle different repayment methods
+  if (loan.repaymentMethod === 'interest-first') {
+    // Interest-only payment: principal × annual rate / 12
+    return principalWan * 10000 * annualRate / 12;
+  } else if (loan.repaymentMethod === 'lump-sum') {
+    // Lump sum at maturity: no monthly payment
+    return 0;
+  }
+  
+  // For equal payment/principal methods, calculate remaining months
+  let remainingMonths = 0;
+  if (loan.endDate) {
+    remainingMonths = calculateRemainingMonths(loan.endDate);
+  } else if (loan.startDate && loan.loanTerm) {
+    const startDate = new Date(loan.startDate);
+    const termYears = parseFloat(loan.loanTerm);
+    const endDate = new Date(startDate.getFullYear() + termYears, startDate.getMonth(), startDate.getDate());
+    remainingMonths = calculateRemainingMonths(endDate.toISOString().split('T')[0]);
+  }
+  
+  if (remainingMonths <= 0) return 0;
+  
+  return calculateSingleLoanMonthlyPayment(
+    principalWan,
+    annualRate,
+    loan.repaymentMethod,
+    remainingMonths
+  );
+};
+
+// Calculate private loan monthly payment
+const calculatePrivateLoanMonthlyPayment = (loan: PrivateLoanInfo): number => {
+  const principalWan = parseFloat(loan.loanAmount || '0');
+  
+  if (principalWan <= 0) return 0;
+  
+  // Handle different repayment methods
+  if (loan.repaymentMethod === 'interest-first') {
+    // Calculate annual rate from fen and li
+    const fenRate = parseFloat(loan.rateFen || '0') / 100; // 分 to decimal
+    const liRate = parseFloat(loan.rateLi || '0') / 1000; // 厘 to decimal
+    const annualRate = fenRate + liRate;
+    
+    if (annualRate <= 0) return 0;
+    
+    // Interest-only payment: principal × annual rate / 12
+    return principalWan * 10000 * annualRate / 12;
+  } else if (loan.repaymentMethod === 'lump-sum') {
+    // Lump sum at maturity: no monthly payment
+    return 0;
+  }
+  
+  // For equal payment/principal methods
+  const annualRate = parseFloat(loan.annualRate || '0') / 100;
+  if (annualRate <= 0) return 0;
+  
+  let remainingMonths = 0;
+  if (loan.endDate) {
+    remainingMonths = calculateRemainingMonths(loan.endDate);
+  }
+  
+  if (remainingMonths <= 0) return 0;
+  
+  return calculateSingleLoanMonthlyPayment(
+    principalWan,
+    annualRate,
+    loan.repaymentMethod,
+    remainingMonths
+  );
+};
+
 // Build detailed repayment items from all loan data sources
 export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
   const repaymentItems: RepaymentItem[] = [];
@@ -158,68 +276,137 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
     });
   }
 
-  // Process other debt types from aggregated data
+  // Process detailed consumer, business, and private loans from debt data
   debts.forEach(debt => {
-    const monthlyPayment = debt.monthlyPayment || 0;
-    if (monthlyPayment <= 0 || (debt.remainingMonths || 0) <= 0) return;
-
-    let shouldSkip = false;
-    let dueDay = 10; // Default due day
-
-    // Determine due day based on debt type and available data
-    switch (debt.type) {
-      case 'mortgage':
-        // Skip if already processed from localStorage
-        if (processedMortgageIds.size > 0) {
-          shouldSkip = true;
-        } else {
-          dueDay = 20;
+    // Process detailed consumer loans
+    if (debt.type === 'consumerLoan' && (debt as any).consumerLoans) {
+      const consumerLoans = (debt as any).consumerLoans as ConsumerLoanInfo[];
+      consumerLoans.forEach((loan, idx) => {
+        if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
+          const dueDay = getDueDayFromDate(loan.startDate) || getDueDayFromDate(loan.endDate) || 10;
+          const amount = calculateConsumerLoanMonthlyPayment(loan);
+          
+          if (amount > 0) {
+            repaymentItems.push({
+              id: loan.id,
+              type: '消费贷',
+              name: loan.name || `消费贷${idx + 1}`,
+              amount: Math.round(amount),
+              dueDay,
+            });
+          }
         }
-        break;
-      case 'carLoan':
-        // Skip if already processed from localStorage
-        if (processedCarLoanIds.size > 0) {
-          shouldSkip = true;
-        } else {
-          dueDay = getDueDayFromDate(
-            debt.carStartDate ? (typeof debt.carStartDate === 'string' ? debt.carStartDate : debt.carStartDate.toISOString().split('T')[0]) : undefined, 
-            25
-          );
-        }
-        break;
-      case 'consumerLoan':
-        dueDay = 15;
-        break;
-      case 'businessLoan':
-        dueDay = 10;
-        break;
-      case 'privateLoan':
-        dueDay = 25;
-        break;
-      case 'creditCard':
-        dueDay = 5;
-        break;
-      default:
-        dueDay = 10;
-    }
-
-    if (!shouldSkip) {
-      // Debt type name mapping
-      const debtTypeNames: Record<string, string> = {
-        mortgage: '房贷',
-        carLoan: '车贷', 
-        consumerLoan: '消费贷',
-        businessLoan: '经营贷',
-        privateLoan: '民间贷',
-        creditCard: '信用卡'
-      };
-
-      repaymentItems.push({
-        type: debtTypeNames[debt.type] || debt.type,
-        name: debt.name || debtTypeNames[debt.type] || debt.type,
-        amount: Math.round(monthlyPayment),
-        dueDay,
       });
+    }
+    
+    // Process detailed business loans
+    else if (debt.type === 'businessLoan' && (debt as any).businessLoans) {
+      const businessLoans = (debt as any).businessLoans as BusinessLoanInfo[];
+      businessLoans.forEach((loan, idx) => {
+        if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
+          const dueDay = getDueDayFromDate(loan.startDate) || getDueDayFromDate(loan.endDate) || 10;
+          const amount = calculateBusinessLoanMonthlyPayment(loan);
+          
+          if (amount > 0) {
+            repaymentItems.push({
+              id: loan.id,
+              type: '经营贷',
+              name: loan.name || `经营贷${idx + 1}`,
+              amount: Math.round(amount),
+              dueDay,
+            });
+          }
+        }
+      });
+    }
+    
+    // Process detailed private loans
+    else if (debt.type === 'privateLoan' && (debt as any).privateLoans) {
+      const privateLoans = (debt as any).privateLoans as PrivateLoanInfo[];
+      privateLoans.forEach((loan, idx) => {
+        if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
+          const dueDay = getDueDayFromDate(loan.startDate) || getDueDayFromDate(loan.endDate) || 10;
+          const amount = calculatePrivateLoanMonthlyPayment(loan);
+          
+          if (amount > 0) {
+            repaymentItems.push({
+              id: loan.id,
+              type: '民间贷',
+              name: loan.name || `民间贷${idx + 1}`,
+              amount: Math.round(amount),
+              dueDay,
+            });
+          }
+        }
+      });
+    }
+    
+    // Process aggregated debt types (fallback for backward compatibility)
+    else {
+      const monthlyPayment = debt.monthlyPayment || 0;
+      if (monthlyPayment <= 0 || (debt.remainingMonths || 0) <= 0) return;
+
+      let shouldSkip = false;
+      let dueDay = 10; // Default due day
+
+      // Determine due day based on debt type and available data
+      switch (debt.type) {
+        case 'mortgage':
+          // Skip if already processed from localStorage
+          if (processedMortgageIds.size > 0) {
+            shouldSkip = true;
+          } else {
+            dueDay = 20;
+          }
+          break;
+        case 'carLoan':
+          // Skip if already processed from localStorage
+          if (processedCarLoanIds.size > 0) {
+            shouldSkip = true;
+          } else {
+            dueDay = getDueDayFromDate(
+              debt.carStartDate ? (typeof debt.carStartDate === 'string' ? debt.carStartDate : debt.carStartDate.toISOString().split('T')[0]) : undefined, 
+              25
+            );
+          }
+          break;
+        case 'consumerLoan':
+          // Use inferred date instead of hardcoded 15
+          dueDay = getDueDayFromDate((debt as any).startDate) || getDueDayFromDate((debt as any).endDate) || 15;
+          break;
+        case 'businessLoan':
+          // Use inferred date instead of hardcoded 10
+          dueDay = getDueDayFromDate((debt as any).startDate) || getDueDayFromDate((debt as any).endDate) || 10;
+          break;
+        case 'privateLoan':
+          // Use inferred date instead of hardcoded 25
+          dueDay = getDueDayFromDate((debt as any).startDate) || getDueDayFromDate((debt as any).endDate) || 25;
+          break;
+        case 'creditCard':
+          dueDay = 5;
+          break;
+        default:
+          dueDay = 10;
+      }
+
+      if (!shouldSkip) {
+        // Debt type name mapping
+        const debtTypeNames: Record<string, string> = {
+          mortgage: '房贷',
+          carLoan: '车贷', 
+          consumerLoan: '消费贷',
+          businessLoan: '经营贷',
+          privateLoan: '民间贷',
+          creditCard: '信用卡'
+        };
+
+        repaymentItems.push({
+          type: debtTypeNames[debt.type] || debt.type,
+          name: debt.name || debtTypeNames[debt.type] || debt.type,
+          amount: Math.round(monthlyPayment),
+          dueDay,
+        });
+      }
     }
   });
 
@@ -250,8 +437,22 @@ export const calculateCurrentMonthRemaining = (
 
 // Calculate next month's total repayments
 export const calculateNextMonthTotal = (repaymentItems: RepaymentItem[]): number => {
-  // For next month, we sum all active repayment items
-  return repaymentItems.reduce((total, item) => total + item.amount, 0);
+  const today = new Date();
+  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  const nextMonthYear = nextMonth.getFullYear();
+  const nextMonthIndex = nextMonth.getMonth();
+  
+  return repaymentItems.reduce((total, item) => {
+    // Create repayment date for next month
+    const repaymentDate = new Date(nextMonthYear, nextMonthIndex, item.dueDay);
+    
+    // Only include if the repayment date is actually in the next month
+    if (repaymentDate.getMonth() === nextMonthIndex && repaymentDate.getFullYear() === nextMonthYear) {
+      return total + item.amount;
+    }
+    
+    return total;
+  }, 0);
 };
 
 // Calculate repayments for a specific date
