@@ -327,9 +327,13 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         .map(dateKey => new Date(dateKey))
         .sort((a, b) => a.getTime() - b.getTime());
       
-      if (repaymentDates.length > 0) {
+      // 只有在没有选中日期或选中的日期不在当月还款日期中时，才自动选择最早日期
+      if (repaymentDates.length > 0 && (!selectedDate || !monthlyRepayments.has(format(selectedDate, 'yyyy-MM-dd')))) {
         setSelectedDate(repaymentDates[0]);
       }
+    } else {
+      // 如果当月没有还款，清除选中状态
+      setSelectedDate(undefined);
     }
   }, [monthlyRepayments]);
 
