@@ -233,6 +233,39 @@ export const calculateNonCombinationLoanPayment = (loan: MortgageLoanInfo): numb
 };
 
 /**
+ * 金额单位规范化：自动识别并转换"元"输入为"万元"
+ * @param input 输入字符串，可能是万元或元
+ * @returns 规范化后的万元数值
+ */
+export const normalizeWan = (input: string): number => {
+  const num = parseFloat(input || '0');
+  if (isNaN(num) || num <= 0) return 0;
+  
+  // 如果数值 > 10000，可能误填了"元"，自动转换为"万元"
+  if (num > 10000) {
+    return num / 10000;
+  }
+  
+  return num;
+};
+
+/**
+ * 计算剩余天数（从今天到结束日期）
+ * @param endDate 结束日期 (YYYY-MM-DD)
+ * @returns 剩余天数
+ */
+export const calculateRemainingDays = (endDate: string): number => {
+  if (!endDate) return 0;
+  
+  const today = new Date();
+  const end = new Date(endDate);
+  if (isNaN(end.getTime())) return 0;
+  
+  const diffTime = end.getTime() - today.getTime();
+  return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+};
+
+/**
  * 计算房贷月供（统一入口，支持组合贷款）
  * @param loan 贷款信息
  * @returns 月供金额（元）

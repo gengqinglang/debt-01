@@ -2,6 +2,7 @@ import {
   calculateMortgageLoanPayment, 
   calculateRemainingMonths as libCalculateRemainingMonths, 
   calculateSingleLoanMonthlyPayment,
+  normalizeWan,
   type MortgageLoanInfo 
 } from '@/lib/loanCalculations';
 
@@ -126,7 +127,7 @@ const calculateCarLoanMonthlyPayment = (loan: CarLoanInfo): number => {
 
 // Calculate consumer loan monthly payment
 const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => {
-  const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+  const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
   const annualRate = parseFloat(loan.annualRate || '0') / 100;
   
   if (principalWan <= 0 || annualRate <= 0) return 0;
@@ -163,7 +164,7 @@ const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => 
 
 // Calculate business loan monthly payment
 const calculateBusinessLoanMonthlyPayment = (loan: BusinessLoanInfo): number => {
-  const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+  const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
   const annualRate = parseFloat(loan.annualRate || '0') / 100;
   
   if (principalWan <= 0 || annualRate <= 0) return 0;
@@ -325,12 +326,12 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           
           // Handle lump-sum repayment method
           if (loan.repaymentMethod === 'lump-sum' && loan.endDate) {
-            const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+            const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
             const annualRate = parseFloat(loan.annualRate || '0') / 100;
             
-            // Calculate total lump sum (principal + interest)
-            const loanTermMonths = loan.startDate ? calculateRemainingMonths(loan.endDate, new Date(loan.startDate)) : 12;
-            const totalInterest = principalWan * 10000 * annualRate * (loanTermMonths / 12);
+            // Calculate total lump sum (principal + interest from today to end date)
+            const remainingDays = Math.max(0, Math.ceil((new Date(loan.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
+            const totalInterest = principalWan * 10000 * annualRate * (remainingDays / 365);
             const totalAmount = principalWan * 10000 + totalInterest;
             
             repaymentItems.push({
@@ -391,12 +392,12 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           
           // Handle lump-sum repayment method
           if (loan.repaymentMethod === 'lump-sum' && loan.endDate) {
-            const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+            const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
             const annualRate = parseFloat(loan.annualRate || '0') / 100;
             
-            // Calculate total lump sum (principal + interest)
-            const loanTermMonths = loan.startDate ? calculateRemainingMonths(loan.endDate, new Date(loan.startDate)) : 12;
-            const totalInterest = principalWan * 10000 * annualRate * (loanTermMonths / 12);
+            // Calculate total lump sum (principal + interest from today to end date)
+            const remainingDays = Math.max(0, Math.ceil((new Date(loan.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
+            const totalInterest = principalWan * 10000 * annualRate * (remainingDays / 365);
             const totalAmount = principalWan * 10000 + totalInterest;
             
             repaymentItems.push({

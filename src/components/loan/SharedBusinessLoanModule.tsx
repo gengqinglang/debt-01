@@ -11,7 +11,7 @@ import { BusinessLoanInfo } from '@/hooks/useBusinessLoanData';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, formatAmount } from '@/lib/loanCalculations';
+import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, calculateRemainingDays, formatAmount, normalizeWan } from '@/lib/loanCalculations';
 
 interface BusinessLoanCardProps {
   businessLoan: BusinessLoanInfo;
@@ -38,7 +38,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
     if (businessLoan.repaymentMethod !== 'equal-payment' && businessLoan.repaymentMethod !== 'equal-principal') {
       return { requiredFilled: false, monthlyPayment: null as number | null };
     }
-    const principalWan = parseFloat(businessLoan.remainingPrincipal || '');
+    const principalWan = normalizeWan(businessLoan.remainingPrincipal || '');
     const annualRatePct = parseFloat(businessLoan.annualRate || '');
     const hasDates = Boolean(businessLoan.startDate && businessLoan.endDate);
     const hasPrincipal = !isNaN(principalWan) && principalWan > 0;
@@ -62,7 +62,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
     if (businessLoan.repaymentMethod !== 'interest-first' && businessLoan.repaymentMethod !== 'lump-sum') {
       return null;
     }
-    const principalWan = parseFloat(businessLoan.loanAmount || '');
+    const principalWan = normalizeWan(businessLoan.loanAmount || '');
     const annualRatePct = parseFloat(businessLoan.annualRate || '');
     const hasEndDate = Boolean(businessLoan.endDate);
     const hasPrincipal = !isNaN(principalWan) && principalWan > 0;
@@ -79,12 +79,9 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
       return monthlyInterest;
     } else {
       // 一次性还本付息：从今天到结束日期的利息
-      const today = new Date();
-      const endDate = new Date(businessLoan.endDate || '');
-      const diffTime = endDate.getTime() - today.getTime();
-      const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+      const remainingDays = calculateRemainingDays(businessLoan.endDate || '');
       const yearlyInterest = principal * annualRate;
-      return (yearlyInterest * diffDays) / 365;
+      return (yearlyInterest * remainingDays) / 365;
     }
   })();
   
@@ -175,6 +172,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
               <div>
                 <Label className="text-xs font-medium">
                   剩余贷款本金（万元） <span className="text-red-500">*</span>
+                  <span className="text-gray-500 ml-1">单位：万元</span>
                 </Label>
                 <Input
                   type="number"
@@ -237,6 +235,22 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                 </Popover>
               </div>
             </div>
+            
+            {/* 显示剩余月数和警告 */}
+            {businessLoan.endDate && (
+              <div className="mt-3 p-3 rounded-lg bg-gray-50">
+                <div className="text-xs text-gray-600">
+                  剩余月数：{calculateRemainingMonths(businessLoan.endDate)} 个月
+                  {calculateRemainingMonths(businessLoan.endDate) <= 2 && 
+                   normalizeWan(businessLoan.loanAmount || '') >= 10 && (
+                    <div className="mt-1 text-yellow-600 font-medium">
+                      ⚠️ 剩余期数很短，月供会非常大，请确认结束日期是否正确
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
             <div>
               <Label className="text-xs font-medium">
                 年化利率（%） <span className="text-red-500">*</span>
@@ -300,6 +314,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
               <div>
                 <Label className="text-xs font-medium">
                   贷款原始金额（万元）
+                  <span className="text-gray-500 ml-1">单位：万元</span>
                 </Label>
                 <Input
                   type="number"
@@ -314,6 +329,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
               <div>
                 <Label className="text-xs font-medium">
                   贷款剩余本金（万元） <span className="text-red-500">*</span>
+                  <span className="text-gray-500 ml-1">单位：万元</span>
                 </Label>
                 <Input
                   type="number"
@@ -430,6 +446,21 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                 </Popover>
               </div>
             </div>
+            
+            {/* 显示剩余月数和警告 */}
+            {businessLoan.endDate && (
+              <div className="mt-3 p-3 rounded-lg bg-gray-50">
+                <div className="text-xs text-gray-600">
+                  剩余月数：{calculateRemainingMonths(businessLoan.endDate)} 个月
+                  {calculateRemainingMonths(businessLoan.endDate) <= 2 && 
+                   normalizeWan(businessLoan.remainingPrincipal || '') >= 10 && (
+                    <div className="mt-1 text-yellow-600 font-medium">
+                      ⚠️ 剩余期数很短，月供会非常大，请确认结束日期是否正确
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             
             {/* 贷款利率 */}
             <div>

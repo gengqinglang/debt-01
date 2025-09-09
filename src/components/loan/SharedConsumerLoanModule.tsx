@@ -11,7 +11,7 @@ import { ConsumerLoanInfo } from '@/hooks/useConsumerLoanData';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, formatAmount } from '@/lib/loanCalculations';
+import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, calculateRemainingDays, formatAmount, normalizeWan } from '@/lib/loanCalculations';
 
 interface ConsumerLoanCardProps {
   consumerLoan: ConsumerLoanInfo;
@@ -38,7 +38,7 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
     if (consumerLoan.repaymentMethod !== 'equal-payment' && consumerLoan.repaymentMethod !== 'equal-principal') {
       return { requiredFilled: false, monthlyPayment: null as number | null };
     }
-    const principalWan = parseFloat(consumerLoan.remainingPrincipal || '');
+    const principalWan = normalizeWan(consumerLoan.remainingPrincipal || '');
     const annualRatePct = parseFloat(consumerLoan.annualRate || '');
     const hasDates = Boolean(consumerLoan.startDate && consumerLoan.endDate);
     const hasPrincipal = !isNaN(principalWan) && principalWan > 0;
