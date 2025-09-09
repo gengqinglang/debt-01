@@ -350,7 +350,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              本金
+              剩余本金
             </Button>
             <Button
               variant={sortType === 'interest-desc' ? 'default' : 'ghost'}
@@ -374,7 +374,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              期限
+              剩余期限
             </Button>
           </div>
         </div>
