@@ -31,6 +31,8 @@ export interface RepaymentItem {
   dueDay: number;
   id?: string;
   oneTimeDate?: string; // For lump-sum payments on specific dates (YYYY-MM-DD format)
+  recurringStartDate?: string; // For recurring payments start boundary (YYYY-MM-DD format)
+  recurringEndDate?: string; // For recurring payments end boundary (YYYY-MM-DD format)
 }
 
 // Helper to extract due day from date string
@@ -359,6 +361,8 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
               name: loan.name || `消费贷${idx + 1}`,
               amount: Math.round(amount),
               dueDay,
+              recurringStartDate: loan.startDate,
+              recurringEndDate: loan.endDate,
             });
             
             // Principal repayment on end date
@@ -493,6 +497,8 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
               name: loan.name || `民间借贷${idx + 1}`,
               amount: Math.round(amount),
               dueDay,
+              recurringStartDate: loan.startDate,
+              recurringEndDate: loan.endDate,
             });
             
             // Principal repayment on end date
@@ -734,6 +740,19 @@ export const getMonthlyRepaymentDates = (
     // Only include dates from today onwards
     const today = new Date(fromDate);
     today.setHours(0, 0, 0, 0);
+    
+    // Check recurring boundaries if they exist
+    if (item.recurringStartDate) {
+      const startDate = new Date(item.recurringStartDate);
+      startDate.setHours(0, 0, 0, 0);
+      if (repaymentDate < startDate) return;
+    }
+    
+    if (item.recurringEndDate) {
+      const endDate = new Date(item.recurringEndDate);
+      endDate.setHours(0, 0, 0, 0);
+      if (repaymentDate > endDate) return;
+    }
     
     if (repaymentDate.getMonth() === month && repaymentDate >= today) {
       const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(item.dueDay).padStart(2, '0')}`;
