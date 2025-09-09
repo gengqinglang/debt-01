@@ -146,30 +146,55 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
         {/* 根据贷款类型显示不同字段 */}
         {carLoan.loanType === 'installment' ? (
           /* 分期类型字段 */
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-xs font-medium">
-                每期分期金额（元） <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                type="number"
-                placeholder="如：3000"
-                value={carLoan.installmentAmount}
-                onChange={(e) => updateCarLoan(carLoan.id, 'installmentAmount', e.target.value)}
-                className="h-9 text-sm mt-1"
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  每期分期金额（元） <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  placeholder="如：3000"
+                  value={carLoan.installmentAmount}
+                  onChange={(e) => updateCarLoan(carLoan.id, 'installmentAmount', e.target.value)}
+                  className="h-9 text-sm mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-medium">
+                  剩余期限（月） <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  placeholder="如：24"
+                  value={carLoan.remainingInstallments}
+                  onChange={(e) => updateCarLoan(carLoan.id, 'remainingInstallments', e.target.value)}
+                  className="h-9 text-sm mt-1"
+                />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-medium">
-                剩余期限（月） <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                type="number"
-                placeholder="如：24"
-                value={carLoan.remainingInstallments}
-                onChange={(e) => updateCarLoan(carLoan.id, 'remainingInstallments', e.target.value)}
-                className="h-9 text-sm mt-1"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  每月还款日 <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={carLoan.repaymentDay || '10'}
+                  onValueChange={(value) => updateCarLoan(carLoan.id, 'repaymentDay', value)}
+                >
+                  <SelectTrigger className="h-9 text-sm mt-1">
+                    <SelectValue placeholder="选择还款日" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 30 }, (_, i) => i + 1).map(day => (
+                      <SelectItem key={day} value={day.toString()}>
+                        {day}号
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div></div>
             </div>
           </div>
         ) : (
@@ -375,13 +400,15 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
                            if (!requiredFilled) return '--';
                            const v = calculateCarLoanMonthlyPayment(carLoan);
                            return v > 0 ? `¥${Math.round(v).toLocaleString()}` : '--';
-                         } else if (carLoan.loanType === 'installment') {
-                           // 分期类型必填项检查
-                           const requiredFilled = carLoan.installmentAmount && carLoan.remainingInstallments;
-                           if (!requiredFilled) return '--';
-                           
-                           const installmentAmount = parseFloat(carLoan.installmentAmount || '0');
-                           return installmentAmount > 0 ? `¥${Math.round(installmentAmount).toLocaleString()}` : '--';
+                          } else if (carLoan.loanType === 'installment') {
+                            // 分期类型必填项检查
+                            const requiredFilled = carLoan.installmentAmount && 
+                                   carLoan.remainingInstallments &&
+                                   carLoan.repaymentDay;
+                            if (!requiredFilled) return '--';
+                            
+                            const installmentAmount = parseFloat(carLoan.installmentAmount || '0');
+                            return installmentAmount > 0 ? `¥${Math.round(installmentAmount).toLocaleString()}` : '--';
                          }
                          
                          return '--';

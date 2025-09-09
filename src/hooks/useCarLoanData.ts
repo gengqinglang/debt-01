@@ -16,6 +16,7 @@ export interface CarLoanInfo {
   // 分期字段
   installmentAmount: string; // 每期还款额（元）
   remainingInstallments: string; // 剩余期数（月）
+  repaymentDay?: string; // 每月还款日（1-30号，仅分期类型使用）
   // 银行贷款字段
   principal?: string; // 原始贷款本金（万元）
   term?: string; // 原始贷款期限（年）
@@ -51,6 +52,7 @@ export const useCarLoanData = (initialData?: CarLoanInfo[]) => {
       loanType: 'installment',
       installmentAmount: '',
       remainingInstallments: '',
+      repaymentDay: '10', // 默认10号还款
       startDateMonth: todayDate,
       endDateMonth: todayDate
     };
@@ -70,6 +72,7 @@ export const useCarLoanData = (initialData?: CarLoanInfo[]) => {
         loanType: 'installment' as const,
         installmentAmount: '',
         remainingInstallments: '',
+        repaymentDay: '10', // 默认10号还款
         principal: '',
         term: '',
         interestRate: '',
@@ -98,7 +101,8 @@ export const useCarLoanData = (initialData?: CarLoanInfo[]) => {
         carLoan.installmentAmount && 
         parseFloat(carLoan.installmentAmount) > 0 &&
         carLoan.remainingInstallments && 
-        parseFloat(carLoan.remainingInstallments) > 0
+        parseFloat(carLoan.remainingInstallments) > 0 &&
+        carLoan.repaymentDay
       );
     } else {
       // 银行贷款验证：需要车辆名称、还款方式、贷款利率、开始/结束日期

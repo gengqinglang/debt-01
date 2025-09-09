@@ -138,8 +138,10 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
         let dueDay = 10; // Default
         if (loan.loanType === 'bankLoan' && loan.startDateMonth) {
           dueDay = getDueDayFromDate(loan.startDateMonth, 1);
+        } else if (loan.loanType === 'installment' && loan.repaymentDay) {
+          dueDay = parseInt(loan.repaymentDay, 10);
         } else {
-          dueDay = 10; // Default for installments
+          dueDay = 10; // Default for installments without repaymentDay
         }
         
         repaymentItems.push({
