@@ -485,29 +485,27 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             });
           }
           // Handle interest-first repayment method
-          else if (loan.repaymentMethod === 'interest-first' && amount > 0) {
-            // Monthly interest payment
+          else if (loan.repaymentMethod === 'interest-first' && loan.endDate) {
+            const principalWan = parseFloat(loan.loanAmount || '0');
+            const fenValue = parseFloat(loan.rateFen || '0');
+            const liValue = parseFloat(loan.rateLi || '0');
+            const annualRatePercent = fenValue + liValue / 10; // 1分 = 1%, 1厘 = 0.1%
+            const annualRate = annualRatePercent / 100;
+            
+            // Calculate monthly interest
+            const monthlyInterest = principalWan * 10000 * annualRate / 12;
+            
+            // Final payment at maturity: principal + one monthly interest
+            const totalAmount = principalWan * 10000 + monthlyInterest;
+            
             repaymentItems.push({
               id: loan.id,
               type: '民间借贷',
               name: loan.name || `民间借贷${idx + 1}`,
-              amount: Math.round(amount),
+              amount: Math.round(totalAmount),
               dueDay,
+              oneTimeDate: loan.endDate
             });
-            
-            // Principal repayment on end date
-            if (loan.endDate) {
-              const principalWan = parseFloat(loan.loanAmount || '0');
-              repaymentItems.push({
-                id: `${loan.id}_principal`,
-                type: '民间贷',
-                subType: '本金',
-                name: `${loan.name || `民间贷${idx + 1}`}(本金)`,
-                amount: Math.round(principalWan * 10000),
-                dueDay,
-                oneTimeDate: loan.endDate
-              });
-            }
           }
           // Handle equal payment/principal methods
           else if (amount > 0) {
