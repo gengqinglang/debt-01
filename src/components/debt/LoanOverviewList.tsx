@@ -411,7 +411,7 @@ const LoanOverviewList: React.FC<LoanOverviewListProps> = ({ debts }) => {
                         }
                       </div>
                       <div className="text-sm text-[#01BCD6] font-medium">
-                        年化 {
+                        {
                           debt.interestRate === -1 ? '-' : 
                           debt.loanType === 'combination' && debt.providentRate !== undefined ?
                             `商${debt.interestRate.toFixed(2)}%/公${debt.providentRate.toFixed(2)}%` :
