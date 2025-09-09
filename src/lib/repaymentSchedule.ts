@@ -426,14 +426,9 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             // Calculate monthly interest
             const monthlyInterest = principalWan * 10000 * annualRate / 12;
             
-            // Calculate total days and total interest
-            const startDate = new Date();
-            const endDate = new Date(loan.endDate);
-            const totalDays = Math.max(0, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-            const totalInterest = principalWan * 10000 * annualRate * (totalDays / 365);
-            const totalAmount = principalWan * 10000 + totalInterest;
+            // Final payment at maturity: principal + one monthly interest
+            const totalAmount = principalWan * 10000 + monthlyInterest;
             
-            // Add single payment on end date (principal + interest)
             repaymentItems.push({
               id: loan.id,
               type: '经营贷',
