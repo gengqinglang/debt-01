@@ -419,29 +419,29 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             });
           }
           // Handle interest-first repayment method
-          else if (loan.repaymentMethod === 'interest-first' && amount > 0) {
-            // Monthly interest payment
+          else if (loan.repaymentMethod === 'interest-first' && loan.endDate) {
+            const principalWan = normalizeWan(loan.loanAmount || '0');
+            const annualRate = parseFloat(loan.annualRate || '0') / 100;
+            
+            // Calculate monthly interest
+            const monthlyInterest = principalWan * 10000 * annualRate / 12;
+            
+            // Calculate total days and total interest
+            const startDate = new Date();
+            const endDate = new Date(loan.endDate);
+            const totalDays = Math.max(0, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+            const totalInterest = principalWan * 10000 * annualRate * (totalDays / 365);
+            const totalAmount = principalWan * 10000 + totalInterest;
+            
+            // Add single payment on end date (principal + interest)
             repaymentItems.push({
               id: loan.id,
               type: '经营贷',
               name: loan.name || `经营贷${idx + 1}`,
-              amount: Math.round(amount),
+              amount: Math.round(totalAmount),
               dueDay,
+              oneTimeDate: loan.endDate
             });
-            
-            // Principal repayment on end date
-            if (loan.endDate) {
-              const principalWan = normalizeWan(loan.loanAmount || '0');
-              repaymentItems.push({
-                id: `${loan.id}_principal`,
-                type: '经营贷',
-                subType: '本金',
-                name: `${loan.name || `经营贷${idx + 1}`}(本金)`,
-                amount: Math.round(principalWan * 10000),
-                dueDay,
-                oneTimeDate: loan.endDate
-              });
-            }
           }
           // Handle equal payment/principal methods
           else if (amount > 0) {
