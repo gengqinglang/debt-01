@@ -253,7 +253,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
   // Debug flag to show container outlines
-  const debug = true;
+  const debug = false;
 
   // 计算当月每日的还款信息 - 使用个人贷款数据
   const monthlyRepayments = useMemo(() => {
