@@ -142,7 +142,7 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
         <Card className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 border-[#B3EBEF]/30">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center mb-2">
-              <span className="text-sm text-gray-600">下期还款额</span>
+              <span className="text-sm text-gray-600">下月待还款额</span>
             </div>
             <div className="text-lg font-bold text-gray-900">
               {formatCurrency(monthlyTotalYuan)}
