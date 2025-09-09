@@ -330,7 +330,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
     const repayments = getDateRepayments(day);
     
     return (
-      <div className="relative flex items-center justify-center w-full h-full">
+      <div className="relative flex items-start justify-center w-full h-full pt-0.5 sm:pt-1">
         <span className="text-sm">{day.getDate()}</span>
         {repayments.length > 0 && (
           <div className="absolute bottom-0.5 h-1.5 w-1.5 bg-[#01BCD6] rounded-full"></div>
@@ -380,7 +380,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
               cell: "text-center text-sm relative p-0 w-10 h-10 sm:w-14 sm:h-14 focus-within:relative focus-within:z-20",
               day: cn(
                 buttonVariants({ variant: "ghost" }),
-                "h-10 w-10 sm:h-14 sm:w-14 p-0 font-normal aria-selected:opacity-100 flex items-center justify-center"
+                "h-10 w-10 sm:h-14 sm:w-14 p-0 font-normal aria-selected:opacity-100 flex items-start justify-center pt-0.5 sm:pt-1"
               )
             }}
             components={{
