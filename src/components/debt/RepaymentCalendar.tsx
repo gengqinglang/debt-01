@@ -360,7 +360,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className={`p-3 sm:p-5 flex justify-center overflow-hidden ${debug ? 'border-2 border-red-500' : ''}`}>
+        <div className={`px-4 sm:px-6 py-3 sm:py-5 flex justify-center overflow-hidden ${debug ? 'border-2 border-red-500' : ''}`}>
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -371,7 +371,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
             className={`w-full pointer-events-auto p-0 ${debug ? 'border-2 border-blue-500' : ''}`}
             classNames={{
               months: "w-full flex justify-center",
-              month: "scale-[1.06] md:scale-[1.12] origin-top",
+              month: "scale-[1.03] md:scale-[1.08] origin-top",
               table: "w-full border-collapse space-y-0",
               row: "flex w-full mt-0",
               caption: "relative flex justify-center pt-0 mb-3",
