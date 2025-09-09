@@ -218,10 +218,10 @@ const calculatePrivateLoanMonthlyPayment = (loan: PrivateLoanInfo): number => {
   
   // Handle different repayment methods
   if (loan.repaymentMethod === 'interest-first') {
-    // Calculate annual rate from fen and li - consistent with usePrivateLoanData
+    // Calculate annual rate from fen and li - 1分 = 10%年利率, 1厘 = 1%年利率
     const fenValue = parseFloat(loan.rateFen || '0');
     const liValue = parseFloat(loan.rateLi || '0');
-    const annualRatePercent = fenValue + liValue / 10; // 1分 = 1%, 1厘 = 0.1%
+    const annualRatePercent = fenValue * 10 + liValue; // 1分 = 10%, 1厘 = 1%
     const annualRate = annualRatePercent / 100;
     
     if (annualRate <= 0) return 0;
@@ -491,7 +491,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             const principalWan = parseFloat(loan.loanAmount || '0');
             const fenValue = parseFloat(loan.rateFen || '0');
             const liValue = parseFloat(loan.rateLi || '0');
-            const annualRatePercent = fenValue + liValue / 10; // 1分 = 1%, 1厘 = 0.1%
+            const annualRatePercent = fenValue * 10 + liValue; // 1分 = 10%, 1厘 = 1%
             const annualRate = annualRatePercent / 100;
             
             // Calculate total lump sum (principal + interest from today to end date)
