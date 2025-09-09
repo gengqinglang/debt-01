@@ -83,8 +83,8 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
   const calculateAnnualRate = useCallback((fen: string, li: string): string => {
     const fenValue = fen ? parseFloat(fen) : 0;
     const liValue = li ? parseFloat(li) : 0;
-    // 1分 = 1%, 1厘 = 0.1% (consistent with industry standard)
-    const totalRate = fenValue + liValue / 10;
+    // 1分 = 10%, 1厘 = 1%
+    const totalRate = fenValue * 10 + liValue;
     return totalRate.toString();
   }, []);
 
