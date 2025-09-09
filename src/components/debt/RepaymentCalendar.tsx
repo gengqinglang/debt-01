@@ -307,7 +307,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
       <div className="relative flex flex-col items-center justify-center w-full h-full">
         <span className="text-sm">{day.getDate()}</span>
         {repayments.length > 0 && (
-          <div className="absolute bottom-1 h-1.5 w-1.5 bg-[#01BCD6] rounded-full"></div>
+          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 h-1.5 w-1.5 bg-[#01BCD6] rounded-full"></div>
         )}
       </div>
     );
