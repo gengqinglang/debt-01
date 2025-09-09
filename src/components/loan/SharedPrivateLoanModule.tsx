@@ -202,7 +202,7 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
             </div>
           </div>
           <div>
-            <div className="relative mt-1">
+            <div className="relative mt-6">
               <Input
                 type="number"
                 inputMode="decimal"
