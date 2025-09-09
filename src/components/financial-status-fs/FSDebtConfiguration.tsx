@@ -550,7 +550,10 @@ const LoanFormCard: React.FC<{
                           mode="single"
                           selected={loan.commercialStartDate ? new Date(loan.commercialStartDate) : undefined}
                           onSelect={(date) => {
-                            updateLoan(loan.id, 'commercialStartDate', date ? format(date, "yyyy-MM-dd") : '');
+                            const dateStr = date ? format(date, "yyyy-MM-dd") : '';
+                            updateLoan(loan.id, 'commercialStartDate', dateStr);
+                            // 自动填充到公积金贷款开始日期
+                            updateLoan(loan.id, 'providentStartDate', dateStr);
                             setCommercialStartDateOpen(false);
                           }}
                            disabled={(date) => {
@@ -600,7 +603,10 @@ const LoanFormCard: React.FC<{
                           mode="single"
                           selected={loan.commercialEndDate ? new Date(loan.commercialEndDate) : undefined}
                           onSelect={(date) => {
-                            updateLoan(loan.id, 'commercialEndDate', date ? format(date, "yyyy-MM-dd") : '');
+                            const dateStr = date ? format(date, "yyyy-MM-dd") : '';
+                            updateLoan(loan.id, 'commercialEndDate', dateStr);
+                            // 自动填充到公积金贷款结束日期
+                            updateLoan(loan.id, 'providentEndDate', dateStr);
                             setCommercialEndDateOpen(false);
                           }}
                            disabled={(date) => {
@@ -638,7 +644,11 @@ const LoanFormCard: React.FC<{
                     </Label>
                     <RadioGroup
                       value={loan.commercialPaymentMethod}
-                      onValueChange={(value) => updateLoan(loan.id, 'commercialPaymentMethod', value)}
+                      onValueChange={(value) => {
+                        updateLoan(loan.id, 'commercialPaymentMethod', value);
+                        // 自动填充到公积金贷款还款方式
+                        updateLoan(loan.id, 'providentPaymentMethod', value);
+                      }}
                       className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 pt-2"
                     >
                       <div className="flex items-center space-x-2">
