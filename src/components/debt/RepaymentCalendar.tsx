@@ -172,9 +172,14 @@ const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
       };
 
       if (loan.loanType === 'combination') {
-        // 组合贷款拆分两笔
-        pushSingle('商贷', loan.commercialStartDate, loan.commercialRemainingPrincipal || loan.commercialLoanAmount);
-        pushSingle('公积金', loan.providentStartDate, loan.providentRemainingPrincipal || loan.providentLoanAmount);
+        // 组合贷款合并为一笔显示
+        const commercialPrincipalWan = parseFloat(loan.commercialRemainingPrincipal || loan.commercialLoanAmount || '0');
+        const providentPrincipalWan = parseFloat(loan.providentRemainingPrincipal || loan.providentLoanAmount || '0');
+        const totalPrincipalWan = commercialPrincipalWan + providentPrincipalWan;
+        
+        // 使用商贷的开始日期作为还款日，如果没有则使用公积金的
+        const startDate = loan.commercialStartDate || loan.providentStartDate;
+        pushSingle('组合贷', startDate, totalPrincipalWan.toString());
       } else if (loan.loanType === 'commercial') {
         pushSingle('商贷', loan.loanStartDate, loan.remainingPrincipal || loan.loanAmount);
       } else if (loan.loanType === 'provident') {
