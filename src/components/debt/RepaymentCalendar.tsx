@@ -360,7 +360,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className={`px-4 sm:px-6 py-3 sm:py-5 flex justify-center overflow-hidden ${debug ? 'border-2 border-red-500' : ''}`}>
+        <div className={`px-6 sm:px-8 py-3 sm:py-5 flex justify-center overflow-hidden ${debug ? 'border-2 border-red-500' : ''}`}>
           <Calendar
             mode="single"
             selected={selectedDate}
