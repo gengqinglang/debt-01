@@ -709,17 +709,22 @@ export const SharedBusinessLoanModule: React.FC<SharedBusinessLoanModuleProps> =
         />
       ))}
       
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={addBusinessLoan}
-        className="w-full py-6 border border-dashed border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-700 hover:bg-gray-50 mt-4"
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        添加经营贷
-      </Button>
-      
-      {children}
+      {/* 按钮区域 - 左侧"再录一笔" + 右侧确认按钮 */}
+      <div className="grid grid-cols-2 gap-3 mt-6 mb-3">
+        {/* 左侧：再录一笔（虚线边框，青色） */}
+        <Button
+          onClick={addBusinessLoan}
+          variant="outline"
+          className="h-10 border-dashed text-sm"
+          style={{ borderColor: '#01BCD6', color: '#01BCD6' }}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          再录一笔
+        </Button>
+        
+        {/* 右侧：确认按钮 */}
+        {children}
+      </div>
     </div>
   );
 };
