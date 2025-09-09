@@ -469,9 +469,11 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             const liRate = parseFloat(loan.rateLi || '0') / 1000;
             const annualRate = fenRate + liRate;
             
-            // Calculate total lump sum (principal + interest)
-            const loanTermMonths = loan.startDate ? calculateRemainingMonths(loan.endDate, new Date(loan.startDate)) : 12;
-            const totalInterest = principalWan * 10000 * annualRate * (loanTermMonths / 12);
+            // Calculate total lump sum (principal + interest from start date to end date)
+            const startDate = loan.startDate ? new Date(loan.startDate) : new Date();
+            const endDate = new Date(loan.endDate);
+            const totalDays = Math.max(0, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+            const totalInterest = principalWan * 10000 * annualRate * (totalDays / 365);
             const totalAmount = principalWan * 10000 + totalInterest;
             
             repaymentItems.push({

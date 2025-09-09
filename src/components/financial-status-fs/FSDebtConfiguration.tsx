@@ -1311,7 +1311,7 @@ useEffect(() => {
       return sum + parseFloat(loan.loanAmount || '0');
     }, 0);
     
-    // Calculate remaining months using startDate (UI stores end date in startDate field)
+    // Calculate remaining months using endDate field
     const getRemainingMonths = (endDate: string) => {
       if (!endDate) return 0;
       const today = new Date();
@@ -1328,7 +1328,7 @@ useEffect(() => {
       const principalWan = parseFloat(loan.loanAmount || '0');
       const principalYuan = principalWan * 10000;
       const annualRate = parseFloat(loan.annualRate || '0') / 100;
-      const remainingMonths = getRemainingMonths(loan.startDate || ''); // UI uses startDate for end date
+      const remainingMonths = getRemainingMonths(loan.endDate || '');
       
       if (loan.repaymentMethod === 'interest-first') {
         // 先息后本：待还利息 = 月利息 * 剩余月数
@@ -1336,28 +1336,18 @@ useEffect(() => {
         totalRemainingInterest += (monthlyInterest * remainingMonths) / 10000;
         totalMonthlyPayment += monthlyInterest;
       } else if (loan.repaymentMethod === 'lump-sum') {
-        // 一次性还本付息：计算总利息
-        if (loan.startDate) {
-          const today = new Date();
-          const endDate = new Date(loan.startDate); // UI uses startDate for end date
-          const totalDays = Math.max(0, Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+        // 一次性还本付息：计算总利息，优先使用startDate到endDate，否则从今天到endDate
+        if (loan.endDate) {
+          const startDate = loan.startDate ? new Date(loan.startDate) : new Date();
+          const endDate = new Date(loan.endDate);
+          const totalDays = Math.max(0, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
           totalRemainingInterest += (principalYuan * annualRate * totalDays / 365) / 10000;
-        }
-      } else if (loan.endDate) {
-        // 有endDate的其他还款方式（等额本息、等额本金）
-        const endRemainingMonths = getRemainingMonths(loan.endDate);
-        if (principalYuan > 0 && annualRate > 0 && endRemainingMonths > 0) {
-          const monthlyRate = annualRate / 12;
-          const monthlyPayment = principalYuan * monthlyRate * Math.pow(1 + monthlyRate, endRemainingMonths) / (Math.pow(1 + monthlyRate, endRemainingMonths) - 1);
-          const totalPayment = monthlyPayment * endRemainingMonths;
-          totalRemainingInterest += Math.max(0, (totalPayment - principalYuan) / 10000);
-          totalMonthlyPayment += monthlyPayment;
         }
       }
     });
     
     const maxRemainingMonths = completePrivateLoans.reduce((max, loan) => {
-      const remainingMonths = loan.endDate ? getRemainingMonths(loan.endDate) : getRemainingMonths(loan.startDate || '');
+      const remainingMonths = getRemainingMonths(loan.endDate || '');
       return Math.max(max, remainingMonths);
     }, 0);
     

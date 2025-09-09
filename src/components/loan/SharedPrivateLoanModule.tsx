@@ -136,21 +136,21 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                       className={cn(
-                         "h-9 w-full justify-start text-left font-normal mt-1",
-                         !privateLoan.startDate && "text-muted-foreground"
-                       )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {privateLoan.startDate ? format(new Date(privateLoan.startDate), "yyyy-MM-dd") : "选择日期"}
+                     className={cn(
+                          "h-9 w-full justify-start text-left font-normal mt-1",
+                          !privateLoan.endDate && "text-muted-foreground"
+                        )}
+                     >
+                       <CalendarIcon className="mr-2 h-4 w-4" />
+                       {privateLoan.endDate ? format(new Date(privateLoan.endDate), "yyyy-MM-dd") : "选择日期"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
                      <Calendar
                        mode="single"
-                       selected={privateLoan.startDate ? new Date(privateLoan.startDate) : undefined}
+                       selected={privateLoan.endDate ? new Date(privateLoan.endDate) : undefined}
                        onSelect={(date) => {
-                         updatePrivateLoan(privateLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
+                         updatePrivateLoan(privateLoan.id, 'endDate', date ? format(date, "yyyy-MM-dd") : '');
                          setEndDateOpen(false);
                        }}
                        disabled={(date) => {
@@ -245,7 +245,7 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
                       {(() => {
                         // 检查必输项是否完整
                         const requiredFilled = privateLoan.loanAmount && 
-                               privateLoan.startDate && 
+                               privateLoan.endDate && 
                                privateLoan.annualRate;
                         
                         if (!requiredFilled) return '--';
@@ -263,10 +263,10 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
                           const monthlyInterest = (principal * annualRate) / 12;
                           return `¥${Math.round(monthlyInterest).toLocaleString()}`;
                         } else if (privateLoan.repaymentMethod === 'lump-sum') {
-                          // 一次性还本付息：从今天到结束日期的利息
-                          const today = new Date();
-                          const endDate = new Date(privateLoan.startDate || '');
-                          const diffTime = endDate.getTime() - today.getTime();
+                          // 一次性还本付息：从开始日期到结束日期的利息，如果没有开始日期则从今天开始
+                          const startDate = privateLoan.startDate ? new Date(privateLoan.startDate) : new Date();
+                          const endDate = new Date(privateLoan.endDate || '');
+                          const diffTime = endDate.getTime() - startDate.getTime();
                           const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
                           const yearlyInterest = principal * annualRate;
                           const totalInterest = (yearlyInterest * diffDays) / 365;
