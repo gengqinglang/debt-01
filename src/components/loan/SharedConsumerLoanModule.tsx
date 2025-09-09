@@ -11,7 +11,7 @@ import { ConsumerLoanInfo } from '@/hooks/useConsumerLoanData';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, formatAmount } from '@/lib/loanCalculations';
+import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, formatAmount } from '@/lib/loanCalculations';
 
 interface ConsumerLoanCardProps {
   consumerLoan: ConsumerLoanInfo;
@@ -48,7 +48,8 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
 
     const principal = principalWan * 10000;
     const annualRate = annualRatePct / 100;
-    const termMonths = calculateLoanTermMonths(consumerLoan.startDate, consumerLoan.endDate);
+    // 使用从当前月份到贷款结束月份的剩余月数
+    const termMonths = calculateRemainingMonths(consumerLoan.endDate);
     if (termMonths <= 0) return { requiredFilled, monthlyPayment: null };
     const monthly = consumerLoan.repaymentMethod === 'equal-payment'
       ? calculateEqualPaymentMonthly(principal, annualRate, termMonths)
