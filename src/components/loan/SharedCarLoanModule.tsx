@@ -173,27 +173,25 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4">
-              <div className="max-w-xs">
-                <Label className="text-xs font-medium">
-                  每月还款日 <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={carLoan.repaymentDay || '10'}
-                  onValueChange={(value) => updateCarLoan(carLoan.id, 'repaymentDay', value)}
-                >
-                  <SelectTrigger className="h-9 text-sm mt-1">
-                    <SelectValue placeholder="选择还款日" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 30 }, (_, i) => i + 1).map(day => (
-                      <SelectItem key={day} value={day.toString()}>
-                        {day}号
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label className="text-xs font-medium">
+                每月还款日 <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={carLoan.repaymentDay || '10'}
+                onValueChange={(value) => updateCarLoan(carLoan.id, 'repaymentDay', value)}
+              >
+                <SelectTrigger className="h-9 text-sm mt-1">
+                  <SelectValue placeholder="选择还款日" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 30 }, (_, i) => i + 1).map(day => (
+                    <SelectItem key={day} value={day.toString()}>
+                      {day}号
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         ) : (
