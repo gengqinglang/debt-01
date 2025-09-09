@@ -184,7 +184,7 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="text-xs font-medium">
-              利率-分
+              利率-分厘/月
             </Label>
             <div className="relative mt-1">
               <Input
