@@ -80,7 +80,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         
         // 计算剩余本金 (万元) - 数据已是万元单位，无需除10000
         let amount = 0;
-        if (loan.loanType === 'combined') {
+        if (loan.loanType === 'combination') {
           const commercial = parseFloat(loan.commercialLoanAmount || '0');
           const provident = parseFloat(loan.providentLoanAmount || '0');
           const commercialRemaining = parseFloat(loan.commercialRemainingPrincipal || '0');
@@ -137,7 +137,7 @@ const flattenDebts = (debts: DebtInfo[]): FlattenedLoan[] => {
         // 计算剩余期限 (月) - 修正字段名称
         let remainingMonths = 0;
         let endDateToUse = '';
-        if (loan.loanType === 'combined') {
+        if (loan.loanType === 'combination') {
           const commercialEnd = loan.commercialEndDate;
           const providentEnd = loan.providentEndDate;
           if (commercialEnd && providentEnd) {
