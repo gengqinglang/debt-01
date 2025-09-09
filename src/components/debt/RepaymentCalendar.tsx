@@ -6,6 +6,8 @@ import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
 import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly } from '@/lib/loanCalculations';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
 import type { ConsumerLoanInfo } from '@/hooks/useConsumerLoanData';
 import type { CarLoanInfo } from '@/hooks/useCarLoanData';
 import type { BusinessLoanInfo } from '@/hooks/useBusinessLoanData';
@@ -372,7 +374,13 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
               month: "scale-[1.06] md:scale-[1.12] origin-top",
               table: "w-full border-collapse space-y-0",
               row: "flex w-full mt-0",
-              caption: "relative flex justify-center pt-0 mb-1"
+              caption: "relative flex justify-center pt-0 mb-1",
+              head_cell: "text-muted-foreground rounded-md w-10 h-10 sm:w-11 sm:h-11 font-normal text-[0.8rem]",
+              cell: "text-center text-sm relative p-0 w-10 h-10 sm:w-11 sm:h-11 focus-within:relative focus-within:z-20",
+              day: cn(
+                buttonVariants({ variant: "ghost" }),
+                "h-10 w-10 sm:h-11 sm:w-11 p-0 font-normal aria-selected:opacity-100"
+              )
             }}
             components={{
               DayContent: ({ date }) => dayContent(date)
