@@ -83,7 +83,8 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
   const calculateAnnualRate = useCallback((fen: string, li: string): string => {
     const fenValue = fen ? parseFloat(fen) : 0;
     const liValue = li ? parseFloat(li) : 0;
-    const totalRate = fenValue * 10 + liValue; // 1分 = 10%, 1厘 = 1%
+    // 1分 = 1%, 1厘 = 0.1% (consistent with industry standard)
+    const totalRate = fenValue + liValue / 10;
     return totalRate.toString();
   }, []);
 
@@ -128,13 +129,9 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
       privateLoan.loanAmount && 
       parseFloat(privateLoan.loanAmount) > 0 &&
       (hasFenRate || hasLiRate) && // 分、厘任选其一即可
-      privateLoan.repaymentMethod
+      privateLoan.repaymentMethod &&
+      privateLoan.endDate // 所有民间借贷都需要结束日期
     );
-    
-    // 如果是等额本息或等额本金，还需要检查结束日期
-    if (privateLoan.repaymentMethod === 'equal-payment' || privateLoan.repaymentMethod === 'equal-principal') {
-      return basicComplete && Boolean(privateLoan.endDate);
-    }
     
     return basicComplete;
   }, []);

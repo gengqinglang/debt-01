@@ -1327,7 +1327,11 @@ useEffect(() => {
     completePrivateLoans.forEach(loan => {
       const principalWan = parseFloat(loan.loanAmount || '0');
       const principalYuan = principalWan * 10000;
-      const annualRate = parseFloat(loan.annualRate || '0') / 100;
+      // Use consistent rate calculation - fen and li to percentage
+      const fenValue = parseFloat(loan.rateFen || '0');
+      const liValue = parseFloat(loan.rateLi || '0');
+      const annualRatePercent = fenValue + liValue / 10; // 1分 = 1%, 1厘 = 0.1%
+      const annualRate = annualRatePercent / 100;
       const remainingMonths = getRemainingMonths(loan.endDate || '');
       
       if (loan.repaymentMethod === 'interest-first') {
@@ -1336,9 +1340,9 @@ useEffect(() => {
         totalRemainingInterest += (monthlyInterest * remainingMonths) / 10000;
         totalMonthlyPayment += monthlyInterest;
       } else if (loan.repaymentMethod === 'lump-sum') {
-        // 一次性还本付息：计算总利息，优先使用startDate到endDate，否则从今天到endDate
+        // 一次性还本付息：从今天到endDate的总利息（与卡片显示一致）
         if (loan.endDate) {
-          const startDate = loan.startDate ? new Date(loan.startDate) : new Date();
+          const startDate = new Date(); // 从今天开始计算
           const endDate = new Date(loan.endDate);
           const totalDays = Math.max(0, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
           totalRemainingInterest += (principalYuan * annualRate * totalDays / 365) / 10000;

@@ -211,10 +211,11 @@ const calculatePrivateLoanMonthlyPayment = (loan: PrivateLoanInfo): number => {
   
   // Handle different repayment methods
   if (loan.repaymentMethod === 'interest-first') {
-    // Calculate annual rate from fen and li
-    const fenRate = parseFloat(loan.rateFen || '0') / 100; // 分 to decimal
-    const liRate = parseFloat(loan.rateLi || '0') / 1000; // 厘 to decimal
-    const annualRate = fenRate + liRate;
+    // Calculate annual rate from fen and li - consistent with usePrivateLoanData
+    const fenValue = parseFloat(loan.rateFen || '0');
+    const liValue = parseFloat(loan.rateLi || '0');
+    const annualRatePercent = fenValue + liValue / 10; // 1分 = 1%, 1厘 = 0.1%
+    const annualRate = annualRatePercent / 100;
     
     if (annualRate <= 0) return 0;
     
@@ -465,12 +466,13 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           // Handle lump-sum repayment method
           if (loan.repaymentMethod === 'lump-sum' && loan.endDate) {
             const principalWan = parseFloat(loan.loanAmount || '0');
-            const fenRate = parseFloat(loan.rateFen || '0') / 100;
-            const liRate = parseFloat(loan.rateLi || '0') / 1000;
-            const annualRate = fenRate + liRate;
+            const fenValue = parseFloat(loan.rateFen || '0');
+            const liValue = parseFloat(loan.rateLi || '0');
+            const annualRatePercent = fenValue + liValue / 10; // 1分 = 1%, 1厘 = 0.1%
+            const annualRate = annualRatePercent / 100;
             
-            // Calculate total lump sum (principal + interest from start date to end date)
-            const startDate = loan.startDate ? new Date(loan.startDate) : new Date();
+            // Calculate total lump sum (principal + interest from today to end date)
+            const startDate = new Date(); // Calculate from today
             const endDate = new Date(loan.endDate);
             const totalDays = Math.max(0, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
             const totalInterest = principalWan * 10000 * annualRate * (totalDays / 365);
@@ -478,8 +480,8 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             
             repaymentItems.push({
               id: loan.id,
-              type: '民间贷',
-              name: loan.name || `民间贷${idx + 1}`,
+              type: '民间借贷',
+              name: loan.name || `民间借贷${idx + 1}`,
               amount: Math.round(totalAmount),
               dueDay,
               oneTimeDate: loan.endDate
@@ -490,8 +492,8 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             // Monthly interest payment
             repaymentItems.push({
               id: loan.id,
-              type: '民间贷',
-              name: loan.name || `民间贷${idx + 1}`,
+              type: '民间借贷',
+              name: loan.name || `民间借贷${idx + 1}`,
               amount: Math.round(amount),
               dueDay,
             });
@@ -514,8 +516,8 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           else if (amount > 0) {
             repaymentItems.push({
               id: loan.id,
-              type: '民间贷',
-              name: loan.name || `民间贷${idx + 1}`,
+              type: '民间借贷',
+              name: loan.name || `民间借贷${idx + 1}`,
               amount: Math.round(amount),
               dueDay,
             });
