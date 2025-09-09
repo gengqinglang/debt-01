@@ -283,7 +283,12 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
       const consumerLoans = (debt as any).consumerLoans as ConsumerLoanInfo[];
       consumerLoans.forEach((loan, idx) => {
         if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
-          const dueDay = getDueDayFromDate(loan.startDate) || getDueDayFromDate(loan.endDate) || 10;
+          let dueDay = 10; // default
+          if (loan.startDate) {
+            dueDay = getDueDayFromDate(loan.startDate);
+          } else if (loan.endDate) {
+            dueDay = getDueDayFromDate(loan.endDate);
+          }
           const amount = calculateConsumerLoanMonthlyPayment(loan);
           
           if (amount > 0) {
@@ -304,7 +309,12 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
       const businessLoans = (debt as any).businessLoans as BusinessLoanInfo[];
       businessLoans.forEach((loan, idx) => {
         if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
-          const dueDay = getDueDayFromDate(loan.startDate) || getDueDayFromDate(loan.endDate) || 10;
+          let dueDay = 10; // default
+          if (loan.startDate) {
+            dueDay = getDueDayFromDate(loan.startDate);
+          } else if (loan.endDate) {
+            dueDay = getDueDayFromDate(loan.endDate);
+          }
           const amount = calculateBusinessLoanMonthlyPayment(loan);
           
           if (amount > 0) {
@@ -325,7 +335,12 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
       const privateLoans = (debt as any).privateLoans as PrivateLoanInfo[];
       privateLoans.forEach((loan, idx) => {
         if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
-          const dueDay = getDueDayFromDate(loan.startDate) || getDueDayFromDate(loan.endDate) || 10;
+          let dueDay = 10; // default
+          if (loan.startDate) {
+            dueDay = getDueDayFromDate(loan.startDate);
+          } else if (loan.endDate) {
+            dueDay = getDueDayFromDate(loan.endDate);
+          }
           const amount = calculatePrivateLoanMonthlyPayment(loan);
           
           if (amount > 0) {
@@ -372,15 +387,33 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           break;
         case 'consumerLoan':
           // Use inferred date instead of hardcoded 15
-          dueDay = getDueDayFromDate((debt as any).startDate) || getDueDayFromDate((debt as any).endDate) || 15;
+          if ((debt as any).startDate) {
+            dueDay = getDueDayFromDate((debt as any).startDate);
+          } else if ((debt as any).endDate) {
+            dueDay = getDueDayFromDate((debt as any).endDate);
+          } else {
+            dueDay = 15;
+          }
           break;
         case 'businessLoan':
           // Use inferred date instead of hardcoded 10
-          dueDay = getDueDayFromDate((debt as any).startDate) || getDueDayFromDate((debt as any).endDate) || 10;
+          if ((debt as any).startDate) {
+            dueDay = getDueDayFromDate((debt as any).startDate);
+          } else if ((debt as any).endDate) {
+            dueDay = getDueDayFromDate((debt as any).endDate);
+          } else {
+            dueDay = 10;
+          }
           break;
         case 'privateLoan':
           // Use inferred date instead of hardcoded 25
-          dueDay = getDueDayFromDate((debt as any).startDate) || getDueDayFromDate((debt as any).endDate) || 25;
+          if ((debt as any).startDate) {
+            dueDay = getDueDayFromDate((debt as any).startDate);
+          } else if ((debt as any).endDate) {
+            dueDay = getDueDayFromDate((debt as any).endDate);
+          } else {
+            dueDay = 25;
+          }
           break;
         case 'creditCard':
           dueDay = 5;
