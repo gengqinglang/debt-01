@@ -78,10 +78,15 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
       const monthlyInterest = (principal * annualRate) / 12;
       return monthlyInterest;
     } else {
-      // 一次性还本付息：从今天到结束日期的利息
-      const remainingDays = calculateRemainingDays(businessLoan.endDate || '');
+      // 一次性还本付息：从开始日期到结束日期的利息（和消费贷一致）
+      const hasStartDate = Boolean(businessLoan.startDate);
+      if (!hasStartDate) return null;
+      
+      const startDate = new Date(businessLoan.startDate);
+      const endDate = new Date(businessLoan.endDate);
+      const totalDays = Math.max(0, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
       const yearlyInterest = principal * annualRate;
-      return (yearlyInterest * remainingDays) / 365;
+      return (yearlyInterest * totalDays) / 365;
     }
   })();
   
@@ -165,8 +170,8 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
         </div>
 
         {/* 根据还款方式显示不同的字段布局 */}
-        {(businessLoan.repaymentMethod === 'interest-first' || businessLoan.repaymentMethod === 'lump-sum') ? (
-          /* 先息后本/一次性还本付息：剩余贷款本金 + 贷款结束日期在一行，然后年化利率在下面 */
+        {businessLoan.repaymentMethod === 'interest-first' ? (
+          /* 先息后本：剩余贷款本金 + 贷款结束日期在一行，然后年化利率在下面 */
           <>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -236,21 +241,6 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
               </div>
             </div>
             
-            {/* 显示剩余月数和警告 */}
-            {businessLoan.endDate && (
-              <div className="mt-3 p-3 rounded-lg bg-gray-50">
-                <div className="text-xs text-gray-600">
-                  剩余月数：{calculateRemainingMonths(businessLoan.endDate)} 个月
-                  {calculateRemainingMonths(businessLoan.endDate) <= 2 && 
-                   normalizeWan(businessLoan.loanAmount || '') >= 10 && (
-                    <div className="mt-1 text-yellow-600 font-medium">
-                      ⚠️ 剩余期数很短，月供会非常大，请确认结束日期是否正确
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            
             <div>
               <Label className="text-xs font-medium">
                 年化利率（%） <span className="text-red-500">*</span>
@@ -274,7 +264,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                      <span className="text-sm font-medium">{businessLoan.repaymentMethod === 'interest-first' ? '每月利息' : '待还利息'}</span>
+                      <span className="text-sm font-medium">每月利息</span>
                     </div>
                      <div className="text-right" style={{ color: '#01BCD6' }}>
                        <div className="text-lg font-semibold">
@@ -283,19 +273,184 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                            const basicRequired = businessLoan.repaymentMethod;
                            if (!basicRequired) return '--';
                            
-                           if (businessLoan.repaymentMethod === 'interest-first') {
-                              // 先息后本必填项：剩余贷款本金 + 贷款结束日期 + 年化利率
-                              const requiredFilled = businessLoan.loanAmount && 
-                                     businessLoan.endDate && 
-                                     businessLoan.annualRate;
-                              if (!requiredFilled) return '--';
-                            } else if (businessLoan.repaymentMethod === 'lump-sum') {
-                              // 一次性还本付息必填项：剩余贷款本金 + 贷款结束日期 + 年化利率
-                              const requiredFilled = businessLoan.loanAmount && 
-                                     businessLoan.endDate && 
-                                     businessLoan.annualRate;
-                             if (!requiredFilled) return '--';
-                           }
+                           // 先息后本必填项：剩余贷款本金 + 贷款结束日期 + 年化利率
+                           const requiredFilled = businessLoan.loanAmount && 
+                                  businessLoan.endDate && 
+                                  businessLoan.annualRate;
+                           if (!requiredFilled) return '--';
+                           
+                           return pendingInterest !== null ? `¥${Math.round(pendingInterest).toLocaleString()}` : '--';
+                         })()}
+                       </div>
+                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : businessLoan.repaymentMethod === 'lump-sum' ? (
+          /* 一次性还本付息：按照消费贷的布局 */
+          <>
+            {/* 贷款开始日期 + 贷款结束日期 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  贷款开始日期 <span className="text-red-500">*</span>
+                </Label>
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "h-9 w-full justify-start text-left font-normal",
+                        !businessLoan.startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {businessLoan.startDate ? format(new Date(businessLoan.startDate), "yyyy-MM-dd") : "选择日期"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
+                     <Calendar
+                       mode="single"
+                       selected={businessLoan.startDate ? new Date(businessLoan.startDate) : undefined}
+                       onSelect={(date) => {
+                         updateBusinessLoan(businessLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
+                         setStartDateOpen(false);
+                       }}
+                       disabled={(date) => {
+                         // 贷款开始日期：今天-50年 到 今天（不能选择未来日期）
+                         const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                         const today = new Date();
+                         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                         const minDate = new Date(todayDate.getTime());
+                         minDate.setFullYear(minDate.getFullYear() - 50);
+                         return selectedDate.getTime() < minDate.getTime() || selectedDate.getTime() > todayDate.getTime();
+                       }}
+                       initialFocus
+                       captionLayout="dropdown"
+                       fromYear={1975}
+                       toYear={new Date().getFullYear()}
+                       locale={zhCN}
+                      classNames={{ 
+                        caption_label: "hidden", 
+                        nav: "hidden",
+                        caption_dropdowns: "flex justify-between w-full",
+                        dropdown: "min-w-[120px] w-[120px]"
+                      }}
+                      className={cn("p-3 pointer-events-auto w-full")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label className="text-xs font-medium">
+                  贷款结束日期 <span className="text-red-500">*</span>
+                </Label>
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                       className={cn(
+                         "h-9 w-full justify-start text-left font-normal mt-1",
+                         !businessLoan.endDate && "text-muted-foreground"
+                       )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {businessLoan.endDate ? format(new Date(businessLoan.endDate), "yyyy-MM-dd") : "选择日期"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
+                     <Calendar
+                       mode="single"
+                       selected={businessLoan.endDate ? new Date(businessLoan.endDate) : undefined}
+                       onSelect={(date) => {
+                         updateBusinessLoan(businessLoan.id, 'endDate', date ? format(date, "yyyy-MM-dd") : '');
+                         setEndDateOpen(false);
+                       }}
+                       disabled={(date) => {
+                         // 贷款结束日期：今天 到 今天+50年
+                         const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                         const today = new Date();
+                         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                         const maxDate = new Date(todayDate.getTime());
+                         maxDate.setFullYear(maxDate.getFullYear() + 50);
+                         return selectedDate.getTime() < todayDate.getTime() || selectedDate.getTime() > maxDate.getTime();
+                       }}
+                       initialFocus
+                       captionLayout="dropdown"
+                       fromYear={new Date().getFullYear()}
+                       toYear={new Date().getFullYear() + 50}
+                       locale={zhCN}
+                      classNames={{ 
+                        caption_label: "hidden", 
+                        nav: "hidden",
+                        caption_dropdowns: "flex justify-between w-full",
+                        dropdown: "min-w-[120px] w-[120px]"
+                      }}
+                      className={cn("p-3 pointer-events-auto w-full")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            {/* 剩余贷款本金 + 年化利率 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  剩余贷款本金（万元） <span className="text-red-500">*</span>
+                  <span className="text-gray-500 ml-1">单位：万元</span>
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*"
+                  placeholder="如：100"
+                  value={businessLoan.loanAmount}
+                  onChange={(e) => updateBusinessLoan(businessLoan.id, 'loanAmount', e.target.value)}
+                  className="h-9 text-sm mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-medium">
+                  年化利率（%） <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*\.?[0-9]*"
+                  step="0.01"
+                  placeholder="如：6.5"
+                  value={businessLoan.annualRate}
+                  onChange={(e) => updateBusinessLoan(businessLoan.id, 'annualRate', e.target.value)}
+                  className="h-9 text-sm mt-1"
+                />
+              </div>
+            </div>
+            
+            {/* 待还利息栏位 */}
+            <div className="mt-5">
+              <div className="space-y-2">
+                <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                      <span className="text-sm font-medium">待还利息</span>
+                    </div>
+                     <div className="text-right" style={{ color: '#01BCD6' }}>
+                       <div className="text-lg font-semibold">
+                         {(() => {
+                           // 检查必输项是否完整
+                           const basicRequired = businessLoan.repaymentMethod;
+                           if (!basicRequired) return '--';
+                           
+                           // 一次性还本付息必填项：贷款开始日期 + 贷款结束日期 + 剩余贷款本金 + 年化利率（和消费贷一致）
+                           const requiredFilled = businessLoan.startDate && 
+                                  businessLoan.endDate && 
+                                  businessLoan.loanAmount && 
+                                  businessLoan.annualRate;
+                          if (!requiredFilled) return '--';
                            
                            return pendingInterest !== null ? `¥${Math.round(pendingInterest).toLocaleString()}` : '--';
                          })()}
@@ -403,10 +558,10 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                       className={cn(
-                         "h-9 w-full justify-start text-left font-normal mt-1",
-                         !businessLoan.endDate && "text-muted-foreground"
-                       )}
+                      className={cn(
+                        "h-9 w-full justify-start text-left font-normal",
+                        !businessLoan.endDate && "text-muted-foreground"
+                      )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {businessLoan.endDate ? format(new Date(businessLoan.endDate), "yyyy-MM-dd") : "选择日期"}
@@ -462,10 +617,9 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
               </div>
             )}
             
-            {/* 贷款利率 */}
             <div>
               <Label className="text-xs font-medium">
-                贷款利率（%） <span className="text-red-500">*</span>
+                年化利率（%） <span className="text-red-500">*</span>
               </Label>
               <Input
                 type="number"
@@ -478,35 +632,35 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                 className="h-9 text-sm mt-1"
               />
             </div>
-
-            {(businessLoan.repaymentMethod === 'equal-payment' || businessLoan.repaymentMethod === 'equal-principal') && (
-              <div className="mt-5">
-                <div className="space-y-2">
-                  <div className="rounded-lg p-3 bg-white border border-cyan-500">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                        <span className="text-sm font-medium">月供金额</span>
-                      </div>
-                       <div className="text-right" style={{ color: '#01BCD6' }}>
-                         <div className="text-lg font-semibold">
-                           {(() => {
-                             // 检查必输项是否完整
-                             const requiredFilled = businessLoan.remainingPrincipal && 
-                                    businessLoan.startDate && 
-                                    businessLoan.endDate && 
-                                    businessLoan.annualRate;
-                             
-                             if (!requiredFilled) return '--';
-                             return monthlyPayment !== null ? `¥${Math.round(monthlyPayment).toLocaleString()}` : '--';
-                           })()}
-                         </div>
-                       </div>
+            
+            {/* 月供栏位 */}
+            <div className="mt-5">
+              <div className="space-y-2">
+                <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                      <span className="text-sm font-medium">月供</span>
                     </div>
+                     <div className="text-right" style={{ color: '#01BCD6' }}>
+                       <div className="text-lg font-semibold">
+                         {(() => {
+                           // 检查必输项是否完整
+                           const requiredFilledForMonthly = businessLoan.remainingPrincipal && 
+                                  businessLoan.startDate && 
+                                  businessLoan.endDate && 
+                                  businessLoan.annualRate && 
+                                  businessLoan.repaymentMethod;
+                           if (!requiredFilledForMonthly) return '--';
+                           
+                           return monthlyPayment !== null ? `¥${Math.round(monthlyPayment).toLocaleString()}` : '--';
+                         })()}
+                       </div>
+                     </div>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
           </>
         )}
       </div>
@@ -535,50 +689,38 @@ export const SharedBusinessLoanModule: React.FC<SharedBusinessLoanModuleProps> =
   updateBusinessLoan,
   isBusinessLoanComplete
 }) => {
-  // 自动添加空白卡片
+  // 在组件挂载时，如果没有现有数据则自动添加一笔贷款
   useEffect(() => {
-    const hasExistingData = existingData && existingData.length > 0;
-    const hasCurrentData = businessLoans && businessLoans.length > 0;
-    
-    if (!hasExistingData && !hasCurrentData) {
+    if (businessLoans.length === 0) {
       addBusinessLoan();
     }
-  }, [existingData, addBusinessLoan]);
+  }, [businessLoans.length, addBusinessLoan]);
 
   return (
-    <>
-      {/* 经营贷列表 */}
+    <div className="space-y-4">
       {businessLoans.map((businessLoan, index) => (
-        <div key={businessLoan.id} className="mb-4">
-          <BusinessLoanCard
-            businessLoan={businessLoan}
-            index={index}
-            updateBusinessLoan={updateBusinessLoan}
-            removeBusinessLoan={removeBusinessLoan}
-            resetBusinessLoan={resetBusinessLoan}
-            businessLoansLength={businessLoans.length}
-          />
-        </div>
+        <BusinessLoanCard
+          key={businessLoan.id}
+          businessLoan={businessLoan}
+          index={index}
+          updateBusinessLoan={updateBusinessLoan}
+          removeBusinessLoan={removeBusinessLoan}
+          resetBusinessLoan={resetBusinessLoan}
+          businessLoansLength={businessLoans.length}
+        />
       ))}
-
-      {/* 按钮区域 - 左侧"再录一笔" + 右侧确认按钮 */}
-      <div className="grid grid-cols-2 gap-3 mt-6 mb-3">
-        {/* 左侧：再录一笔（虚线边框，青色） */}
-        <Button
-          onClick={addBusinessLoan}
-          variant="outline"
-          className="h-10 border-dashed text-sm"
-          style={{ borderColor: '#01BCD6', color: '#01BCD6' }}
-        >
-          <Plus className="w-3 h-3 mr-2" />
-          再录一笔
-        </Button>
-
-        {/* 右侧：确认经营贷信息（传入的children） */}
-        <div className="w-full">
-          {children}
-        </div>
-      </div>
-    </>
+      
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={addBusinessLoan}
+        className="w-full py-6 border border-dashed border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-700 hover:bg-gray-50 mt-4"
+      >
+        <Plus className="h-4 w-4 mr-2" />
+        添加经营贷
+      </Button>
+      
+      {children}
+    </div>
   );
 };

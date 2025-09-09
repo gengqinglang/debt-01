@@ -398,13 +398,15 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           const amount = calculateBusinessLoanMonthlyPayment(loan);
           
           // Handle lump-sum repayment method
-          if (loan.repaymentMethod === 'lump-sum' && loan.endDate) {
-              const principalWan = normalizeWan(loan.loanAmount || '0');
+          if (loan.repaymentMethod === 'lump-sum' && loan.endDate && loan.startDate) {
+            const principalWan = normalizeWan(loan.loanAmount || '0');
             const annualRate = parseFloat(loan.annualRate || '0') / 100;
             
-            // Calculate total lump sum (principal + interest from today to end date)
-            const remainingDays = Math.max(0, Math.ceil((new Date(loan.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
-            const totalInterest = principalWan * 10000 * annualRate * (remainingDays / 365);
+            // Calculate total lump sum (principal + interest from start date to end date) - 和消费贷一致
+            const startDate = new Date(loan.startDate);
+            const endDate = new Date(loan.endDate);
+            const totalDays = Math.max(0, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+            const totalInterest = principalWan * 10000 * annualRate * (totalDays / 365);
             const totalAmount = principalWan * 10000 + totalInterest;
             
             repaymentItems.push({

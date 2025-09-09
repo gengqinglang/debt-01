@@ -80,12 +80,23 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
 
   // 检查经营贷信息是否完整
   const isBusinessLoanComplete = useCallback((businessLoan: BusinessLoanInfo): boolean => {
-    if (businessLoan.repaymentMethod === 'interest-first' || businessLoan.repaymentMethod === 'lump-sum') {
-      // 先息后本/一次性还本付息：需要剩余贷款本金、贷款结束日期、年化利率
+    if (businessLoan.repaymentMethod === 'interest-first') {
+      // 先息后本：需要剩余贷款本金、贷款结束日期、年化利率
       return Boolean(
         businessLoan.loanAmount && 
         parseFloat(businessLoan.loanAmount) > 0 &&
         businessLoan.endDate &&
+        businessLoan.annualRate && 
+        parseFloat(businessLoan.annualRate) > 0 &&
+        businessLoan.repaymentMethod
+      );
+    } else if (businessLoan.repaymentMethod === 'lump-sum') {
+      // 一次性还本付息：需要贷款开始日期、贷款结束日期、剩余贷款本金、年化利率（和消费贷一致）
+      return Boolean(
+        businessLoan.startDate &&
+        businessLoan.endDate &&
+        businessLoan.loanAmount && 
+        parseFloat(businessLoan.loanAmount) > 0 &&
         businessLoan.annualRate && 
         parseFloat(businessLoan.annualRate) > 0 &&
         businessLoan.repaymentMethod
