@@ -120,23 +120,10 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
         <Card className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 border-[#B3EBEF]/30">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center mb-2">
-              <PiggyBank className="w-5 h-5 text-[#01BCD6] mr-2" />
               <span className="text-sm text-gray-600">负债总额</span>
             </div>
-            <div className="text-xl font-bold text-gray-900">
+            <div className="text-lg font-bold text-gray-900">
               {Math.round(totalDebtWan).toLocaleString()}万
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 border-[#B3EBEF]/30">
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center mb-2">
-              <TrendingDown className="w-5 h-5 text-[#01BCD6] mr-2" />
-              <span className="text-sm text-gray-600">下期还款额</span>
-            </div>
-            <div className="text-xl font-bold text-gray-900">
-              {formatCurrency(monthlyTotalYuan)}
             </div>
           </CardContent>
         </Card>
@@ -144,11 +131,21 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
         <Card className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 border-[#B3EBEF]/30">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center mb-2">
-              <Wallet className="w-5 h-5 text-[#01BCD6] mr-2" />
               <span className="text-sm text-gray-600">本月待还款额</span>
             </div>
-            <div className="text-xl font-bold text-gray-900">
+            <div className="text-lg font-bold text-gray-900">
               {formatCurrency(monthlyRemainingYuan)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 border-[#B3EBEF]/30">
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <span className="text-sm text-gray-600">下期还款额</span>
+            </div>
+            <div className="text-lg font-bold text-gray-900">
+              {formatCurrency(monthlyTotalYuan)}
             </div>
           </CardContent>
         </Card>
