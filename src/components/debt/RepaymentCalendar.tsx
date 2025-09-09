@@ -5,54 +5,17 @@ import { CalendarDays, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
-import { calculateMortgageLoanPayment, type MortgageLoanInfo } from '@/lib/loanCalculations';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
-import type { ConsumerLoanInfo } from '@/hooks/useConsumerLoanData';
-import type { CarLoanInfo } from '@/hooks/useCarLoanData';
-import type { BusinessLoanInfo } from '@/hooks/useBusinessLoanData';
+import { 
+  buildRepaymentItems, 
+  getMonthlyRepaymentDates,
+  type RepaymentItem
+} from '@/lib/repaymentSchedule';
 
 interface RepaymentCalendarProps {
   debts: DebtInfo[];
 }
-
-// Individual loan interfaces for localStorage data  
-interface PrivateLoanInfo {
-  id: string;
-  name?: string;
-  loanAmount: string;
-  monthlyPayment?: string;
-  startDate: string;
-  endDate?: string;
-  remainingMonths?: string;
-}
-
-interface CreditCardInfo {
-  id: string;
-  bankName?: string;
-  monthlyPayment: string;
-  remainingAmount?: string;
-  minimumPayment?: string;
-}
-
-// Individual repayment item
-interface RepaymentItem {
-  type: string;
-  subType?: string;
-  name: string;
-  amount: number;
-  dueDay: number;
-}
-
-// 债务类型中文映射
-const debtTypeNames: Record<string, string> = {
-  mortgage: '房贷',
-  carLoan: '车贷', 
-  consumerLoan: '消费贷',
-  businessLoan: '经营贷',
-  privateLoan: '民间贷',
-  creditCard: '信用卡'
-};
 
 // 格式化金额
 const formatCurrency = (amount: number): string => {
@@ -64,140 +27,6 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-// 从localStorage加载各类贷款的详细数据
-const loadIndividualLoanData = () => {
-  try {
-    const sharedMortgage = JSON.parse(localStorage.getItem('shared_loan_data') || '[]') as any[];
-    // 其他类型当前未持久化，返回空
-    return {
-      mortgageLoans: Array.isArray(sharedMortgage) ? sharedMortgage : [],
-      carLoans: [],
-      consumerLoans: [],
-      businessLoans: [],
-      privateLoans: [],
-      creditCards: []
-    };
-  } catch (error) {
-    console.error('Error loading individual loan data:', error);
-    return {
-      mortgageLoans: [],
-      carLoans: [],
-      consumerLoans: [],
-      businessLoans: [],
-      privateLoans: [],
-      creditCards: []
-    };
-  }
-};
-
-// 获取还款日（从日期字符串中提取日数）
-const getDueDayFromDate = (dateStr?: string, defaultDay: number = 10): number => {
-  if (!dateStr) return defaultDay;
-  
-  try {
-    const date = new Date(dateStr);
-    const day = date.getDate();
-    return day >= 1 && day <= 31 ? day : defaultDay;
-  } catch {
-    return defaultDay;
-  }
-};
-
-// 处理个人贷款数据，生成还款计划 - 使用统一的计算逻辑
-const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
-  const { mortgageLoans } = loadIndividualLoanData();
-  const repaymentItems: RepaymentItem[] = [];
-
-  console.log('Processing loans with data:', { mortgageLoans, debts });
-
-  // 仅房贷有明确的本地持久化明细（shared_loan_data）
-  if (Array.isArray(mortgageLoans) && mortgageLoans.length > 0) {
-    mortgageLoans.forEach((loan: any, idx: number) => {
-      console.log(`Processing loan ${idx}:`, loan);
-      const safeName = loan.propertyName || `房贷${idx + 1}`;
-      
-      // 使用统一的计算逻辑精确计算月供
-      const monthlyPayment = calculateMortgageLoanPayment(loan as MortgageLoanInfo);
-      
-      console.log(`Calculated monthly payment for ${safeName}:`, monthlyPayment);
-      
-      // 只有月供大于0的贷款才显示在日历中
-      if (monthlyPayment > 0) {
-        // 确定还款日期
-        let startDate = '';
-        if (loan.loanType === 'combination') {
-          // 组合贷款使用商贷开始日期，如果没有则使用公积金开始日期
-          startDate = loan.commercialStartDate || loan.providentStartDate || '';
-        } else {
-          startDate = loan.loanStartDate || '';
-        }
-        
-        // 改进日期提取逻辑
-        let dueDay = 10; // 默认值
-        if (startDate) {
-          try {
-            const date = new Date(startDate);
-            if (!isNaN(date.getTime())) {
-              dueDay = date.getDate();
-            }
-          } catch (e) {
-            console.warn('Invalid date:', startDate);
-          }
-        }
-        
-        console.log(`Adding repayment item: ${safeName}, amount: ${monthlyPayment}, dueDay: ${dueDay}`);
-        
-        repaymentItems.push({
-          type: '房贷',
-          subType: undefined,
-          name: safeName,
-          amount: monthlyPayment,
-          dueDay: dueDay,
-        });
-      }
-    });
-  }
-
-  // 处理其他类型债务（从聚合数据中获取，使用默认还款日）
-  debts.forEach(debt => {
-    if (debt.type === 'mortgage') return; // 已处理
-    
-    const monthlyPayment = debt.monthlyPayment || 0;
-    if (monthlyPayment <= 0) return;
-    
-    let dueDay = 10; // 默认还款日
-    
-    // 根据债务类型设置不同的还款日
-    if (debt.type === 'carLoan' && debt.carStartDate) {
-      try {
-        const carDate = new Date(debt.carStartDate);
-        if (!isNaN(carDate.getTime())) {
-          dueDay = carDate.getDate();
-        }
-      } catch (e) {
-        console.warn('Invalid car loan date:', debt.carStartDate);
-      }
-    }
-    
-    // 为不同债务类型设置不同的默认还款日（分散显示）
-    if (debt.type === 'consumerLoan') dueDay = 15;
-    else if (debt.type === 'businessLoan') dueDay = 20;
-    else if (debt.type === 'privateLoan') dueDay = 25;
-    else if (debt.type === 'creditCard') dueDay = 5;
-    
-    repaymentItems.push({
-      type: debtTypeNames[debt.type] || debt.type,
-      subType: undefined,
-      name: debt.name || debtTypeNames[debt.type],
-      amount: monthlyPayment,
-      dueDay,
-    });
-  });
-
-  console.log('Final processed repayment items:', repaymentItems);
-  return repaymentItems;
-};
-
 const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -205,74 +34,13 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
   // Debug flag to show container outlines
   const debug = false;
 
-  // 计算当月每日的还款信息 - 使用个人贷款数据，只计算今天及以后的日期
+  // 计算当月每日的还款信息 - 使用统一的还款计划构建逻辑
   const monthlyRepayments = useMemo(() => {
-    const repaymentMap = new Map<string, RepaymentItem[]>();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // 设置为当天0点，便于比较
+    const repaymentItems = buildRepaymentItems(debts);
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
     
-    // 获取所有个人贷款的还款计划
-    const repaymentItems = processIndividualLoans(debts);
-    
-    if (repaymentItems.length === 0) {
-      console.log('No individual loan data found, using aggregated debt data as fallback');
-      // 回退到原有逻辑：使用聚合的债务数据
-      const validDebts = debts.filter(debt => 
-        (debt.amount || 0) > 0 && 
-        (debt.remainingMonths || 0) > 0 &&
-        (debt.monthlyPayment || 0) > 0
-      );
-
-      const year = currentMonth.getFullYear();
-      const month = currentMonth.getMonth();
-      
-      validDebts.forEach(debt => {
-        const dueDay = getDueDayFromDate(debt.carStartDate?.toString(), 10);
-        
-        const dueDate = new Date(year, month, dueDay);
-        dueDate.setHours(0, 0, 0, 0);
-        
-        // 只处理今天及以后的日期
-        if (dueDate.getMonth() === month && dueDate >= today) {
-          const dateKey = format(dueDate, 'yyyy-MM-dd');
-          
-          if (!repaymentMap.has(dateKey)) {
-            repaymentMap.set(dateKey, []);
-          }
-          
-          repaymentMap.get(dateKey)!.push({
-            type: debtTypeNames[debt.type] || debt.type,
-            name: debt.name || debtTypeNames[debt.type],
-            amount: debt.monthlyPayment || 0,
-            dueDay
-          });
-        }
-      });
-    } else {
-      // 使用个人贷款数据
-      const year = currentMonth.getFullYear();
-      const month = currentMonth.getMonth();
-      
-      repaymentItems.forEach(item => {
-        // 为当前显示的月份创建还款日期
-        const dueDate = new Date(year, month, item.dueDay);
-        dueDate.setHours(0, 0, 0, 0);
-        
-        // 只处理今天及以后的日期，且在当前月份内
-        if (dueDate.getMonth() === month && dueDate >= today) {
-          const dateKey = format(dueDate, 'yyyy-MM-dd');
-          
-          if (!repaymentMap.has(dateKey)) {
-            repaymentMap.set(dateKey, []);
-          }
-          
-          repaymentMap.get(dateKey)!.push(item);
-        }
-      });
-    }
-
-    console.log('Monthly repayments for', format(currentMonth, 'yyyy-MM', { locale: zhCN }), repaymentMap);
-    return repaymentMap;
+    return getMonthlyRepaymentDates(repaymentItems, year, month);
   }, [debts, currentMonth]);
 
   // 自动选择当月有还款计划的最早日期
@@ -402,12 +170,10 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
                         <div className="font-medium text-gray-900">
                           {repayment.type}
                         </div>
-                        {repayment.name && (
-                          <div className="text-sm text-gray-500">{repayment.name}</div>
-                        )}
-                        {repayment.subType && (
-                          <div className="text-xs text-gray-400">{repayment.subType}</div>
-                        )}
+                        <div className="text-sm text-gray-500">
+                          {repayment.name}
+                          {repayment.subType && ` - ${repayment.subType}`}
+                        </div>
                       </div>
                       <div className="text-lg font-bold text-[#01BCD6]">
                         {formatCurrency(repayment.amount)}

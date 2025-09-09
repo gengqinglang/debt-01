@@ -1,9 +1,11 @@
 import { 
   calculateMortgageLoanPayment, 
   calculateRemainingMonths, 
+  calculateSingleLoanMonthlyPayment,
   type MortgageLoanInfo 
 } from '@/lib/loanCalculations';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
+import type { CarLoanInfo } from '@/hooks/useCarLoanData';
 
 // Detailed repayment item with precise due date information
 export interface RepaymentItem {
@@ -40,6 +42,48 @@ const loadMortgageLoans = (): MortgageLoanInfo[] => {
   }
 };
 
+// Load detailed car loan data from localStorage
+const loadCarLoans = (): CarLoanInfo[] => {
+  try {
+    const carLoans = JSON.parse(localStorage.getItem('car_loan_data') || '[]');
+    return Array.isArray(carLoans) ? carLoans : [];
+  } catch (error) {
+    console.error('Error loading car loan data:', error);
+    return [];
+  }
+};
+
+// Calculate car loan monthly payment
+const calculateCarLoanMonthlyPayment = (loan: CarLoanInfo): number => {
+  if (loan.loanType === 'installment') {
+    return parseFloat(loan.installmentAmount || '0');
+  }
+  
+  // For bank loans, use remaining months calculation
+  const principalWan = parseFloat(loan.remainingPrincipal || loan.principal || '0');
+  const annualRate = parseFloat(loan.interestRate || '0') / 100;
+  
+  if (principalWan <= 0 || annualRate <= 0) return 0;
+  
+  // Calculate remaining months from dates
+  let remainingMonths = 0;
+  if (loan.startDateMonth && loan.endDateMonth) {
+    const today = new Date();
+    const endDate = new Date(loan.endDateMonth);
+    const diffTime = endDate.getTime() - today.getTime();
+    remainingMonths = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44)));
+  }
+  
+  if (remainingMonths <= 0) return 0;
+  
+  return calculateSingleLoanMonthlyPayment(
+    principalWan,
+    annualRate,
+    loan.repaymentMethod || 'equal-payment',
+    remainingMonths
+  );
+};
+
 // Build detailed repayment items from all loan data sources
 export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
   const repaymentItems: RepaymentItem[] = [];
@@ -69,11 +113,45 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           id: loan.id,
           type: '房贷',
           name: safeName,
-          amount: monthlyPayment,
+          amount: Math.round(monthlyPayment),
           dueDay,
         });
         
         processedMortgageIds.add(loan.id || safeName);
+      }
+    });
+  }
+
+  // Process detailed car loans from localStorage
+  const carLoans = loadCarLoans();
+  const processedCarLoanIds = new Set<string>();
+
+  if (carLoans.length > 0) {
+    carLoans.forEach((loan, idx) => {
+      const monthlyPayment = calculateCarLoanMonthlyPayment(loan);
+      
+      if (monthlyPayment > 0) {
+        const safeName = loan.vehicleName || `车贷${idx + 1}`;
+        const subType = loan.loanType === 'bankLoan' ? '银行贷款' : '分期';
+        
+        // Determine due date from loan data
+        let dueDay = 10; // Default
+        if (loan.loanType === 'bankLoan' && loan.startDateMonth) {
+          dueDay = getDueDayFromDate(loan.startDateMonth, 1);
+        } else {
+          dueDay = 10; // Default for installments
+        }
+        
+        repaymentItems.push({
+          id: loan.id,
+          type: '车贷',
+          subType,
+          name: safeName,
+          amount: Math.round(monthlyPayment),
+          dueDay,
+        });
+        
+        processedCarLoanIds.add(loan.id || safeName);
       }
     });
   }
@@ -97,10 +175,15 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
         }
         break;
       case 'carLoan':
-        dueDay = getDueDayFromDate(
-          debt.carStartDate ? (typeof debt.carStartDate === 'string' ? debt.carStartDate : debt.carStartDate.toISOString().split('T')[0]) : undefined, 
-          25
-        );
+        // Skip if already processed from localStorage
+        if (processedCarLoanIds.size > 0) {
+          shouldSkip = true;
+        } else {
+          dueDay = getDueDayFromDate(
+            debt.carStartDate ? (typeof debt.carStartDate === 'string' ? debt.carStartDate : debt.carStartDate.toISOString().split('T')[0]) : undefined, 
+            25
+          );
+        }
         break;
       case 'consumerLoan':
         dueDay = 15;
@@ -132,7 +215,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
       repaymentItems.push({
         type: debtTypeNames[debt.type] || debt.type,
         name: debt.name || debtTypeNames[debt.type] || debt.type,
-        amount: monthlyPayment,
+        amount: Math.round(monthlyPayment),
         dueDay,
       });
     }

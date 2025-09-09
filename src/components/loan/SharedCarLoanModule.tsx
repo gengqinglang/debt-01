@@ -32,24 +32,36 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
   carLoansLength,
 }) => {
   const calculateCarLoanMonthlyPayment = (loan: CarLoanInfo) => {
-    // 优先使用剩余本金，如果没有则使用原始金额
-    const principalAmount = parseFloat(loan.remainingPrincipal || loan.principal || '0') * 10000; // 万元转元
-    const annual = parseFloat(loan.interestRate || '0') / 100;
-    const r = annual / 12;
-    let months = 0;
+    if (loan.loanType === 'installment') {
+      return parseFloat(loan.installmentAmount || '0');
+    }
+    
+    // For bank loans, use remaining months calculation
+    const principalWan = parseFloat(loan.remainingPrincipal || loan.principal || '0');
+    const annualRate = parseFloat(loan.interestRate || '0') / 100;
+    
+    if (principalWan <= 0 || annualRate <= 0) return 0;
+    
+    // Calculate remaining months from dates
+    let remainingMonths = 0;
     if (loan.startDateMonth && loan.endDateMonth) {
-      const [sy, sm] = loan.startDateMonth.split('-').map(Number);
-      const [ey, em] = loan.endDateMonth.split('-').map(Number);
-      months = (ey - sy) * 12 + (em - sm);
-    } else if (loan.term) {
-      months = parseFloat(loan.term || '0') * 12;
+      const today = new Date();
+      const endDate = new Date(loan.endDateMonth);
+      const diffTime = endDate.getTime() - today.getTime();
+      remainingMonths = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44)));
     }
-    if (principalAmount <= 0 || r <= 0 || months <= 0) return 0;
-    const method = (loan as any).repaymentMethod || 'equal-payment';
-    if (method === 'equal-principal') {
-      return principalAmount / months + principalAmount * r;
+    
+    if (remainingMonths <= 0) return 0;
+    
+    // Use unified calculation logic from loanCalculations
+    const monthlyRate = annualRate / 12;
+    const principalYuan = principalWan * 10000;
+    
+    if (loan.repaymentMethod === 'equal-principal') {
+      return principalYuan / remainingMonths + principalYuan * monthlyRate;
     }
-    return principalAmount * (r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
+    
+    return principalYuan * (monthlyRate * Math.pow(1 + monthlyRate, remainingMonths)) / (Math.pow(1 + monthlyRate, remainingMonths) - 1);
   };
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);

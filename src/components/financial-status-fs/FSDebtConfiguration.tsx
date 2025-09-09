@@ -1991,6 +1991,9 @@ setLastConfirmedData({ loans, formData });
                 // 汇总车贷数据并确认
                 const aggregatedData = getCarLoanAggregatedData();
                 if (aggregatedData.count > 0) {
+                  // 保存车贷数据到localStorage用于还款日历
+                  localStorage.setItem('car_loan_data', JSON.stringify(carLoans.filter(isCarLoanComplete)));
+                  
                   // 保存确认时的数据状态
 setLastConfirmedData({ carLoans });
                   setHasDataChanged(false);
