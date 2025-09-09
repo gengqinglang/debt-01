@@ -400,7 +400,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
                 buttonVariants({ variant: "ghost" }),
                 "h-10 w-10 sm:h-14 sm:w-14 p-0 font-normal aria-selected:opacity-100 flex items-start justify-center pt-0.5 sm:pt-1 hover:bg-transparent"
               ),
-              day_selected: "bg-[#CAF4F7] text-primary-foreground focus:bg-[#CAF4F7] focus:text-primary-foreground",
+              day_selected: "bg-gradient-to-r from-[#B3EBEF]/20 to-[#8FD8DC]/20 text-primary-foreground focus:bg-gradient-to-r focus:from-[#B3EBEF]/20 focus:to-[#8FD8DC]/20 focus:text-primary-foreground",
               day_today: "bg-transparent"
             }}
             components={{
