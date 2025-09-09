@@ -173,8 +173,8 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="max-w-xs">
                 <Label className="text-xs font-medium">
                   每月还款日 <span className="text-red-500">*</span>
                 </Label>
@@ -194,7 +194,6 @@ const CarLoanCard: React.FC<CarLoanCardProps> = ({
                   </SelectContent>
                 </Select>
               </div>
-              <div></div>
             </div>
           </div>
         ) : (
