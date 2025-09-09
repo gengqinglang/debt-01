@@ -61,15 +61,12 @@ const formatDateLocal = (date: Date): string => {
 const getDueDayByMethod = (repaymentMethod: string, startDate?: string, endDate?: string): number => {
   const defaultDay = 1;
   
-  // For interest-first and lump-sum: prioritize startDate, then endDate, then default
-  if (repaymentMethod === 'interest-first' || repaymentMethod === 'lump-sum') {
-    if (startDate) {
-      return getDueDayFromDate(startDate, defaultDay);
-    } else if (endDate) {
-      return getDueDayFromDate(endDate, defaultDay);
-    } else {
-      return defaultDay;
-    }
+  // For interest-first: strictly use endDate's day; for lump-sum, also prefer endDate
+  if (repaymentMethod === 'interest-first') {
+    return getDueDayFromDate(endDate, defaultDay);
+  }
+  if (repaymentMethod === 'lump-sum') {
+    return getDueDayFromDate(endDate, defaultDay);
   }
   
   // For equal payment/principal methods: prioritize startDate, then endDate, then default
@@ -375,7 +372,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
                 name: loan.name || `消费贷${idx + 1}`,
                 amount: Math.round(amount),
                 dueDay,
-                recurringStartDate: loan.startDate,
+                recurringStartDate: formatDateLocal(new Date()),
                 recurringEndDate: formatDateLocal(lastInterestMonth),
               });
               
@@ -399,7 +396,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
                 name: loan.name || `消费贷${idx + 1}`,
                 amount: Math.round(amount),
                 dueDay,
-                recurringStartDate: loan.startDate,
+                recurringStartDate: formatDateLocal(new Date()),
                 recurringEndDate: loan.endDate,
               });
             }
@@ -528,7 +525,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
                 name: loan.name || `民间借贷${idx + 1}`,
                 amount: Math.round(amount),
                 dueDay,
-                recurringStartDate: loan.startDate,
+                recurringStartDate: formatDateLocal(new Date()),
                 recurringEndDate: formatDateLocal(lastInterestMonth),
               });
               
@@ -552,7 +549,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
                 name: loan.name || `民间借贷${idx + 1}`,
                 amount: Math.round(amount),
                 dueDay,
-                recurringStartDate: loan.startDate,
+                recurringStartDate: formatDateLocal(new Date()),
                 recurringEndDate: loan.endDate,
               });
             }
