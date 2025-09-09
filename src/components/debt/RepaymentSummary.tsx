@@ -26,11 +26,51 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-// 计算预计结清日期
-const addMonths = (date: Date, months: number): Date => {
-  const result = new Date(date);
-  result.setMonth(result.getMonth() + months);
-  return result;
+// 计算当月剩余还款金额
+const calculateMonthlyRemainingPayment = (debts: DebtInfo[]): number => {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth();
+  const currentDay = today.getDate();
+  
+  return debts.reduce((total, debt) => {
+    if ((debt.remainingMonths || 0) <= 0 || (debt.monthlyPayment || 0) <= 0) {
+      return total;
+    }
+    
+    // 根据债务类型确定还款日
+    let dueDay = 10; // 默认还款日
+    
+    // 如果有具体的还款日期信息，使用它
+    if (debt.type === 'carLoan' && debt.carStartDate) {
+      try {
+        const carDate = new Date(debt.carStartDate);
+        if (!isNaN(carDate.getTime())) {
+          dueDay = carDate.getDate();
+        }
+      } catch (e) {
+        // 使用默认值
+      }
+    } else {
+      // 为不同债务类型设置不同的默认还款日
+      if (debt.type === 'mortgage') dueDay = 20;
+      else if (debt.type === 'carLoan') dueDay = 25;
+      else if (debt.type === 'consumerLoan') dueDay = 15;
+      else if (debt.type === 'businessLoan') dueDay = 10;
+      else if (debt.type === 'privateLoan') dueDay = 25;
+      else if (debt.type === 'creditCard') dueDay = 5;
+    }
+    
+    // 创建当月的还款日期
+    const repaymentDate = new Date(currentYear, currentMonth, dueDay);
+    
+    // 如果还款日期是今天或以后，则计入剩余还款
+    if (repaymentDate.getDate() >= currentDay && repaymentDate.getMonth() === currentMonth) {
+      return total + (debt.monthlyPayment || 0);
+    }
+    
+    return total;
+  }, 0);
 };
 const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
   debts
@@ -43,6 +83,9 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
     }
     return sum;
   }, 0);
+
+  // 计算当月剩余还款金额
+  const monthlyRemainingYuan = calculateMonthlyRemainingPayment(debts);
 
   // 计算按分类的剩余本金数据
   const debtByCategory = debts.filter(debt => (debt.amount || 0) > 0).reduce((acc, debt) => {
@@ -73,7 +116,7 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
   });
   return <div className="space-y-4">
       {/* 汇总卡片 */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <Card className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 border-[#B3EBEF]/30">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center mb-2">
@@ -94,6 +137,18 @@ const RepaymentSummary: React.FC<RepaymentSummaryProps> = ({
             </div>
             <div className="text-xl font-bold text-gray-900">
               {formatCurrency(monthlyTotalYuan)}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-[#B3EBEF]/20 to-[#8FD8DC]/20 border-[#B3EBEF]/30">
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Wallet className="w-5 h-5 text-[#01BCD6] mr-2" />
+              <span className="text-sm text-gray-600">本月待还款额</span>
+            </div>
+            <div className="text-xl font-bold text-gray-900">
+              {formatCurrency(monthlyRemainingYuan)}
             </div>
           </CardContent>
         </Card>
