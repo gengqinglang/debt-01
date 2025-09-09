@@ -354,28 +354,45 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           }
           // Handle interest-first repayment method
           else if (loan.repaymentMethod === 'interest-first' && amount > 0) {
-            // Monthly interest payment
-            repaymentItems.push({
-              id: loan.id,
-              type: '消费贷',
-              name: loan.name || `消费贷${idx + 1}`,
-              amount: Math.round(amount),
-              dueDay,
-              recurringStartDate: loan.startDate,
-              recurringEndDate: loan.endDate,
-            });
-            
-            // Principal repayment on end date
+            // For interest-first, only show monthly interest until the month before endDate
+            // Then show combined principal + final interest on endDate
             if (loan.endDate) {
-              const principalWan = normalizeWan(loan.loanAmount || '0');
+              const endDate = new Date(loan.endDate);
+              const lastInterestMonth = new Date(endDate.getFullYear(), endDate.getMonth() - 1, endDate.getDate());
+              
+              // Monthly interest payment (until month before endDate)
               repaymentItems.push({
-                id: `${loan.id}_principal`,
+                id: loan.id,
                 type: '消费贷',
-                subType: '本金',
-                name: `${loan.name || `消费贷${idx + 1}`}(本金)`,
-                amount: Math.round(principalWan * 10000),
+                name: loan.name || `消费贷${idx + 1}`,
+                amount: Math.round(amount),
+                dueDay,
+                recurringStartDate: loan.startDate,
+                recurringEndDate: lastInterestMonth.toISOString().split('T')[0],
+              });
+              
+              // Combined principal + final interest payment on endDate
+              const principalWan = normalizeWan(loan.loanAmount || '0');
+              const finalAmount = principalWan * 10000 + amount; // Principal + one month interest
+              
+              repaymentItems.push({
+                id: `${loan.id}_final`,
+                type: '消费贷',
+                name: `${loan.name || `消费贷${idx + 1}`}(本息)`,
+                amount: Math.round(finalAmount),
                 dueDay,
                 oneTimeDate: loan.endDate
+              });
+            } else {
+              // No endDate, use original logic
+              repaymentItems.push({
+                id: loan.id,
+                type: '消费贷',
+                name: loan.name || `消费贷${idx + 1}`,
+                amount: Math.round(amount),
+                dueDay,
+                recurringStartDate: loan.startDate,
+                recurringEndDate: loan.endDate,
               });
             }
           }
@@ -490,28 +507,45 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           }
           // Handle interest-first repayment method
           else if (loan.repaymentMethod === 'interest-first' && amount > 0) {
-            // Monthly interest payment
-            repaymentItems.push({
-              id: loan.id,
-              type: '民间借贷',
-              name: loan.name || `民间借贷${idx + 1}`,
-              amount: Math.round(amount),
-              dueDay,
-              recurringStartDate: loan.startDate,
-              recurringEndDate: loan.endDate,
-            });
-            
-            // Principal repayment on end date
+            // For interest-first, only show monthly interest until the month before endDate
+            // Then show combined principal + final interest on endDate
             if (loan.endDate) {
-              const principalWan = parseFloat(loan.loanAmount || '0');
+              const endDate = new Date(loan.endDate);
+              const lastInterestMonth = new Date(endDate.getFullYear(), endDate.getMonth() - 1, endDate.getDate());
+              
+              // Monthly interest payment (until month before endDate)
               repaymentItems.push({
-                id: `${loan.id}_principal`,
-                type: '民间贷',
-                subType: '本金',
-                name: `${loan.name || `民间贷${idx + 1}`}(本金)`,
-                amount: Math.round(principalWan * 10000),
+                id: loan.id,
+                type: '民间借贷',
+                name: loan.name || `民间借贷${idx + 1}`,
+                amount: Math.round(amount),
+                dueDay,
+                recurringStartDate: loan.startDate,
+                recurringEndDate: lastInterestMonth.toISOString().split('T')[0],
+              });
+              
+              // Combined principal + final interest payment on endDate
+              const principalWan = parseFloat(loan.loanAmount || '0');
+              const finalAmount = principalWan * 10000 + amount; // Principal + one month interest
+              
+              repaymentItems.push({
+                id: `${loan.id}_final`,
+                type: '民间借贷',
+                name: `${loan.name || `民间借贷${idx + 1}`}(本息)`,
+                amount: Math.round(finalAmount),
                 dueDay,
                 oneTimeDate: loan.endDate
+              });
+            } else {
+              // No endDate, use original logic
+              repaymentItems.push({
+                id: loan.id,
+                type: '民间借贷',
+                name: loan.name || `民间借贷${idx + 1}`,
+                amount: Math.round(amount),
+                dueDay,
+                recurringStartDate: loan.startDate,
+                recurringEndDate: loan.endDate,
               });
             }
           }
