@@ -49,16 +49,24 @@ const getDueDayFromDate = (dateStr?: string, defaultDay: number = 1): number => 
   }
 };
 
+// Helper function to format date as YYYY-MM-DD without timezone issues
+const formatDateLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 // Helper function to determine due day based on repayment method
 const getDueDayByMethod = (repaymentMethod: string, startDate?: string, endDate?: string): number => {
   const defaultDay = 1;
   
-  // For interest-first and lump-sum: prioritize endDate, then startDate, then default
+  // For interest-first and lump-sum: prioritize startDate, then endDate, then default
   if (repaymentMethod === 'interest-first' || repaymentMethod === 'lump-sum') {
-    if (endDate) {
-      return getDueDayFromDate(endDate, defaultDay);
-    } else if (startDate) {
+    if (startDate) {
       return getDueDayFromDate(startDate, defaultDay);
+    } else if (endDate) {
+      return getDueDayFromDate(endDate, defaultDay);
     } else {
       return defaultDay;
     }
@@ -368,7 +376,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
                 amount: Math.round(amount),
                 dueDay,
                 recurringStartDate: loan.startDate,
-                recurringEndDate: lastInterestMonth.toISOString().split('T')[0],
+                recurringEndDate: formatDateLocal(lastInterestMonth),
               });
               
               // Combined principal + final interest payment on endDate
@@ -521,7 +529,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
                 amount: Math.round(amount),
                 dueDay,
                 recurringStartDate: loan.startDate,
-                recurringEndDate: lastInterestMonth.toISOString().split('T')[0],
+                recurringEndDate: formatDateLocal(lastInterestMonth),
               });
               
               // Combined principal + final interest payment on endDate
@@ -788,7 +796,7 @@ export const getMonthlyRepaymentDates = (
       if (repaymentDate > endDate) return;
     }
     
-    if (repaymentDate.getMonth() === month && repaymentDate >= today) {
+    if (repaymentDate.getMonth() === month) {
       const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(item.dueDay).padStart(2, '0')}`;
       
       if (!repaymentMap.has(dateKey)) {
