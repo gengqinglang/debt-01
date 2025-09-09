@@ -21,7 +21,7 @@ export interface RepaymentItem {
 }
 
 // Helper to extract due day from date string
-const getDueDayFromDate = (dateStr?: string, defaultDay: number = 10): number => {
+const getDueDayFromDate = (dateStr?: string, defaultDay: number = 1): number => {
   if (!dateStr) return defaultDay;
   
   try {
@@ -30,6 +30,31 @@ const getDueDayFromDate = (dateStr?: string, defaultDay: number = 10): number =>
     const day = date.getDate();
     return day >= 1 && day <= 31 ? day : defaultDay;
   } catch {
+    return defaultDay;
+  }
+};
+
+// Helper function to determine due day based on repayment method
+const getDueDayByMethod = (repaymentMethod: string, startDate?: string, endDate?: string): number => {
+  const defaultDay = 1;
+  
+  // For interest-first and lump-sum: prioritize endDate, then startDate, then default
+  if (repaymentMethod === 'interest-first' || repaymentMethod === 'lump-sum') {
+    if (endDate) {
+      return getDueDayFromDate(endDate, defaultDay);
+    } else if (startDate) {
+      return getDueDayFromDate(startDate, defaultDay);
+    } else {
+      return defaultDay;
+    }
+  }
+  
+  // For equal payment/principal methods: prioritize startDate, then endDate, then default
+  if (startDate) {
+    return getDueDayFromDate(startDate, defaultDay);
+  } else if (endDate) {
+    return getDueDayFromDate(endDate, defaultDay);
+  } else {
     return defaultDay;
   }
 };
@@ -283,12 +308,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
       const consumerLoans = (debt as any).consumerLoans as ConsumerLoanInfo[];
       consumerLoans.forEach((loan, idx) => {
         if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
-          let dueDay = 10; // default
-          if (loan.startDate) {
-            dueDay = getDueDayFromDate(loan.startDate);
-          } else if (loan.endDate) {
-            dueDay = getDueDayFromDate(loan.endDate);
-          }
+          const dueDay = getDueDayByMethod(loan.repaymentMethod || 'equal-payment', loan.startDate, loan.endDate);
           const amount = calculateConsumerLoanMonthlyPayment(loan);
           
           if (amount > 0) {
@@ -309,12 +329,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
       const businessLoans = (debt as any).businessLoans as BusinessLoanInfo[];
       businessLoans.forEach((loan, idx) => {
         if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
-          let dueDay = 10; // default
-          if (loan.startDate) {
-            dueDay = getDueDayFromDate(loan.startDate);
-          } else if (loan.endDate) {
-            dueDay = getDueDayFromDate(loan.endDate);
-          }
+          const dueDay = getDueDayByMethod(loan.repaymentMethod || 'equal-payment', loan.startDate, loan.endDate);
           const amount = calculateBusinessLoanMonthlyPayment(loan);
           
           if (amount > 0) {
@@ -335,12 +350,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
       const privateLoans = (debt as any).privateLoans as PrivateLoanInfo[];
       privateLoans.forEach((loan, idx) => {
         if (loan.loanAmount && parseFloat(loan.loanAmount) > 0) {
-          let dueDay = 10; // default
-          if (loan.startDate) {
-            dueDay = getDueDayFromDate(loan.startDate);
-          } else if (loan.endDate) {
-            dueDay = getDueDayFromDate(loan.endDate);
-          }
+          const dueDay = getDueDayByMethod(loan.repaymentMethod || 'equal-payment', loan.startDate, loan.endDate);
           const amount = calculatePrivateLoanMonthlyPayment(loan);
           
           if (amount > 0) {
@@ -386,40 +396,40 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           }
           break;
         case 'consumerLoan':
-          // Use inferred date instead of hardcoded 15
+          // Use inferred date instead of hardcoded default
           if ((debt as any).startDate) {
             dueDay = getDueDayFromDate((debt as any).startDate);
           } else if ((debt as any).endDate) {
             dueDay = getDueDayFromDate((debt as any).endDate);
           } else {
-            dueDay = 15;
+            dueDay = 1;
           }
           break;
         case 'businessLoan':
-          // Use inferred date instead of hardcoded 10
+          // Use inferred date instead of hardcoded default
           if ((debt as any).startDate) {
             dueDay = getDueDayFromDate((debt as any).startDate);
           } else if ((debt as any).endDate) {
             dueDay = getDueDayFromDate((debt as any).endDate);
           } else {
-            dueDay = 10;
+            dueDay = 1;
           }
           break;
         case 'privateLoan':
-          // Use inferred date instead of hardcoded 25
+          // Use inferred date instead of hardcoded default
           if ((debt as any).startDate) {
             dueDay = getDueDayFromDate((debt as any).startDate);
           } else if ((debt as any).endDate) {
             dueDay = getDueDayFromDate((debt as any).endDate);
           } else {
-            dueDay = 25;
+            dueDay = 1;
           }
           break;
         case 'creditCard':
           dueDay = 5;
           break;
         default:
-          dueDay = 10;
+          dueDay = 1;
       }
 
       if (!shouldSkip) {
