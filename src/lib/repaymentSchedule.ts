@@ -1,9 +1,20 @@
 import { 
   calculateMortgageLoanPayment, 
-  calculateRemainingMonths, 
+  calculateRemainingMonths as libCalculateRemainingMonths, 
   calculateSingleLoanMonthlyPayment,
   type MortgageLoanInfo 
 } from '@/lib/loanCalculations';
+
+// Helper to calculate remaining months between two dates
+const calculateRemainingMonths = (endDate: string, fromDate: Date = new Date()): number => {
+  try {
+    const end = new Date(endDate);
+    const diffTime = end.getTime() - fromDate.getTime();
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44)));
+  } catch {
+    return 0;
+  }
+};
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
 import type { CarLoanInfo } from '@/hooks/useCarLoanData';
 import type { ConsumerLoanInfo } from '@/hooks/useConsumerLoanData';
@@ -18,6 +29,7 @@ export interface RepaymentItem {
   amount: number;
   dueDay: number;
   id?: string;
+  oneTimeDate?: string; // For lump-sum payments on specific dates (YYYY-MM-DD format)
 }
 
 // Helper to extract due day from date string
@@ -131,12 +143,12 @@ const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => 
   // For equal payment/principal methods, calculate remaining months
   let remainingMonths = 0;
   if (loan.endDate) {
-    remainingMonths = calculateRemainingMonths(loan.endDate);
+    remainingMonths = libCalculateRemainingMonths(loan.endDate);
   } else if (loan.startDate && loan.loanTerm) {
     const startDate = new Date(loan.startDate);
     const termYears = parseFloat(loan.loanTerm);
     const endDate = new Date(startDate.getFullYear() + termYears, startDate.getMonth(), startDate.getDate());
-    remainingMonths = calculateRemainingMonths(endDate.toISOString().split('T')[0]);
+    remainingMonths = libCalculateRemainingMonths(endDate.toISOString().split('T')[0]);
   }
   
   if (remainingMonths <= 0) return 0;
@@ -168,12 +180,12 @@ const calculateBusinessLoanMonthlyPayment = (loan: BusinessLoanInfo): number => 
   // For equal payment/principal methods, calculate remaining months
   let remainingMonths = 0;
   if (loan.endDate) {
-    remainingMonths = calculateRemainingMonths(loan.endDate);
+    remainingMonths = libCalculateRemainingMonths(loan.endDate);
   } else if (loan.startDate && loan.loanTerm) {
     const startDate = new Date(loan.startDate);
     const termYears = parseFloat(loan.loanTerm);
     const endDate = new Date(startDate.getFullYear() + termYears, startDate.getMonth(), startDate.getDate());
-    remainingMonths = calculateRemainingMonths(endDate.toISOString().split('T')[0]);
+    remainingMonths = libCalculateRemainingMonths(endDate.toISOString().split('T')[0]);
   }
   
   if (remainingMonths <= 0) return 0;
@@ -214,7 +226,7 @@ const calculatePrivateLoanMonthlyPayment = (loan: PrivateLoanInfo): number => {
   
   let remainingMonths = 0;
   if (loan.endDate) {
-    remainingMonths = calculateRemainingMonths(loan.endDate);
+    remainingMonths = libCalculateRemainingMonths(loan.endDate);
   }
   
   if (remainingMonths <= 0) return 0;
@@ -311,7 +323,52 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           const dueDay = getDueDayByMethod(loan.repaymentMethod || 'equal-payment', loan.startDate, loan.endDate);
           const amount = calculateConsumerLoanMonthlyPayment(loan);
           
-          if (amount > 0) {
+          // Handle lump-sum repayment method
+          if (loan.repaymentMethod === 'lump-sum' && loan.endDate) {
+            const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+            const annualRate = parseFloat(loan.annualRate || '0') / 100;
+            
+            // Calculate total lump sum (principal + interest)
+            const loanTermMonths = loan.startDate ? calculateRemainingMonths(loan.endDate, new Date(loan.startDate)) : 12;
+            const totalInterest = principalWan * 10000 * annualRate * (loanTermMonths / 12);
+            const totalAmount = principalWan * 10000 + totalInterest;
+            
+            repaymentItems.push({
+              id: loan.id,
+              type: '消费贷',
+              name: loan.name || `消费贷${idx + 1}`,
+              amount: Math.round(totalAmount),
+              dueDay,
+              oneTimeDate: loan.endDate
+            });
+          }
+          // Handle interest-first repayment method
+          else if (loan.repaymentMethod === 'interest-first' && amount > 0) {
+            // Monthly interest payment
+            repaymentItems.push({
+              id: loan.id,
+              type: '消费贷',
+              name: loan.name || `消费贷${idx + 1}`,
+              amount: Math.round(amount),
+              dueDay,
+            });
+            
+            // Principal repayment on end date
+            if (loan.endDate) {
+              const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+              repaymentItems.push({
+                id: `${loan.id}_principal`,
+                type: '消费贷',
+                subType: '本金',
+                name: `${loan.name || `消费贷${idx + 1}`}(本金)`,
+                amount: Math.round(principalWan * 10000),
+                dueDay,
+                oneTimeDate: loan.endDate
+              });
+            }
+          }
+          // Handle equal payment/principal methods
+          else if (amount > 0) {
             repaymentItems.push({
               id: loan.id,
               type: '消费贷',
@@ -332,7 +389,52 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           const dueDay = getDueDayByMethod(loan.repaymentMethod || 'equal-payment', loan.startDate, loan.endDate);
           const amount = calculateBusinessLoanMonthlyPayment(loan);
           
-          if (amount > 0) {
+          // Handle lump-sum repayment method
+          if (loan.repaymentMethod === 'lump-sum' && loan.endDate) {
+            const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+            const annualRate = parseFloat(loan.annualRate || '0') / 100;
+            
+            // Calculate total lump sum (principal + interest)
+            const loanTermMonths = loan.startDate ? calculateRemainingMonths(loan.endDate, new Date(loan.startDate)) : 12;
+            const totalInterest = principalWan * 10000 * annualRate * (loanTermMonths / 12);
+            const totalAmount = principalWan * 10000 + totalInterest;
+            
+            repaymentItems.push({
+              id: loan.id,
+              type: '经营贷',
+              name: loan.name || `经营贷${idx + 1}`,
+              amount: Math.round(totalAmount),
+              dueDay,
+              oneTimeDate: loan.endDate
+            });
+          }
+          // Handle interest-first repayment method
+          else if (loan.repaymentMethod === 'interest-first' && amount > 0) {
+            // Monthly interest payment
+            repaymentItems.push({
+              id: loan.id,
+              type: '经营贷',
+              name: loan.name || `经营贷${idx + 1}`,
+              amount: Math.round(amount),
+              dueDay,
+            });
+            
+            // Principal repayment on end date
+            if (loan.endDate) {
+              const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+              repaymentItems.push({
+                id: `${loan.id}_principal`,
+                type: '经营贷',
+                subType: '本金',
+                name: `${loan.name || `经营贷${idx + 1}`}(本金)`,
+                amount: Math.round(principalWan * 10000),
+                dueDay,
+                oneTimeDate: loan.endDate
+              });
+            }
+          }
+          // Handle equal payment/principal methods
+          else if (amount > 0) {
             repaymentItems.push({
               id: loan.id,
               type: '经营贷',
@@ -353,7 +455,54 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           const dueDay = getDueDayByMethod(loan.repaymentMethod || 'equal-payment', loan.startDate, loan.endDate);
           const amount = calculatePrivateLoanMonthlyPayment(loan);
           
-          if (amount > 0) {
+          // Handle lump-sum repayment method
+          if (loan.repaymentMethod === 'lump-sum' && loan.endDate) {
+            const principalWan = parseFloat(loan.loanAmount || '0');
+            const fenRate = parseFloat(loan.rateFen || '0') / 100;
+            const liRate = parseFloat(loan.rateLi || '0') / 1000;
+            const annualRate = fenRate + liRate;
+            
+            // Calculate total lump sum (principal + interest)
+            const loanTermMonths = loan.startDate ? calculateRemainingMonths(loan.endDate, new Date(loan.startDate)) : 12;
+            const totalInterest = principalWan * 10000 * annualRate * (loanTermMonths / 12);
+            const totalAmount = principalWan * 10000 + totalInterest;
+            
+            repaymentItems.push({
+              id: loan.id,
+              type: '民间贷',
+              name: loan.name || `民间贷${idx + 1}`,
+              amount: Math.round(totalAmount),
+              dueDay,
+              oneTimeDate: loan.endDate
+            });
+          }
+          // Handle interest-first repayment method
+          else if (loan.repaymentMethod === 'interest-first' && amount > 0) {
+            // Monthly interest payment
+            repaymentItems.push({
+              id: loan.id,
+              type: '民间贷',
+              name: loan.name || `民间贷${idx + 1}`,
+              amount: Math.round(amount),
+              dueDay,
+            });
+            
+            // Principal repayment on end date
+            if (loan.endDate) {
+              const principalWan = parseFloat(loan.loanAmount || '0');
+              repaymentItems.push({
+                id: `${loan.id}_principal`,
+                type: '民间贷',
+                subType: '本金',
+                name: `${loan.name || `民间贷${idx + 1}`}(本金)`,
+                amount: Math.round(principalWan * 10000),
+                dueDay,
+                oneTimeDate: loan.endDate
+              });
+            }
+          }
+          // Handle equal payment/principal methods
+          else if (amount > 0) {
             repaymentItems.push({
               id: loan.id,
               type: '民间贷',
@@ -466,7 +615,18 @@ export const calculateCurrentMonthRemaining = (
   const currentDay = fromDate.getDate();
   
   return repaymentItems.reduce((total, item) => {
-    // Create repayment date for current month
+    // Handle one-time payments
+    if (item.oneTimeDate) {
+      const oneTimeDate = new Date(item.oneTimeDate);
+      if (oneTimeDate.getFullYear() === currentYear && 
+          oneTimeDate.getMonth() === currentMonth && 
+          oneTimeDate.getDate() >= currentDay) {
+        return total + item.amount;
+      }
+      return total;
+    }
+    
+    // Handle recurring monthly payments
     const repaymentDate = new Date(currentYear, currentMonth, item.dueDay);
     
     // Only include if repayment is today or later in the current month
@@ -486,7 +646,17 @@ export const calculateNextMonthTotal = (repaymentItems: RepaymentItem[]): number
   const nextMonthIndex = nextMonth.getMonth();
   
   return repaymentItems.reduce((total, item) => {
-    // Create repayment date for next month
+    // Handle one-time payments
+    if (item.oneTimeDate) {
+      const oneTimeDate = new Date(item.oneTimeDate);
+      if (oneTimeDate.getFullYear() === nextMonthYear && 
+          oneTimeDate.getMonth() === nextMonthIndex) {
+        return total + item.amount;
+      }
+      return total;
+    }
+    
+    // Handle recurring monthly payments
     const repaymentDate = new Date(nextMonthYear, nextMonthIndex, item.dueDay);
     
     // Only include if the repayment date is actually in the next month
@@ -503,9 +673,18 @@ export const calculateDateRepayments = (
   repaymentItems: RepaymentItem[],
   targetDate: Date
 ): RepaymentItem[] => {
+  const targetDateStr = targetDate.toISOString().split('T')[0];
   const targetDay = targetDate.getDate();
   
-  return repaymentItems.filter(item => item.dueDay === targetDay);
+  return repaymentItems.filter(item => {
+    // Check one-time payments for exact date match
+    if (item.oneTimeDate) {
+      return item.oneTimeDate === targetDateStr;
+    }
+    
+    // Check recurring payments for day match
+    return item.dueDay === targetDay;
+  });
 };
 
 // Get all repayment dates for a specific month
@@ -518,6 +697,29 @@ export const getMonthlyRepaymentDates = (
   const repaymentMap = new Map<string, RepaymentItem[]>();
   
   repaymentItems.forEach(item => {
+    // Handle one-time payments
+    if (item.oneTimeDate) {
+      const oneTimeDate = new Date(item.oneTimeDate);
+      oneTimeDate.setHours(0, 0, 0, 0);
+      
+      const today = new Date(fromDate);
+      today.setHours(0, 0, 0, 0);
+      
+      if (oneTimeDate.getFullYear() === year && 
+          oneTimeDate.getMonth() === month && 
+          oneTimeDate >= today) {
+        const dateKey = item.oneTimeDate;
+        
+        if (!repaymentMap.has(dateKey)) {
+          repaymentMap.set(dateKey, []);
+        }
+        
+        repaymentMap.get(dateKey)!.push(item);
+      }
+      return;
+    }
+    
+    // Handle recurring monthly payments
     const repaymentDate = new Date(year, month, item.dueDay);
     repaymentDate.setHours(0, 0, 0, 0);
     
