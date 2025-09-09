@@ -374,7 +374,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
               month: "scale-[1.06] md:scale-[1.12] origin-top",
               table: "w-full border-collapse space-y-0",
               row: "flex w-full mt-0",
-              caption: "relative flex justify-center pt-0 mb-1",
+              caption: "relative flex justify-center pt-0 mb-3",
               head_row: "flex w-full mb-0",
               head_cell: "text-muted-foreground rounded-md w-10 h-8 sm:w-14 sm:h-10 font-normal text-[0.75rem] leading-none",
               cell: "text-center text-sm relative p-0 w-10 h-10 sm:w-14 sm:h-14 focus-within:relative focus-within:z-20",
