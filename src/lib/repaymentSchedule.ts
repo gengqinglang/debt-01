@@ -127,21 +127,23 @@ const calculateCarLoanMonthlyPayment = (loan: CarLoanInfo): number => {
 
 // Calculate consumer loan monthly payment
 const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => {
-  const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
   const annualRate = parseFloat(loan.annualRate || '0') / 100;
-  
-  if (principalWan <= 0 || annualRate <= 0) return 0;
-  
+
   // Handle different repayment methods
   if (loan.repaymentMethod === 'interest-first') {
-    // Interest-only payment: principal × annual rate / 12
+    // Interest-only payment: use full loan amount for interest calculation
+    const principalWan = normalizeWan(loan.loanAmount || '0');
+    if (principalWan <= 0 || annualRate <= 0) return 0;
     return principalWan * 10000 * annualRate / 12;
   } else if (loan.repaymentMethod === 'lump-sum') {
     // Lump sum at maturity: no monthly payment
     return 0;
   }
-  
-  // For equal payment/principal methods, calculate remaining months
+
+  // For equal payment/principal methods, calculate remaining months using remaining principal if available
+  const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
+  if (principalWan <= 0 || annualRate <= 0) return 0;
+
   let remainingMonths = 0;
   if (loan.endDate) {
     remainingMonths = libCalculateRemainingMonths(loan.endDate);
@@ -151,9 +153,9 @@ const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => 
     const endDate = new Date(startDate.getFullYear() + termYears, startDate.getMonth(), startDate.getDate());
     remainingMonths = libCalculateRemainingMonths(endDate.toISOString().split('T')[0]);
   }
-  
+
   if (remainingMonths <= 0) return 0;
-  
+
   return calculateSingleLoanMonthlyPayment(
     principalWan,
     annualRate,
@@ -164,21 +166,23 @@ const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => 
 
 // Calculate business loan monthly payment
 const calculateBusinessLoanMonthlyPayment = (loan: BusinessLoanInfo): number => {
-  const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
   const annualRate = parseFloat(loan.annualRate || '0') / 100;
-  
-  if (principalWan <= 0 || annualRate <= 0) return 0;
   
   // Handle different repayment methods
   if (loan.repaymentMethod === 'interest-first') {
-    // Interest-only payment: principal × annual rate / 12
+    // Interest-only payment: use full loan amount for interest calculation
+    const principalWan = normalizeWan(loan.loanAmount || '0');
+    if (principalWan <= 0 || annualRate <= 0) return 0;
     return principalWan * 10000 * annualRate / 12;
   } else if (loan.repaymentMethod === 'lump-sum') {
     // Lump sum at maturity: no monthly payment
     return 0;
   }
   
-  // For equal payment/principal methods, calculate remaining months
+  // For equal payment/principal methods, calculate remaining months using remaining principal if available
+              const principalWan = normalizeWan(loan.loanAmount || '0');
+  if (principalWan <= 0 || annualRate <= 0) return 0;
+  
   let remainingMonths = 0;
   if (loan.endDate) {
     remainingMonths = libCalculateRemainingMonths(loan.endDate);
@@ -326,7 +330,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           
           // Handle lump-sum repayment method
           if (loan.repaymentMethod === 'lump-sum' && loan.endDate) {
-            const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
+            const principalWan = normalizeWan(loan.loanAmount || '0');
             const annualRate = parseFloat(loan.annualRate || '0') / 100;
             
             // Calculate total lump sum (principal + interest from today to end date)
@@ -356,7 +360,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             
             // Principal repayment on end date
             if (loan.endDate) {
-              const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
+              const principalWan = normalizeWan(loan.loanAmount || '0');
               repaymentItems.push({
                 id: `${loan.id}_principal`,
                 type: '消费贷',
@@ -392,7 +396,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
           
           // Handle lump-sum repayment method
           if (loan.repaymentMethod === 'lump-sum' && loan.endDate) {
-            const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
+              const principalWan = normalizeWan(loan.loanAmount || '0');
             const annualRate = parseFloat(loan.annualRate || '0') / 100;
             
             // Calculate total lump sum (principal + interest from today to end date)
@@ -422,7 +426,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             
             // Principal repayment on end date
             if (loan.endDate) {
-              const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
+              const principalWan = normalizeWan(loan.loanAmount || '0');
               repaymentItems.push({
                 id: `${loan.id}_principal`,
                 type: '经营贷',
