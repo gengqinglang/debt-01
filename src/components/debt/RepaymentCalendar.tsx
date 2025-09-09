@@ -410,59 +410,61 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </div>
 
         {/* 选中日期还款详情 */}
-        <div className={`px-6 sm:px-8 pb-6 pt-2 ${debug ? 'border-2 border-green-500' : ''}`}>
-          {!selectedDate ? (
-            <div className="text-center py-8 text-gray-500">
-              请选择日期查看还款计划
-            </div>
-          ) : selectedRepayments.length > 0 ? (
-            <>
-              {/* 总计卡片 */}
-              <div className="bg-gradient-to-r from-[#B3EBEF]/20 to-[#8FD8DC]/20 rounded-lg p-4 mb-4">
-                <div className="text-center">
-                  <div className="text-sm text-gray-600 mb-1">
-                    {format(selectedDate, 'yyyy年MM月dd日', { locale: zhCN })} 还款总额
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(selectedTotal)}
+        <div className={`px-6 sm:px-8 pb-6 pt-2 flex justify-center ${debug ? 'border-2 border-green-500' : ''}`}>
+          <div className="w-full max-w-[280px] sm:max-w-[392px]">
+            {!selectedDate ? (
+              <div className="text-center py-8 text-gray-500">
+                请选择日期查看还款计划
+              </div>
+            ) : selectedRepayments.length > 0 ? (
+              <>
+                {/* 总计卡片 */}
+                <div className="bg-gradient-to-r from-[#B3EBEF]/20 to-[#8FD8DC]/20 rounded-lg p-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-sm text-gray-600 mb-1">
+                      {format(selectedDate, 'yyyy年MM月dd日', { locale: zhCN })} 还款总额
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {formatCurrency(selectedTotal)}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* 还款清单 */}
-              <div className="space-y-3">
-                {selectedRepayments.map((repayment, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">
-                        {repayment.type}
+                {/* 还款清单 */}
+                <div className="space-y-3">
+                  {selectedRepayments.map((repayment, index) => (
+                    <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">
+                          {repayment.type}
+                        </div>
+                        {repayment.name && (
+                          <div className="text-sm text-gray-500">{repayment.name}</div>
+                        )}
+                        {repayment.subType && (
+                          <div className="text-xs text-gray-400">{repayment.subType}</div>
+                        )}
                       </div>
-                      {repayment.name && (
-                        <div className="text-sm text-gray-500">{repayment.name}</div>
-                      )}
-                      {repayment.subType && (
-                        <div className="text-xs text-gray-400">{repayment.subType}</div>
-                      )}
+                      <div className="text-lg font-bold text-[#01BCD6]">
+                        {formatCurrency(repayment.amount)}
+                      </div>
                     </div>
-                    <div className="text-lg font-bold text-[#01BCD6]">
-                      {formatCurrency(repayment.amount)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            /* 空状态 */
-            <div className="flex flex-col items-center justify-center py-8">
-              <CalendarDays className="w-12 h-12 text-gray-300 mb-3" />
-              <div className="text-gray-500 text-center">
-                <div className="font-medium mb-1">
-                  {format(selectedDate, 'yyyy年MM月dd日', { locale: zhCN })} 无还款计划
+                  ))}
                 </div>
-                <div className="text-sm">您在此日期没有安排任何还款</div>
+              </>
+            ) : (
+              /* 空状态 */
+              <div className="flex flex-col items-center justify-center py-8">
+                <CalendarDays className="w-12 h-12 text-gray-300 mb-3" />
+                <div className="text-gray-500 text-center">
+                  <div className="font-medium mb-1">
+                    {format(selectedDate, 'yyyy年MM月dd日', { locale: zhCN })} 无还款计划
+                  </div>
+                  <div className="text-sm">您在此日期没有安排任何还款</div>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
