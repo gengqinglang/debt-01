@@ -356,7 +356,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             
             // Principal repayment on end date
             if (loan.endDate) {
-              const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+              const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
               repaymentItems.push({
                 id: `${loan.id}_principal`,
                 type: '消费贷',
@@ -422,7 +422,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             
             // Principal repayment on end date
             if (loan.endDate) {
-              const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
+              const principalWan = normalizeWan(loan.remainingPrincipal || loan.loanAmount || '0');
               repaymentItems.push({
                 id: `${loan.id}_principal`,
                 type: '经营贷',
