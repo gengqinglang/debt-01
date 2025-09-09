@@ -410,7 +410,7 @@ const RepaymentCalendar: React.FC<RepaymentCalendarProps> = ({ debts }) => {
         </div>
 
         {/* 选中日期还款详情 */}
-        <div className={`px-2 sm:px-4 md:px-6 pb-6 pt-2 ${debug ? 'border-2 border-green-500' : ''}`}>
+        <div className={`px-6 sm:px-8 pb-6 pt-2 ${debug ? 'border-2 border-green-500' : ''}`}>
           {!selectedDate ? (
             <div className="text-center py-8 text-gray-500">
               请选择日期查看还款计划
