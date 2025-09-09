@@ -5,7 +5,7 @@ import { CalendarDays, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import type { DebtInfo } from '@/pages/FinancialStatusPage';
-import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly } from '@/lib/loanCalculations';
+import { calculateMortgageLoanPayment, type MortgageLoanInfo } from '@/lib/loanCalculations';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import type { ConsumerLoanInfo } from '@/hooks/useConsumerLoanData';
@@ -16,18 +16,7 @@ interface RepaymentCalendarProps {
   debts: DebtInfo[];
 }
 
-// Individual loan interfaces for localStorage data
-interface MortgageLoanInfo {
-  id: string;
-  loanType: 'commercial' | 'housingFund' | 'combination';
-  amount: string;
-  term: string;
-  interestRate: string;
-  startDate?: string;
-  remainingPrincipal?: string;
-  repaymentMethod?: string;
-}
-
+// Individual loan interfaces for localStorage data  
 interface PrivateLoanInfo {
   id: string;
   name?: string;
@@ -114,27 +103,7 @@ const getDueDayFromDate = (dateStr?: string, defaultDay: number = 10): number =>
   }
 };
 
-// 计算月供金额
-const calculateMonthlyPayment = (
-  principal: number, // 本金（元）
-  annualRate: number, // 年利率（小数）
-  termMonths: number, // 期限（月）
-  repaymentMethod: string = 'equal-payment'
-): number => {
-  if (principal <= 0 || termMonths <= 0) return 0;
-  
-  if (annualRate <= 0) {
-    return principal / termMonths;
-  }
-  
-  if (repaymentMethod === 'equal-principal') {
-    return calculateEqualPrincipalFirstMonthly(principal, annualRate, termMonths);
-  } else {
-    return calculateEqualPaymentMonthly(principal, annualRate, termMonths);
-  }
-};
-
-// 处理个人贷款数据，生成还款计划（基于已持久化的详细数据）
+// 处理个人贷款数据，生成还款计划 - 使用统一的计算逻辑
 const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
   const { mortgageLoans } = loadIndividualLoanData();
   const repaymentItems: RepaymentItem[] = [];
@@ -143,16 +112,25 @@ const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
 
   // 仅房贷有明确的本地持久化明细（shared_loan_data）
   if (Array.isArray(mortgageLoans) && mortgageLoans.length > 0) {
-    type SubLoan = { label: string; dueDay: number; principal: number };
-    const subLoans: SubLoan[] = [];
-
     mortgageLoans.forEach((loan: any, idx: number) => {
       console.log(`Processing loan ${idx}:`, loan);
       const safeName = loan.propertyName || `房贷${idx + 1}`;
       
-      const pushSingle = (label: string, startDate?: string, principalWan?: string, rate?: string) => {
-        const pWan = parseFloat(principalWan || loan.remainingPrincipal || loan.loanAmount || '0');
-        const principal = isNaN(pWan) ? 0 : pWan * 10000; // 万元转元
+      // 使用统一的计算逻辑精确计算月供
+      const monthlyPayment = calculateMortgageLoanPayment(loan as MortgageLoanInfo);
+      
+      console.log(`Calculated monthly payment for ${safeName}:`, monthlyPayment);
+      
+      // 只有月供大于0的贷款才显示在日历中
+      if (monthlyPayment > 0) {
+        // 确定还款日期
+        let startDate = '';
+        if (loan.loanType === 'combination') {
+          // 组合贷款使用商贷开始日期，如果没有则使用公积金开始日期
+          startDate = loan.commercialStartDate || loan.providentStartDate || '';
+        } else {
+          startDate = loan.loanStartDate || '';
+        }
         
         // 改进日期提取逻辑
         let dueDay = 10; // 默认值
@@ -167,47 +145,14 @@ const processIndividualLoans = (debts: DebtInfo[]): RepaymentItem[] => {
           }
         }
         
-        console.log(`Sub-loan: ${safeName}-${label}, dueDay: ${dueDay}, principal: ${principal}`);
-        subLoans.push({ label: `${safeName}-${label}`, dueDay, principal });
-      };
-
-      if (loan.loanType === 'combination') {
-        // 组合贷款合并为一笔显示
-        const commercialPrincipalWan = parseFloat(loan.commercialRemainingPrincipal || loan.commercialLoanAmount || '0');
-        const providentPrincipalWan = parseFloat(loan.providentRemainingPrincipal || loan.providentLoanAmount || '0');
-        const totalPrincipalWan = commercialPrincipalWan + providentPrincipalWan;
+        console.log(`Adding repayment item: ${safeName}, amount: ${monthlyPayment}, dueDay: ${dueDay}`);
         
-        // 使用商贷的开始日期作为还款日，如果没有则使用公积金的
-        const startDate = loan.commercialStartDate || loan.providentStartDate;
-        pushSingle('组合贷', startDate, totalPrincipalWan.toString());
-      } else if (loan.loanType === 'commercial') {
-        pushSingle('商贷', loan.loanStartDate, loan.remainingPrincipal || loan.loanAmount);
-      } else if (loan.loanType === 'provident') {
-        pushSingle('公积金', loan.loanStartDate, loan.remainingPrincipal || loan.loanAmount);
-      } else {
-        pushSingle('房贷', loan.loanStartDate, loan.remainingPrincipal || loan.loanAmount);
-      }
-    });
-
-    console.log('Sub-loans extracted:', subLoans);
-
-    // 按剩余本金占比分摊月份总额（来自聚合数据）
-    const mortgageAgg = debts.find(d => d.type === 'mortgage');
-    const monthlyPool = Math.max(0, Number(mortgageAgg?.monthlyPayment || 0));
-    const totalPrincipal = subLoans.reduce((s, l) => s + (l.principal || 0), 0);
-
-    console.log('Mortgage aggregated data:', { monthlyPool, totalPrincipal });
-
-    subLoans.forEach(sl => {
-      if (sl.principal <= 0) return;
-      const amount = totalPrincipal > 0 ? (monthlyPool * (sl.principal / totalPrincipal)) : 0;
-      if (amount > 0) {
         repaymentItems.push({
           type: '房贷',
           subType: undefined,
-          name: sl.label,
-          amount,
-          dueDay: sl.dueDay || 10,
+          name: safeName,
+          amount: monthlyPayment,
+          dueDay: dueDay,
         });
       }
     });

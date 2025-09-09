@@ -72,3 +72,177 @@ export const formatAmount = (amount: number): string => {
     maximumFractionDigits: 0,
   }).format(amount);
 };
+
+// LPR 利率常量
+export const LPR_RATES = {
+  FIVE_YEAR: 3.50,      // 5年期LPR（公积金）
+  FIVE_YEAR_PLUS: 3.50, // 5年期以上LPR（商业）
+} as const;
+
+// 贷款信息接口（与useLoanData.ts保持一致）
+export interface MortgageLoanInfo {
+  id: string;
+  propertyName: string;
+  loanType: string;
+  loanStartDate: string;
+  loanEndDate: string;
+  rateType: string;
+  fixedRate: string;
+  floatingRateAdjustment: string;
+  paymentMethod: string;
+  loanAmount: string;
+  remainingPrincipal: string;
+  // 组合贷款专用字段
+  commercialLoanAmount?: string;
+  commercialStartDate?: string;
+  commercialEndDate?: string;
+  commercialPaymentMethod?: string;
+  commercialRateType?: string;
+  commercialFixedRate?: string;
+  commercialFloatingRateAdjustment?: string;
+  commercialRemainingPrincipal?: string;
+  providentLoanAmount?: string;
+  providentStartDate?: string;
+  providentEndDate?: string;
+  providentPaymentMethod?: string;
+  providentRate?: string;
+  providentRemainingPrincipal?: string;
+}
+
+/**
+ * 计算剩余还款月数
+ * @param endDate 贷款结束日期 (YYYY-MM-DD)
+ * @returns 剩余月数
+ */
+export const calculateRemainingMonths = (endDate: string): number => {
+  if (!endDate) return 0;
+  
+  const currentDate = new Date();
+  const loanEndDate = new Date(endDate);
+  if (isNaN(loanEndDate.getTime())) return 0;
+  
+  const remainingMonths = Math.max(0, 
+    (loanEndDate.getFullYear() - currentDate.getFullYear()) * 12 + 
+    (loanEndDate.getMonth() - currentDate.getMonth())
+  );
+  
+  return remainingMonths;
+};
+
+/**
+ * 计算单一贷款月供（商业或公积金）
+ * @param principalWan 剩余本金（万元）
+ * @param annualRate 年利率（小数形式，如0.035表示3.5%）
+ * @param paymentMethod 还款方式：'equal-payment' | 'equal-principal'
+ * @param remainingMonths 剩余月数
+ * @returns 月供金额（元）
+ */
+export const calculateSingleLoanMonthlyPayment = (
+  principalWan: number,
+  annualRate: number,
+  paymentMethod: string,
+  remainingMonths: number
+): number => {
+  const principal = principalWan * 10000; // 转换为元
+  if (!principal || principal <= 0 || remainingMonths <= 0) return 0;
+  if (!isFinite(annualRate) || annualRate <= 0) return 0;
+
+  const monthlyRate = annualRate / 12;
+
+  if (paymentMethod === 'equal-payment') {
+    // 等额本息
+    return principal * monthlyRate * Math.pow(1 + monthlyRate, remainingMonths) / 
+           (Math.pow(1 + monthlyRate, remainingMonths) - 1);
+  } else {
+    // 等额本金 - 当前月份的还款额
+    const monthlyPrincipal = principal / remainingMonths;
+    const interest = principal * monthlyRate;
+    return monthlyPrincipal + interest;
+  }
+};
+
+/**
+ * 计算商业贷款月供
+ * @param loan 贷款信息
+ * @returns 月供金额（元）
+ */
+export const calculateCommercialLoanPayment = (loan: MortgageLoanInfo): number => {
+  const principalWan = parseFloat(loan.commercialRemainingPrincipal || '0');
+  if (!principalWan || principalWan <= 0) return 0;
+
+  let rate = 0;
+  if (loan.commercialRateType === 'fixed') {
+    const fixed = parseFloat(loan.commercialFixedRate || '');
+    rate = (isFinite(fixed) && fixed > 0) ? fixed / 100 : LPR_RATES.FIVE_YEAR_PLUS / 100;
+  } else {
+    const adjustmentBP = parseFloat(loan.commercialFloatingRateAdjustment || '0');
+    const adjustment = isFinite(adjustmentBP) ? adjustmentBP / 10000 : 0; // BP 转为小数
+    rate = LPR_RATES.FIVE_YEAR_PLUS / 100 + adjustment;
+  }
+
+  const remainingMonths = calculateRemainingMonths(loan.commercialEndDate || '');
+  const paymentMethod = loan.commercialPaymentMethod || 'equal-payment';
+
+  return calculateSingleLoanMonthlyPayment(principalWan, rate, paymentMethod, remainingMonths);
+};
+
+/**
+ * 计算公积金贷款月供
+ * @param loan 贷款信息
+ * @returns 月供金额（元）
+ */
+export const calculateProvidentLoanPayment = (loan: MortgageLoanInfo): number => {
+  const principalWan = parseFloat(loan.providentRemainingPrincipal || '0');
+  if (!principalWan || principalWan <= 0) return 0;
+
+  let rate = parseFloat(loan.providentRate || '');
+  rate = (isFinite(rate) && rate > 0) ? rate / 100 : LPR_RATES.FIVE_YEAR / 100;
+
+  const remainingMonths = calculateRemainingMonths(loan.providentEndDate || '');
+  const paymentMethod = loan.providentPaymentMethod || 'equal-payment';
+
+  return calculateSingleLoanMonthlyPayment(principalWan, rate, paymentMethod, remainingMonths);
+};
+
+/**
+ * 计算非组合贷款月供（商业或公积金）
+ * @param loan 贷款信息
+ * @returns 月供金额（元）
+ */
+export const calculateNonCombinationLoanPayment = (loan: MortgageLoanInfo): number => {
+  const principalWan = parseFloat(loan.remainingPrincipal || '0');
+  if (!principalWan || principalWan <= 0) return 0;
+
+  let rate = 0;
+  if (loan.rateType === 'fixed') {
+    const fixed = parseFloat(loan.fixedRate || '');
+    rate = (isFinite(fixed) && fixed > 0)
+      ? fixed / 100
+      : ((loan.loanType === 'provident' ? LPR_RATES.FIVE_YEAR : LPR_RATES.FIVE_YEAR_PLUS) / 100);
+  } else {
+    const baseLPR = loan.loanType === 'provident' ? LPR_RATES.FIVE_YEAR : LPR_RATES.FIVE_YEAR_PLUS;
+    const adjustmentBP = parseFloat(loan.floatingRateAdjustment || '0');
+    const adjustment = isFinite(adjustmentBP) ? adjustmentBP / 10000 : 0; // BP 转为小数
+    rate = baseLPR / 100 + adjustment;
+  }
+
+  const remainingMonths = calculateRemainingMonths(loan.loanEndDate || '');
+  const paymentMethod = loan.paymentMethod || 'equal-payment';
+
+  return calculateSingleLoanMonthlyPayment(principalWan, rate, paymentMethod, remainingMonths);
+};
+
+/**
+ * 计算房贷月供（统一入口，支持组合贷款）
+ * @param loan 贷款信息
+ * @returns 月供金额（元）
+ */
+export const calculateMortgageLoanPayment = (loan: MortgageLoanInfo): number => {
+  if (loan.loanType === 'combination') {
+    const commercialPayment = calculateCommercialLoanPayment(loan);
+    const providentPayment = calculateProvidentLoanPayment(loan);
+    return commercialPayment + providentPayment;
+  }
+  
+  return calculateNonCombinationLoanPayment(loan);
+};
