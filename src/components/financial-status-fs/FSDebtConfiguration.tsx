@@ -368,9 +368,14 @@ const LoanFormCard: React.FC<{
                       <div className="relative">
                         <Input
                           type="text"
-                          placeholder="如：4.9"
+                          placeholder="如：4.90"
                           value={loan.fixedRate}
-                          onChange={(e) => updateLoan(loan.id, 'fixedRate', e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === '' || /^\d+(\.\d{0,2})?$/.test(value)) {
+                              updateLoan(loan.id, 'fixedRate', value);
+                            }
+                          }}
                           className="h-9 text-sm pr-7"
                         />
                         <Percent className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
@@ -386,12 +391,12 @@ const LoanFormCard: React.FC<{
                       <input
                         id={`rate-${loan.id}`}
                         type="number"
-                        step="1"
-                        placeholder="如：-30(减30个基点) 或 +50(加50个基点)"
+                        step="0.01"
+                        placeholder="如：-30.50(减30.50个基点) 或 +50.25(加50.25个基点)"
                         value={loan.floatingRateAdjustment}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (value === '' || /^-?\d+$/.test(value)) {
+                          if (value === '' || /^-?\d+(\.\d{0,2})?$/.test(value)) {
                             updateLoan(loan.id, 'floatingRateAdjustment', value);
                           }
                         }}
