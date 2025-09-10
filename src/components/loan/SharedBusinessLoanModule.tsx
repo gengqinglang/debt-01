@@ -599,21 +599,6 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
               </div>
             </div>
             
-            {/* 显示剩余月数和警告 */}
-            {businessLoan.endDate && (
-              <div className="mt-3 p-3 rounded-lg bg-gray-50">
-                <div className="text-xs text-gray-600">
-                  剩余月数：{calculateRemainingMonths(businessLoan.endDate)} 个月
-                  {calculateRemainingMonths(businessLoan.endDate) <= 2 && 
-                   normalizeWan(businessLoan.remainingPrincipal || '') >= 10 && (
-                    <div className="mt-1 text-yellow-600 font-medium">
-                      ⚠️ 剩余期数很短，月供会非常大，请确认结束日期是否正确
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            
             <div>
               <Label className="text-xs font-medium">
                 年化利率（%） <span className="text-red-500">*</span>
