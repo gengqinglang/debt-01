@@ -142,7 +142,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
         privateLoan.startDate &&
         privateLoan.repaymentDayOfMonth &&
         parseInt(privateLoan.repaymentDayOfMonth) >= 1 &&
-        parseInt(privateLoan.repaymentDayOfMonth) <= 31
+        parseInt(privateLoan.repaymentDayOfMonth) <= 28
       );
     }
     

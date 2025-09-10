@@ -94,7 +94,7 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
         parseFloat(businessLoan.annualRate) > 0 &&
         businessLoan.repaymentDayOfMonth &&
         parseInt(businessLoan.repaymentDayOfMonth) >= 1 &&
-        parseInt(businessLoan.repaymentDayOfMonth) <= 31 &&
+        parseInt(businessLoan.repaymentDayOfMonth) <= 28 &&
         businessLoan.repaymentMethod
       );
     } else if (businessLoan.repaymentMethod === 'lump-sum') {

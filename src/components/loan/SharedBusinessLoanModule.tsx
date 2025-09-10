@@ -325,23 +325,21 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
               <Label className="text-xs font-medium">
                 每月还款日 <span className="text-red-500">*</span>
               </Label>
-              <Input
-                type="number"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                min="1"
-                max="31"
-                placeholder="如：15"
-                value={businessLoan.repaymentDayOfMonth || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 31)) {
-                    updateBusinessLoan(businessLoan.id, 'repaymentDayOfMonth', value);
-                  }
-                }}
-                className="h-9 text-sm mt-1"
-              />
-              <p className="text-xs text-gray-500 mt-1">输入1-31之间的数字，如遇不存在的日期将自动调整为该月最后一天</p>
+              <Select 
+                value={businessLoan.repaymentDayOfMonth || ''} 
+                onValueChange={(value) => updateBusinessLoan(businessLoan.id, 'repaymentDayOfMonth', value)}
+              >
+                <SelectTrigger className="h-9 text-sm mt-1">
+                  <SelectValue placeholder="选择还款日" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50 max-h-60 overflow-y-auto">
+                  {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (
+                    <SelectItem key={day} value={day.toString()}>
+                      每月{day}号
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             {/* 下一次应还利息栏位 */}

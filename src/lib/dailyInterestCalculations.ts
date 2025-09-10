@@ -139,7 +139,7 @@ export const generateInterestFirstScheduleWithDay = (
     isLastPayment: boolean;
   }> = [];
   
-  if (!startDate || !endDate || repaymentDayOfMonth < 1 || repaymentDayOfMonth > 31) return schedule;
+  if (!startDate || !endDate || repaymentDayOfMonth < 1 || repaymentDayOfMonth > 28) return schedule;
   
   try {
     const start = new Date(startDate);
@@ -218,7 +218,7 @@ export const calculateNextPaymentInterest = (
   repaymentDayOfMonth: number,
   dayBasis: DayBasis = 360
 ): number | null => {
-  if (!startDate || !endDate || repaymentDayOfMonth < 1 || repaymentDayOfMonth > 31) return null;
+  if (!startDate || !endDate || repaymentDayOfMonth < 1 || repaymentDayOfMonth > 28) return null;
   
   const schedule = generateInterestFirstScheduleWithDay(
     principal,

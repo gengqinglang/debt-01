@@ -97,7 +97,7 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
         parseFloat(consumerLoan.annualRate) > 0 &&
         consumerLoan.repaymentDayOfMonth &&
         parseInt(consumerLoan.repaymentDayOfMonth) >= 1 &&
-        parseInt(consumerLoan.repaymentDayOfMonth) <= 31
+        parseInt(consumerLoan.repaymentDayOfMonth) <= 28
       );
     } else if (consumerLoan.repaymentMethod === 'lump-sum') {
       // 一次性还本付息：需要贷款开始日期、贷款结束日期、剩余贷款本金、年化利率

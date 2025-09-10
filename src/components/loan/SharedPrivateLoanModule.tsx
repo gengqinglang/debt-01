@@ -237,23 +237,21 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
                 <Label className="text-xs font-medium">
                   每月还款日 <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  min="1"
-                  max="31"
-                  placeholder="如：15"
-                  value={privateLoan.repaymentDayOfMonth || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 31)) {
-                      updatePrivateLoan(privateLoan.id, 'repaymentDayOfMonth', value);
-                    }
-                  }}
-                  className="h-9 text-sm mt-1"
-                />
-                <p className="text-xs text-gray-500 mt-1">输入1-31之间的数字</p>
+                <Select 
+                  value={privateLoan.repaymentDayOfMonth || ''} 
+                  onValueChange={(value) => updatePrivateLoan(privateLoan.id, 'repaymentDayOfMonth', value)}
+                >
+                  <SelectTrigger className="h-9 text-sm mt-1">
+                    <SelectValue placeholder="选择还款日" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50 max-h-60 overflow-y-auto">
+                    {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (
+                      <SelectItem key={day} value={day.toString()}>
+                        每月{day}号
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

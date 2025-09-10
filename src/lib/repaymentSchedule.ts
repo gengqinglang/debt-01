@@ -410,7 +410,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             const annualRatePercent = parseFloat(loan.annualRate || '0');
             const repaymentDay = parseInt(loan.repaymentDayOfMonth);
             
-            if (principalWan > 0 && annualRatePercent > 0 && repaymentDay >= 1 && repaymentDay <= 31) {
+            if (principalWan > 0 && annualRatePercent > 0 && repaymentDay >= 1 && repaymentDay <= 28) {
               // Generate the actual repayment schedule with varying interest amounts
               const schedule = generateInterestFirstScheduleWithDay(
                 principalWan,
@@ -653,7 +653,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             const annualRatePercent = fenValue * 10 + liValue; // 1分 = 10%, 1厘 = 1%
             const repaymentDay = parseInt(loan.repaymentDayOfMonth);
             
-            if (principalWan > 0 && annualRatePercent > 0 && repaymentDay >= 1 && repaymentDay <= 31) {
+            if (principalWan > 0 && annualRatePercent > 0 && repaymentDay >= 1 && repaymentDay <= 28) {
               // Generate the actual repayment schedule with varying interest amounts
               const schedule = generateInterestFirstScheduleWithDay(
                 principalWan,
