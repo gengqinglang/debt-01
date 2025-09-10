@@ -25,6 +25,7 @@ import { usePrivateLoanData } from '@/hooks/usePrivateLoanData';
 import { SharedPrivateLoanModule } from '@/components/loan/SharedPrivateLoanModule';
 import { useCreditCardData } from '@/hooks/useCreditCardData';
 import { SharedCreditCardModule } from '@/components/loan/SharedCreditCardModule';
+import { calculateRemainingMonthsFromLastRepayment, calculateRemainingMonths } from '@/lib/loanCalculations';
 
 interface DebtConfigurationProps {
   category: any;
@@ -1183,27 +1184,25 @@ useEffect(() => {
   const getConsumerLoanAggregatedData = () => {
     const completeConsumerLoans = consumerLoans.filter(isConsumerLoanComplete);
     const totalLoanAmount = completeConsumerLoans.reduce((sum, loan) => {
-      return sum + parseFloat(loan.loanAmount || '0');
+      return sum + parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
     }, 0);
     
-    // Calculate remaining months using endDate
-    const getRemainingMonths = (endDate: string) => {
+    // Calculate remaining months using start and end dates
+    const getRemainingMonths = (startDate: string, endDate: string) => {
       if (!endDate) return 0;
-      const today = new Date();
-      const end = new Date(endDate);
-      const diffTime = end.getTime() - today.getTime();
-      const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44)); // 30.44 days per month average
-      return Math.max(0, diffMonths);
+      return startDate 
+        ? calculateRemainingMonthsFromLastRepayment(startDate, endDate)
+        : calculateRemainingMonths(endDate);
     };
     
     let totalMonthlyPayment = 0;
     let totalRemainingInterest = 0; // 万元
     
     completeConsumerLoans.forEach(loan => {
-      const principalWan = parseFloat(loan.loanAmount || '0');
+      const principalWan = parseFloat(loan.remainingPrincipal || loan.loanAmount || '0');
       const principalYuan = principalWan * 10000;
       const annualRate = parseFloat(loan.annualRate || '0') / 100;
-      const remainingMonths = getRemainingMonths(loan.endDate || '');
+      const remainingMonths = getRemainingMonths(loan.startDate || '', loan.endDate || '');
       
       if (loan.repaymentMethod === 'interest-first') {
         // 先息后本：待还利息 = 月利息 * 剩余月数
@@ -1231,7 +1230,7 @@ useEffect(() => {
     });
     
     const maxRemainingMonths = completeConsumerLoans.reduce((max, loan) => {
-      const remainingMonths = getRemainingMonths(loan.endDate || '');
+      const remainingMonths = getRemainingMonths(loan.startDate || '', loan.endDate || '');
       return Math.max(max, remainingMonths);
     }, 0);
     
@@ -1417,12 +1416,11 @@ useEffect(() => {
 
     const monthlyRate = rate / 12;
     
-    // 计算剩余期数 - 修复日期处理
+    // 计算剩余期数 - 使用最近一次还款日逻辑
     if (!loan.loanEndDate) return 0;
-    const currentDate = new Date();
-    const endDate = new Date(loan.loanEndDate);
-    const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
-                                   (endDate.getMonth() - currentDate.getMonth()));
+    const remainingMonths = loan.loanStartDate 
+      ? calculateRemainingMonthsFromLastRepayment(loan.loanStartDate, loan.loanEndDate)
+      : calculateRemainingMonths(loan.loanEndDate);
 
     if (remainingMonths <= 0) return 0;
 
@@ -1458,11 +1456,9 @@ useEffect(() => {
     const monthlyRate = rate / 12;
     
     if (!loan.commercialEndDate) return 0;
-    const currentDate = new Date();
-    const endDate = new Date(loan.commercialEndDate);
-    if (isNaN(endDate.getTime())) return 0;
-    const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
-                                   (endDate.getMonth() - currentDate.getMonth()));
+    const remainingMonths = loan.commercialStartDate 
+      ? calculateRemainingMonthsFromLastRepayment(loan.commercialStartDate, loan.commercialEndDate)
+      : calculateRemainingMonths(loan.commercialEndDate);
 
     if (remainingMonths <= 0) return 0;
 
@@ -1487,10 +1483,9 @@ useEffect(() => {
     const monthlyRate = rate / 12;
     
     if (!loan.providentEndDate) return 0;
-    const currentDate = new Date();
-    const endDate = new Date(loan.providentEndDate);
-    const remainingMonths = Math.max(0, (endDate.getFullYear() - currentDate.getFullYear()) * 12 + 
-                                   (endDate.getMonth() - currentDate.getMonth()));
+    const remainingMonths = loan.providentStartDate 
+      ? calculateRemainingMonthsFromLastRepayment(loan.providentStartDate, loan.providentEndDate)
+      : calculateRemainingMonths(loan.providentEndDate);
 
     if (remainingMonths <= 0) return 0;
 
