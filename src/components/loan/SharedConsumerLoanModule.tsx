@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, calculateRemainingMonthsFromLastRepayment, calculateRemainingDays, formatAmount, normalizeWan } from '@/lib/loanCalculations';
+import { calculateInterestFirstPayment } from '@/lib/dailyInterestCalculations';
 
 interface ConsumerLoanCardProps {
   consumerLoan: ConsumerLoanInfo;
@@ -74,9 +75,22 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
     const annualRate = annualRatePct / 100;
     
     if (consumerLoan.repaymentMethod === 'interest-first') {
-      // 先息后本：每月利息
-      const monthlyInterest = (principal * annualRate) / 12;
-      return monthlyInterest;
+      // 先息后本：下一次要支付的利息（基于实际天数）
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1;
+      const daysInCurrentMonth = new Date(year, month, 0).getDate();
+      
+      // 计算下一期利息：使用当前月的实际天数
+      const nextPeriodInterest = calculateInterestFirstPayment(
+        principalWan, 
+        annualRatePct,
+        today.toISOString().split('T')[0],
+        new Date(year, month - 1, daysInCurrentMonth).toISOString().split('T')[0],
+        360 // 使用360天基础
+      );
+      
+      return nextPeriodInterest;
     } else {
       // 一次性还本付息：从开始日期到结束日期的利息
       const startDate = new Date(consumerLoan.startDate || '');
@@ -260,7 +274,7 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                      <span className="text-sm font-medium">{consumerLoan.repaymentMethod === 'interest-first' ? '每月利息' : '待还利息'}</span>
+                      <span className="text-sm font-medium">{consumerLoan.repaymentMethod === 'interest-first' ? '下一次利息' : '待还利息'}</span>
                     </div>
                      <div className="text-right" style={{ color: '#01BCD6' }}>
                        <div className="text-lg font-semibold">
