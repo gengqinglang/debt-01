@@ -299,7 +299,7 @@ const FinancialStatusPage = () => {
             <div className="relative py-6 text-center flex flex-col justify-center" style={{ minHeight: '80px' }}>
               {/* 返回按钮 */}
               <Button
-                onClick={() => navigate(-1)}
+                onClick={() => window.location.href = 'https://gengqinglang.github.io/financial-tools-homepage/'}
                 variant="ghost"
                 size="sm"
                 className="absolute left-4 top-6 p-2 hover:bg-gray-100/50 rounded-lg"
