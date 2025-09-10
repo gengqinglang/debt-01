@@ -468,7 +468,6 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
               <div>
                 <Label className="text-xs font-medium">
                   贷款原始金额（万元）
-                  <span className="text-gray-500 ml-1">单位：万元</span>
                 </Label>
                 <Input
                   type="number"
