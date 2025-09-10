@@ -154,10 +154,21 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
                      <Calendar
                        mode="single"
                        selected={privateLoan.startDate ? new Date(privateLoan.startDate) : undefined}
-                       onSelect={(date) => {
-                         updatePrivateLoan(privateLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
-                         setStartDateOpen(false);
-                       }}
+                        onSelect={(date) => {
+                          const formattedDate = date ? format(date, "yyyy-MM-dd") : '';
+                          updatePrivateLoan(privateLoan.id, 'startDate', formattedDate);
+                          
+                          // 如果是先息后本且每月还款日为空或为默认值1，则自动设置为发放日的日期
+                          if (date && privateLoan.repaymentMethod === 'interest-first' && 
+                              (!privateLoan.repaymentDayOfMonth || privateLoan.repaymentDayOfMonth === '1')) {
+                            const dayOfMonth = date.getDate();
+                            if (dayOfMonth <= 28) { // 确保在1-28范围内
+                              updatePrivateLoan(privateLoan.id, 'repaymentDayOfMonth', dayOfMonth.toString());
+                            }
+                          }
+                          
+                          setStartDateOpen(false);
+                        }}
                        disabled={(date) => {
                          const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
                          const today = new Date();

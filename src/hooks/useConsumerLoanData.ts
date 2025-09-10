@@ -48,7 +48,7 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
       loanTerm: '',
       annualRate: '',
       repaymentMethod: 'interest-first',
-      repaymentDayOfMonth: ''
+      repaymentDayOfMonth: '1'
     };
     setConsumerLoans(prev => [...prev, newConsumerLoan]);
   }, []);
@@ -65,12 +65,12 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
         name: '',
         loanAmount: '',
         startDate: todayDate,
-        endDate: '',
+        endDate: todayDate,
         loanTerm: '',
         annualRate: '',
         repaymentMethod: 'interest-first',
         remainingPrincipal: '',
-        repaymentDayOfMonth: '',
+        repaymentDayOfMonth: '1',
       } : loan
     ));
   }, []);

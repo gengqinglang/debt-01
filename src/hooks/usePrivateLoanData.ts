@@ -44,12 +44,12 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
       name: '',
       loanAmount: '',
       startDate: todayDate,
-      endDate: '',
+      endDate: todayDate,
       annualRate: '',
       rateFen: '',
       rateLi: '',
       repaymentMethod: 'interest-first',
-      repaymentDayOfMonth: ''
+      repaymentDayOfMonth: '1'
     };
     setPrivateLoans(prev => [...prev, newPrivateLoan]);
   }, []);
@@ -66,12 +66,12 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
         name: '',
         loanAmount: '',
         startDate: todayDate,
-        endDate: '',
+        endDate: todayDate,
         annualRate: '',
         rateFen: '',
         rateLi: '',
         repaymentMethod: 'interest-first',
-        repaymentDayOfMonth: '',
+        repaymentDayOfMonth: '1',
       } : loan
     ));
   }, []);

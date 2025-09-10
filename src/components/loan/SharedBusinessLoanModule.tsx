@@ -241,10 +241,21 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
                      <Calendar
                        mode="single"
                        selected={businessLoan.startDate ? new Date(businessLoan.startDate) : undefined}
-                       onSelect={(date) => {
-                         updateBusinessLoan(businessLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
-                         setStartDateOpen(false);
-                       }}
+                        onSelect={(date) => {
+                          const formattedDate = date ? format(date, "yyyy-MM-dd") : '';
+                          updateBusinessLoan(businessLoan.id, 'startDate', formattedDate);
+                          
+                          // 如果是先息后本且每月还款日为空或为默认值1，则自动设置为发放日的日期
+                          if (date && businessLoan.repaymentMethod === 'interest-first' && 
+                              (!businessLoan.repaymentDayOfMonth || businessLoan.repaymentDayOfMonth === '1')) {
+                            const dayOfMonth = date.getDate();
+                            if (dayOfMonth <= 28) { // 确保在1-28范围内
+                              updateBusinessLoan(businessLoan.id, 'repaymentDayOfMonth', dayOfMonth.toString());
+                            }
+                          }
+                          
+                          setStartDateOpen(false);
+                        }}
                        disabled={(date) => {
                          // 贷款发放日：今天-50年 到 今天（不能选择未来日期）
                          const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());

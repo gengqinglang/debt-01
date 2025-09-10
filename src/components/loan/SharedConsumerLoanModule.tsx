@@ -238,10 +238,21 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                      <Calendar
                        mode="single"
                        selected={consumerLoan.startDate ? new Date(consumerLoan.startDate) : undefined}
-                       onSelect={(date) => {
-                         updateConsumerLoan(consumerLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
-                         setStartDateOpen(false);
-                       }}
+                        onSelect={(date) => {
+                          const formattedDate = date ? format(date, "yyyy-MM-dd") : '';
+                          updateConsumerLoan(consumerLoan.id, 'startDate', formattedDate);
+                          
+                          // 如果是先息后本且每月还款日为空或为默认值1，则自动设置为发放日的日期
+                          if (date && consumerLoan.repaymentMethod === 'interest-first' && 
+                              (!consumerLoan.repaymentDayOfMonth || consumerLoan.repaymentDayOfMonth === '1')) {
+                            const dayOfMonth = date.getDate();
+                            if (dayOfMonth <= 28) { // 确保在1-28范围内
+                              updateConsumerLoan(consumerLoan.id, 'repaymentDayOfMonth', dayOfMonth.toString());
+                            }
+                          }
+                          
+                          setStartDateOpen(false);
+                        }}
                        disabled={(date) => {
                          // 贷款发放日：今天-50年 到 今天（不能选择未来日期）
                          const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());

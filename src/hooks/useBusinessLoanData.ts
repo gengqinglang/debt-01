@@ -44,11 +44,11 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
       loanAmount: '',
       remainingPrincipal: '',
       startDate: todayDate,
-      endDate: '',
+      endDate: todayDate,
       loanTerm: '',
       annualRate: '',
       repaymentMethod: 'interest-first',
-      repaymentDayOfMonth: ''
+      repaymentDayOfMonth: '1'
     };
     setBusinessLoans(prev => [...prev, newBusinessLoan]);
   }, []);
@@ -65,12 +65,12 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
         name: '',
         loanAmount: '',
         startDate: todayDate,
-        endDate: '',
+        endDate: todayDate,
         annualRate: '',
         repaymentMethod: 'interest-first',
         remainingPrincipal: '',
         loanTerm: '',
-        repaymentDayOfMonth: '',
+        repaymentDayOfMonth: '1',
       } : loan
     ));
   }, []);
