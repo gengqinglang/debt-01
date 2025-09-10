@@ -715,12 +715,12 @@ const LoanFormCard: React.FC<{
                       <input
                         id={`commercial-rate-${loan.id}`}
                         type="number"
-                        step="1"
-                        placeholder="如：-30(减30个基点) 或 +50(加50个基点)"
+                        step="0.01"
+                        placeholder="如：-30.50(减30.50个基点) 或 +50.25(加50.25个基点)"
                         value={loan.commercialFloatingRateAdjustment}
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (value === '' || /^-?\d+$/.test(value)) {
+                          if (value === '' || /^-?\d+(\.\d{0,2})?$/.test(value)) {
                             updateLoan(loan.id, 'commercialFloatingRateAdjustment', value);
                           }
                         }}
