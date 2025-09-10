@@ -11,7 +11,7 @@ import { PrivateLoanInfo } from '@/hooks/usePrivateLoanData';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { calculateInterestFirstPayment } from '@/lib/dailyInterestCalculations';
+import { calculateInterestFirstPayment, calculateNextPaymentInterest } from '@/lib/dailyInterestCalculations';
 
 interface PrivateLoanCardProps {
   privateLoan: PrivateLoanInfo;
@@ -35,6 +35,7 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
   updateRateLi,
 }) => {
   const [endDateOpen, setEndDateOpen] = useState(false);
+  const [startDateOpen, setStartDateOpen] = useState(false);
   
   return (
     <div className="rounded-lg py-6 px-3 bg-white" style={{ border: '2px solid #CAF4F7' }}>
@@ -113,26 +114,259 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
           </div>
         </div>
 
-        {/* 剩余贷款本金 + 贷款结束日期 */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-xs font-medium">
-              剩余贷款本金（万元） <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="number"
-              inputMode="decimal"
-              pattern="[0-9]*"
-              placeholder="如：10"
-              value={privateLoan.loanAmount}
-              onChange={(e) => updatePrivateLoan(privateLoan.id, 'loanAmount', e.target.value)}
-              className="h-9 text-sm mt-1"
-            />
-          </div>
-          <div>
-            <Label className="text-xs font-medium">
-              贷款结束日期 <span className="text-red-500">*</span>
-            </Label>
+        {/* 根据还款方式显示不同的字段布局 */}
+        {privateLoan.repaymentMethod === 'interest-first' ? (
+          /* 先息后本：第一行：名称、还款方式；第二行：剩余贷款本金、贷款发放日；第三行：贷款结束日期、每月还款日；第四行：利率分、利率厘 */
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  剩余贷款本金（万元） <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*"
+                  placeholder="如：10"
+                  value={privateLoan.loanAmount}
+                  onChange={(e) => updatePrivateLoan(privateLoan.id, 'loanAmount', e.target.value)}
+                  className="h-9 text-sm mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-medium">
+                  贷款发放日 <span className="text-red-500">*</span>
+                </Label>
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "h-9 w-full justify-start text-left font-normal mt-1",
+                        !privateLoan.startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {privateLoan.startDate ? format(new Date(privateLoan.startDate), "yyyy-MM-dd") : "选择日期"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
+                     <Calendar
+                       mode="single"
+                       selected={privateLoan.startDate ? new Date(privateLoan.startDate) : undefined}
+                       onSelect={(date) => {
+                         updatePrivateLoan(privateLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
+                         setStartDateOpen(false);
+                       }}
+                       disabled={(date) => {
+                         const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                         const today = new Date();
+                         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                         const minDate = new Date(todayDate.getTime());
+                         minDate.setFullYear(minDate.getFullYear() - 50);
+                         return selectedDate.getTime() < minDate.getTime() || selectedDate.getTime() > todayDate.getTime();
+                       }}
+                       initialFocus
+                       captionLayout="dropdown"
+                       fromYear={1975}
+                       toYear={new Date().getFullYear()}
+                       locale={zhCN}
+                      classNames={{ 
+                        caption_label: "hidden", 
+                        nav: "hidden",
+                        caption_dropdowns: "flex justify-between w-full",
+                        dropdown: "min-w-[120px] w-[120px]"
+                      }}
+                      className={cn("p-3 pointer-events-auto w-full")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  贷款结束日期 <span className="text-red-500">*</span>
+                </Label>
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                     className={cn(
+                          "h-9 w-full justify-start text-left font-normal mt-1",
+                          !privateLoan.endDate && "text-muted-foreground"
+                        )}
+                     >
+                       <CalendarIcon className="mr-2 h-4 w-4" />
+                       {privateLoan.endDate ? format(new Date(privateLoan.endDate), "yyyy-MM-dd") : "选择日期"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
+                     <Calendar
+                       mode="single"
+                       selected={privateLoan.endDate ? new Date(privateLoan.endDate) : undefined}
+                       onSelect={(date) => {
+                         updatePrivateLoan(privateLoan.id, 'endDate', date ? format(date, "yyyy-MM-dd") : '');
+                         setEndDateOpen(false);
+                       }}
+                       disabled={(date) => {
+                         const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                         const today = new Date();
+                         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                         const maxDate = new Date(todayDate.getTime());
+                         maxDate.setFullYear(maxDate.getFullYear() + 50);
+                         return selectedDate.getTime() < todayDate.getTime() || selectedDate.getTime() > maxDate.getTime();
+                       }}
+                       initialFocus
+                       captionLayout="dropdown"
+                       fromYear={new Date().getFullYear()}
+                       toYear={new Date().getFullYear() + 50}
+                       locale={zhCN}
+                      classNames={{ 
+                        caption_label: "hidden", 
+                        nav: "hidden",
+                        caption_dropdowns: "flex justify-between w-full",
+                        dropdown: "min-w-[120px] w-[120px]"
+                      }}
+                      className={cn("p-3 pointer-events-auto w-full")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label className="text-xs font-medium">
+                  每月还款日 <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  min="1"
+                  max="31"
+                  placeholder="如：15"
+                  value={privateLoan.repaymentDayOfMonth || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 31)) {
+                      updatePrivateLoan(privateLoan.id, 'repaymentDayOfMonth', value);
+                    }
+                  }}
+                  className="h-9 text-sm mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">输入1-31之间的数字</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  利率-分
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    pattern="[0-9]*\.?[0-9]*"
+                    step="0.01"
+                    min="0"
+                    placeholder="0"
+                    value={privateLoan.rateFen}
+                    onChange={(e) => updateRateFen(privateLoan.id, e.target.value)}
+                    className="h-9 text-sm pr-12"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-gray-500 text-sm">分</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs font-medium">
+                  利率-厘
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    pattern="[0-9]*\.?[0-9]*"
+                    step="0.01"
+                    min="0"
+                    placeholder="0"
+                    value={privateLoan.rateLi}
+                    onChange={(e) => updateRateLi(privateLoan.id, e.target.value)}
+                    className="h-9 text-sm pr-12"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-gray-500 text-sm">厘</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* 下一次应还利息栏位 */}
+            <div className="mt-5">
+              <div className="space-y-2">
+                <div className="rounded-lg p-3 bg-white border border-cyan-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
+                      <span className="text-sm font-medium">下一次应还利息</span>
+                    </div>
+                     <div className="text-right" style={{ color: '#01BCD6' }}>
+                       <div className="text-lg font-semibold">
+                         {(() => {
+                           const requiredFilled = privateLoan.loanAmount && 
+                                  privateLoan.startDate &&
+                                  privateLoan.endDate && 
+                                  (privateLoan.rateFen || privateLoan.rateLi) &&
+                                  privateLoan.repaymentDayOfMonth;
+                           if (!requiredFilled) return '--';
+                           
+                           const principalWan = parseFloat(privateLoan.loanAmount);
+                           const annualRatePct = parseFloat(privateLoan.annualRate);
+                           const repaymentDay = parseInt(privateLoan.repaymentDayOfMonth);
+                           
+                           if (isNaN(principalWan) || isNaN(annualRatePct) || isNaN(repaymentDay)) return '--';
+                           
+                           const nextInterest = calculateNextPaymentInterest(
+                             principalWan,
+                             annualRatePct,
+                             privateLoan.startDate,
+                             privateLoan.endDate,
+                             repaymentDay,
+                             360
+                           );
+                           
+                           return nextInterest !== null ? `¥${Math.round(nextInterest).toLocaleString()}` : '--';
+                         })()}
+                       </div>
+                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* 其他还款方式保持原样 */
+          <>
+            {/* 剩余贷款本金 + 贷款结束日期 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  剩余贷款本金（万元） <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*"
+                  placeholder="如：10"
+                  value={privateLoan.loanAmount}
+                  onChange={(e) => updatePrivateLoan(privateLoan.id, 'loanAmount', e.target.value)}
+                  className="h-9 text-sm mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-medium">
+                  贷款结束日期 <span className="text-red-500">*</span>
+                </Label>
                 <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -178,25 +412,56 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
                     />
                   </PopoverContent>
                 </Popover>
-          </div>
-        </div>
+              </div>
+            </div>
 
-        {/* 利率输入（分、厘分开输入） */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-xs font-medium">
-              利率-分
-            </Label>
-            <div className="relative mt-1">
-              <Input
-                type="number"
-                inputMode="decimal"
-                pattern="[0-9]*\.?[0-9]*"
-                step="0.01"
-                min="0"
-                placeholder="0"
-                value={privateLoan.rateFen}
-                onChange={(e) => updateRateFen(privateLoan.id, e.target.value)}
+            {/* 利率输入（分、厘分开输入） */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  利率-分
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    pattern="[0-9]*\.?[0-9]*"
+                    step="0.01"
+                    min="0"
+                    placeholder="0"
+                    value={privateLoan.rateFen}
+                    onChange={(e) => updateRateFen(privateLoan.id, e.target.value)}
+                    className="h-9 text-sm pr-12"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-gray-500 text-sm">分</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs font-medium">
+                  利率-厘
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    pattern="[0-9]*\.?[0-9]*"
+                    step="0.01"
+                    min="0"
+                    placeholder="0"
+                    value={privateLoan.rateLi}
+                    onChange={(e) => updateRateLi(privateLoan.id, e.target.value)}
+                    className="h-9 text-sm pr-12"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className="text-gray-500 text-sm">厘</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
                 className="h-9 text-sm pr-8"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">分</span>

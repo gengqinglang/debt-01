@@ -19,6 +19,7 @@ export interface BusinessLoanInfo {
   loanTerm: string; // 贷款期限（年）
   annualRate: string; // 年化利率（%）
   repaymentMethod: string; // 还款方式
+  repaymentDayOfMonth?: string; // 每月还款日（1-31）
 }
 
 export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
@@ -46,7 +47,8 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
       endDate: '',
       loanTerm: '',
       annualRate: '',
-      repaymentMethod: 'interest-first'
+      repaymentMethod: 'interest-first',
+      repaymentDayOfMonth: ''
     };
     setBusinessLoans(prev => [...prev, newBusinessLoan]);
   }, []);
@@ -68,6 +70,7 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
         repaymentMethod: 'interest-first',
         remainingPrincipal: '',
         loanTerm: '',
+        repaymentDayOfMonth: '',
       } : loan
     ));
   }, []);
@@ -81,13 +84,17 @@ export const useBusinessLoanData = (initialData?: BusinessLoanInfo[]) => {
   // 检查经营贷信息是否完整
   const isBusinessLoanComplete = useCallback((businessLoan: BusinessLoanInfo): boolean => {
     if (businessLoan.repaymentMethod === 'interest-first') {
-      // 先息后本：需要剩余贷款本金、贷款结束日期、年化利率
+      // 先息后本：需要贷款本金、贷款发放日、贷款结束日期、年化利率、每月还款日
       return Boolean(
         businessLoan.loanAmount && 
         parseFloat(businessLoan.loanAmount) > 0 &&
+        businessLoan.startDate &&
         businessLoan.endDate &&
         businessLoan.annualRate && 
         parseFloat(businessLoan.annualRate) > 0 &&
+        businessLoan.repaymentDayOfMonth &&
+        parseInt(businessLoan.repaymentDayOfMonth) >= 1 &&
+        parseInt(businessLoan.repaymentDayOfMonth) <= 31 &&
         businessLoan.repaymentMethod
       );
     } else if (businessLoan.repaymentMethod === 'lump-sum') {

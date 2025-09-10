@@ -106,19 +106,21 @@ export const calculateInterestFirstPayment = (
 };
 
 /**
- * 生成"先息后本"还款计划
+ * 生成"先息后本"还款计划，支持指定每月还款日
  * @param principal 本金（万元）
  * @param annualRatePercent 年利率（百分比形式）
  * @param startDate 贷款开始日期 (YYYY-MM-DD)
  * @param endDate 贷款结束日期 (YYYY-MM-DD)
+ * @param repaymentDayOfMonth 每月还款日（1-31）
  * @param dayBasis 天数基础，默认360
  * @returns 还款计划数组，包含每期的日期、利息、本金
  */
-export const generateInterestFirstSchedule = (
+export const generateInterestFirstScheduleWithDay = (
   principal: number,
   annualRatePercent: number,
   startDate: string,
   endDate: string,
+  repaymentDayOfMonth: number,
   dayBasis: DayBasis = 360
 ): Array<{
   fromDate: string;
@@ -137,7 +139,7 @@ export const generateInterestFirstSchedule = (
     isLastPayment: boolean;
   }> = [];
   
-  if (!startDate || !endDate) return schedule;
+  if (!startDate || !endDate || repaymentDayOfMonth < 1 || repaymentDayOfMonth > 31) return schedule;
   
   try {
     const start = new Date(startDate);
@@ -145,19 +147,18 @@ export const generateInterestFirstSchedule = (
     
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return schedule;
     
-    const startDay = start.getDate();
     let currentPeriodStart = new Date(start);
     
     while (currentPeriodStart < end) {
-      // 计算下一个还款日
+      // 计算下一个还款日：设置为下一个月的指定日期
       let nextPaymentDate = new Date(
         currentPeriodStart.getFullYear(),
         currentPeriodStart.getMonth() + 1,
-        startDay
+        repaymentDayOfMonth
       );
       
-      // 处理月末日期对齐（如31号在某些月份不存在）
-      if (nextPaymentDate.getDate() !== startDay) {
+      // 处理月末日期对齐（如31号在某些月份不存在，使用该月最后一天）
+      if (nextPaymentDate.getDate() !== repaymentDayOfMonth) {
         nextPaymentDate = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth() + 1, 0);
       }
       
@@ -196,4 +197,45 @@ export const generateInterestFirstSchedule = (
   } catch {
     return schedule;
   }
+};
+
+/**
+ * 计算"先息后本"模式下的下一期应还利息
+ * 基于每月还款日计算最近的下一个还款期的利息
+ * @param principal 本金（万元）
+ * @param annualRatePercent 年利率（百分比形式）
+ * @param startDate 贷款开始日期 (YYYY-MM-DD)
+ * @param endDate 贷款结束日期 (YYYY-MM-DD)
+ * @param repaymentDayOfMonth 每月还款日（1-31）
+ * @param dayBasis 天数基础，默认360
+ * @returns 下一期应还利息（元），如果无法计算则返回null
+ */
+export const calculateNextPaymentInterest = (
+  principal: number,
+  annualRatePercent: number,
+  startDate: string,
+  endDate: string,
+  repaymentDayOfMonth: number,
+  dayBasis: DayBasis = 360
+): number | null => {
+  if (!startDate || !endDate || repaymentDayOfMonth < 1 || repaymentDayOfMonth > 31) return null;
+  
+  const schedule = generateInterestFirstScheduleWithDay(
+    principal,
+    annualRatePercent,
+    startDate,
+    endDate,
+    repaymentDayOfMonth,
+    dayBasis
+  );
+  
+  if (schedule.length === 0) return null;
+  
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  
+  // 找到下一个未到期的还款期
+  const nextPayment = schedule.find(payment => payment.toDate >= todayStr);
+  
+  return nextPayment ? nextPayment.interestPayment : null;
 };

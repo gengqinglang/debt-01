@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, calculateRemainingMonthsFromLastRepayment, calculateRemainingDays, formatAmount, normalizeWan } from '@/lib/loanCalculations';
-import { calculateInterestFirstPayment } from '@/lib/dailyInterestCalculations';
+import { calculateInterestFirstPayment, calculateNextPaymentInterest } from '@/lib/dailyInterestCalculations';
 
 interface ConsumerLoanCardProps {
   consumerLoan: ConsumerLoanInfo;
@@ -183,7 +183,7 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
 
         {/* 根据还款方式显示不同的字段布局 */}
         {consumerLoan.repaymentMethod === 'interest-first' ? (
-          /* 先息后本：剩余贷款本金 + 贷款结束日期在一行，然后年化利率在下面 */
+          /* 先息后本：第一行：名称、还款方式；第二行：剩余贷款本金、年化利率；第三行：贷款发放日、贷款结束日期；第四行：每月还款日 */
           <>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -199,6 +199,73 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                   onChange={(e) => updateConsumerLoan(consumerLoan.id, 'loanAmount', e.target.value)}
                   className="h-9 text-sm mt-1"
                 />
+              </div>
+              <div>
+                <Label className="text-xs font-medium">
+                  年化利率（%） <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  pattern="[0-9]*\.?[0-9]*"
+                  step="0.01"
+                  placeholder="如：6.5"
+                  value={consumerLoan.annualRate}
+                  onChange={(e) => updateConsumerLoan(consumerLoan.id, 'annualRate', e.target.value)}
+                  className="h-9 text-sm mt-1"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-medium">
+                  贷款发放日 <span className="text-red-500">*</span>
+                </Label>
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "h-9 w-full justify-start text-left font-normal mt-1",
+                        !consumerLoan.startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {consumerLoan.startDate ? format(new Date(consumerLoan.startDate), "yyyy-MM-dd") : "选择日期"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white border shadow-lg z-50" align="start">
+                     <Calendar
+                       mode="single"
+                       selected={consumerLoan.startDate ? new Date(consumerLoan.startDate) : undefined}
+                       onSelect={(date) => {
+                         updateConsumerLoan(consumerLoan.id, 'startDate', date ? format(date, "yyyy-MM-dd") : '');
+                         setStartDateOpen(false);
+                       }}
+                       disabled={(date) => {
+                         // 贷款发放日：今天-50年 到 今天（不能选择未来日期）
+                         const selectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                         const today = new Date();
+                         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                         const minDate = new Date(todayDate.getTime());
+                         minDate.setFullYear(minDate.getFullYear() - 50);
+                         return selectedDate.getTime() < minDate.getTime() || selectedDate.getTime() > todayDate.getTime();
+                       }}
+                       initialFocus
+                       captionLayout="dropdown"
+                       fromYear={1975}
+                       toYear={new Date().getFullYear()}
+                       locale={zhCN}
+                      classNames={{ 
+                        caption_label: "hidden", 
+                        nav: "hidden",
+                        caption_dropdowns: "flex justify-between w-full",
+                        dropdown: "min-w-[120px] w-[120px]"
+                      }}
+                      className={cn("p-3 pointer-events-auto w-full")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div>
                 <Label className="text-xs font-medium">
@@ -253,52 +320,72 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
             </div>
             <div>
               <Label className="text-xs font-medium">
-                年化利率（%） <span className="text-red-500">*</span>
+                每月还款日 <span className="text-red-500">*</span>
               </Label>
               <Input
                 type="number"
-                inputMode="decimal"
-                pattern="[0-9]*\.?[0-9]*"
-                step="0.01"
-                placeholder="如：6.5"
-                value={consumerLoan.annualRate}
-                onChange={(e) => updateConsumerLoan(consumerLoan.id, 'annualRate', e.target.value)}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                min="1"
+                max="31"
+                placeholder="如：15"
+                value={consumerLoan.repaymentDayOfMonth || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 31)) {
+                    updateConsumerLoan(consumerLoan.id, 'repaymentDayOfMonth', value);
+                  }
+                }}
                 className="h-9 text-sm mt-1"
               />
+              <p className="text-xs text-gray-500 mt-1">输入1-31之间的数字，如遇不存在的日期将自动调整为该月最后一天</p>
             </div>
             
-            {/* 待还利息栏位 */}
+            {/* 下一次应还利息栏位 */}
             <div className="mt-5">
               <div className="space-y-2">
                 <div className="rounded-lg p-3 bg-white border border-cyan-500">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                      <span className="text-sm font-medium">{consumerLoan.repaymentMethod === 'interest-first' ? '下一次利息' : '待还利息'}</span>
+                      <span className="text-sm font-medium">下一次应还利息</span>
                     </div>
                      <div className="text-right" style={{ color: '#01BCD6' }}>
                        <div className="text-lg font-semibold">
                          {(() => {
                            // 检查必输项是否完整
-                           const basicRequired = consumerLoan.repaymentMethod;
-                           if (!basicRequired) return '--';
+                           const requiredFilled = consumerLoan.loanAmount && 
+                                  consumerLoan.startDate &&
+                                  consumerLoan.endDate && 
+                                  consumerLoan.annualRate &&
+                                  consumerLoan.repaymentDayOfMonth;
+                           if (!requiredFilled) return '--';
                            
-                           if (consumerLoan.repaymentMethod === 'interest-first') {
-                             // 先息后本必填项：剩余贷款本金 + 贷款结束日期 + 年化利率
-                             const requiredFilled = consumerLoan.loanAmount && 
-                                    consumerLoan.endDate && 
-                                    consumerLoan.annualRate;
-                             if (!requiredFilled) return '--';
-                           } else if (consumerLoan.repaymentMethod === 'lump-sum') {
-                             // 一次性还本付息必填项：贷款开始日期 + 贷款结束日期 + 剩余贷款本金 + 年化利率
-                             const requiredFilled = consumerLoan.startDate && 
-                                    consumerLoan.endDate && 
-                                    consumerLoan.loanAmount && 
-                                    consumerLoan.annualRate;
-                             if (!requiredFilled) return '--';
-                           }
+                           // 使用新的实际天数计算方法
+                           const principalWan = parseFloat(consumerLoan.loanAmount);
+                           const annualRatePct = parseFloat(consumerLoan.annualRate);
+                           const repaymentDay = parseInt(consumerLoan.repaymentDayOfMonth);
                            
-                           return pendingInterest !== null ? `¥${Math.round(pendingInterest).toLocaleString()}` : '--';
+                           if (isNaN(principalWan) || isNaN(annualRatePct) || isNaN(repaymentDay)) return '--';
+                           
+                           // 使用新的calculateNextPaymentInterest函数
+                           const nextInterest = (() => {
+                             try {
+                               const { calculateNextPaymentInterest } = require('@/lib/dailyInterestCalculations');
+                               return calculateNextPaymentInterest(
+                                 principalWan,
+                                 annualRatePct,
+                                 consumerLoan.startDate,
+                                 consumerLoan.endDate,
+                                 repaymentDay,
+                                 360
+                               );
+                             } catch {
+                               return null;
+                             }
+                           })();
+                           
+                           return nextInterest !== null ? `¥${Math.round(nextInterest).toLocaleString()}` : '--';
                          })()}
                        </div>
                      </div>

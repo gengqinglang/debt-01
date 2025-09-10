@@ -19,6 +19,7 @@ export interface ConsumerLoanInfo {
   loanTerm: string; // 贷款期限（年）
   annualRate: string; // 年化利率（%）
   repaymentMethod: string; // 还款方式
+  repaymentDayOfMonth?: string; // 每月还款日（1-31）
 }
 
 export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
@@ -46,7 +47,8 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
       endDate: todayDate,
       loanTerm: '',
       annualRate: '',
-      repaymentMethod: 'interest-first'
+      repaymentMethod: 'interest-first',
+      repaymentDayOfMonth: ''
     };
     setConsumerLoans(prev => [...prev, newConsumerLoan]);
   }, []);
@@ -68,6 +70,7 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
         annualRate: '',
         repaymentMethod: 'interest-first',
         remainingPrincipal: '',
+        repaymentDayOfMonth: '',
       } : loan
     ));
   }, []);
@@ -84,13 +87,17 @@ export const useConsumerLoanData = (initialData?: ConsumerLoanInfo[]) => {
     if (!consumerLoan.repaymentMethod) return false;
     
     if (consumerLoan.repaymentMethod === 'interest-first') {
-      // 先息后本：需要剩余贷款本金、贷款结束日期、年化利率
+      // 先息后本：需要贷款本金、贷款发放日、贷款结束日期、年化利率、每月还款日
       return Boolean(
         consumerLoan.loanAmount && 
         parseFloat(consumerLoan.loanAmount) > 0 &&
+        consumerLoan.startDate &&
         consumerLoan.endDate &&
         consumerLoan.annualRate && 
-        parseFloat(consumerLoan.annualRate) > 0
+        parseFloat(consumerLoan.annualRate) > 0 &&
+        consumerLoan.repaymentDayOfMonth &&
+        parseInt(consumerLoan.repaymentDayOfMonth) >= 1 &&
+        parseInt(consumerLoan.repaymentDayOfMonth) <= 31
       );
     } else if (consumerLoan.repaymentMethod === 'lump-sum') {
       // 一次性还本付息：需要贷款开始日期、贷款结束日期、剩余贷款本金、年化利率

@@ -20,6 +20,7 @@ export interface PrivateLoanInfo {
   rateFen: string; // 分（如：1）
   rateLi: string; // 厘（如：3）
   repaymentMethod: string; // 还款方式
+  repaymentDayOfMonth?: string; // 每月还款日（1-31）
 }
 
 export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
@@ -47,7 +48,8 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
       annualRate: '',
       rateFen: '',
       rateLi: '',
-      repaymentMethod: 'interest-first'
+      repaymentMethod: 'interest-first',
+      repaymentDayOfMonth: ''
     };
     setPrivateLoans(prev => [...prev, newPrivateLoan]);
   }, []);
@@ -69,6 +71,7 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
         rateFen: '',
         rateLi: '',
         repaymentMethod: 'interest-first',
+        repaymentDayOfMonth: '',
       } : loan
     ));
   }, []);
@@ -132,6 +135,16 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
       privateLoan.repaymentMethod &&
       privateLoan.endDate // 所有民间借贷都需要结束日期
     );
+    
+    // 先息后本需要额外字段
+    if (privateLoan.repaymentMethod === 'interest-first') {
+      return basicComplete && Boolean(
+        privateLoan.startDate &&
+        privateLoan.repaymentDayOfMonth &&
+        parseInt(privateLoan.repaymentDayOfMonth) >= 1 &&
+        parseInt(privateLoan.repaymentDayOfMonth) <= 31
+      );
+    }
     
     return basicComplete;
   }, []);
