@@ -324,7 +324,12 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
               </Label>
               <Select 
                 value={consumerLoan.repaymentDayOfMonth || ''} 
-                onValueChange={(value) => updateConsumerLoan(consumerLoan.id, 'repaymentDayOfMonth', value)}
+                onValueChange={(value) => {
+                  // 延迟更新，避免在选择过程中立即触发计算
+                  setTimeout(() => {
+                    updateConsumerLoan(consumerLoan.id, 'repaymentDayOfMonth', value);
+                  }, 100);
+                }}
               >
                 <SelectTrigger className="h-9 text-sm mt-1">
                   <SelectValue placeholder="选择还款日" />
@@ -351,7 +356,7 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                      <div className="text-right" style={{ color: '#01BCD6' }}>
                        <div className="text-lg font-semibold">
                          {(() => {
-                           // 检查必输项是否完整
+                           // 检查必输项是否完整，并且还款日必须是有效数值
                            const requiredFilled = consumerLoan.loanAmount && 
                                   consumerLoan.startDate &&
                                   consumerLoan.endDate && 
@@ -359,12 +364,16 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                                   consumerLoan.repaymentDayOfMonth;
                            if (!requiredFilled) return '--';
                            
-                           // 使用新的实际天数计算方法
+                           // 验证数值的有效性
                            const principalWan = parseFloat(consumerLoan.loanAmount);
                            const annualRatePct = parseFloat(consumerLoan.annualRate);
                            const repaymentDay = parseInt(consumerLoan.repaymentDayOfMonth);
                            
-                           if (isNaN(principalWan) || isNaN(annualRatePct) || isNaN(repaymentDay)) return '--';
+                           // 只有在所有数值都有效且还款日在合理范围内时才进行计算
+                           if (isNaN(principalWan) || isNaN(annualRatePct) || isNaN(repaymentDay) || 
+                               repaymentDay < 1 || repaymentDay > 28) {
+                             return '--';
+                           }
                            
                             // 使用calculateNextPaymentInterest函数
                             const nextInterest = calculateNextPaymentInterest(
