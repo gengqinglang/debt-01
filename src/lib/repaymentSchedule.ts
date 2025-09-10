@@ -1,6 +1,7 @@
 import { 
   calculateMortgageLoanPayment, 
-  calculateRemainingMonths as libCalculateRemainingMonths, 
+  calculateRemainingMonths as libCalculateRemainingMonths,
+  calculateRemainingMonthsFromLastRepayment,
   calculateSingleLoanMonthlyPayment,
   normalizeWan,
   type MortgageLoanInfo 
@@ -113,9 +114,16 @@ const calculateCarLoanMonthlyPayment = (loan: CarLoanInfo): number => {
   
   if (principalWan <= 0 || annualRate <= 0) return 0;
   
-  // Calculate remaining months from dates
+  // Calculate remaining months from dates using new logic
   let remainingMonths = 0;
   if (loan.startDateMonth && loan.endDateMonth) {
+    // 使用新的计算方式：从最近还款日计算剩余期数
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(
+      loan.startDateMonth, 
+      loan.endDateMonth
+    );
+  } else if (loan.endDateMonth) {
+    // 向后兼容：如果没有开始日期，使用旧逻辑
     const today = new Date();
     const endDate = new Date(loan.endDateMonth);
     const diffTime = endDate.getTime() - today.getTime();
@@ -152,13 +160,17 @@ const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => 
   if (principalWan <= 0 || annualRate <= 0) return 0;
 
   let remainingMonths = 0;
-  if (loan.endDate) {
+  if (loan.startDate && loan.endDate) {
+    // 使用新的计算方式：从最近还款日计算剩余期数
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.startDate, loan.endDate);
+  } else if (loan.endDate) {
+    // 向后兼容：如果没有开始日期，使用旧逻辑
     remainingMonths = libCalculateRemainingMonths(loan.endDate);
   } else if (loan.startDate && loan.loanTerm) {
     const startDate = new Date(loan.startDate);
     const termYears = parseFloat(loan.loanTerm);
     const endDate = new Date(startDate.getFullYear() + termYears, startDate.getMonth(), startDate.getDate());
-    remainingMonths = libCalculateRemainingMonths(endDate.toISOString().split('T')[0]);
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.startDate, endDate.toISOString().split('T')[0]);
   }
 
   if (remainingMonths <= 0) return 0;
@@ -191,13 +203,17 @@ const calculateBusinessLoanMonthlyPayment = (loan: BusinessLoanInfo): number => 
   if (principalWan <= 0 || annualRate <= 0) return 0;
   
   let remainingMonths = 0;
-  if (loan.endDate) {
+  if (loan.startDate && loan.endDate) {
+    // 使用新的计算方式：从最近还款日计算剩余期数
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.startDate, loan.endDate);
+  } else if (loan.endDate) {
+    // 向后兼容：如果没有开始日期，使用旧逻辑
     remainingMonths = libCalculateRemainingMonths(loan.endDate);
   } else if (loan.startDate && loan.loanTerm) {
     const startDate = new Date(loan.startDate);
     const termYears = parseFloat(loan.loanTerm);
     const endDate = new Date(startDate.getFullYear() + termYears, startDate.getMonth(), startDate.getDate());
-    remainingMonths = libCalculateRemainingMonths(endDate.toISOString().split('T')[0]);
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.startDate, endDate.toISOString().split('T')[0]);
   }
   
   if (remainingMonths <= 0) return 0;
@@ -238,7 +254,11 @@ const calculatePrivateLoanMonthlyPayment = (loan: PrivateLoanInfo): number => {
   if (annualRate <= 0) return 0;
   
   let remainingMonths = 0;
-  if (loan.endDate) {
+  if (loan.startDate && loan.endDate) {
+    // 使用新的计算方式：从最近还款日计算剩余期数
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.startDate, loan.endDate);
+  } else if (loan.endDate) {
+    // 向后兼容：如果没有开始日期，使用旧逻辑
     remainingMonths = libCalculateRemainingMonths(loan.endDate);
   }
   

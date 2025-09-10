@@ -110,7 +110,61 @@ export interface MortgageLoanInfo {
 }
 
 /**
- * 计算剩余还款月数
+ * 计算剩余还款月数（从最近一次已发生的还款日到结束日期）
+ * @param startDate 贷款开始日期 (YYYY-MM-DD)
+ * @param endDate 贷款结束日期 (YYYY-MM-DD)
+ * @param today 当前日期（可选，默认为今天）
+ * @returns 剩余月数
+ */
+export const calculateRemainingMonthsFromLastRepayment = (
+  startDate: string, 
+  endDate: string, 
+  today: Date = new Date()
+): number => {
+  if (!startDate || !endDate) return 0;
+  
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
+  
+  // 计算最近一次已发生的还款日（不晚于今天）
+  const startDay = start.getDate();
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth();
+  const todayDay = today.getDate();
+  
+  let lastRepaymentDate: Date;
+  
+  if (todayDay >= startDay) {
+    // 今天已过本月还款日，使用本月还款日
+    lastRepaymentDate = new Date(todayYear, todayMonth, startDay);
+  } else {
+    // 今天未到本月还款日，使用上月还款日
+    lastRepaymentDate = new Date(todayYear, todayMonth - 1, startDay);
+  }
+  
+  // 处理月末日期对齐问题（如：开始日期是31号，但某些月份没有31号）
+  if (lastRepaymentDate.getDate() !== startDay) {
+    // 如果目标日期不存在（如2月31日），使用该月最后一天
+    lastRepaymentDate = new Date(lastRepaymentDate.getFullYear(), lastRepaymentDate.getMonth() + 1, 0);
+  }
+  
+  // 确保最近还款日不早于贷款开始日
+  if (lastRepaymentDate.getTime() < start.getTime()) {
+    lastRepaymentDate = start;
+  }
+  
+  // 计算从最近还款日到结束日的月数
+  const remainingMonths = Math.max(0, 
+    (end.getFullYear() - lastRepaymentDate.getFullYear()) * 12 + 
+    (end.getMonth() - lastRepaymentDate.getMonth())
+  );
+  
+  return remainingMonths;
+};
+
+/**
+ * 计算剩余还款月数（旧版本，向后兼容）
  * @param endDate 贷款结束日期 (YYYY-MM-DD)
  * @returns 剩余月数
  */
@@ -180,7 +234,15 @@ export const calculateCommercialLoanPayment = (loan: MortgageLoanInfo): number =
     rate = LPR_RATES.FIVE_YEAR_PLUS / 100 + adjustment;
   }
 
-  const remainingMonths = calculateRemainingMonths(loan.commercialEndDate || '');
+  // 使用新的计算方式：从最近还款日计算剩余期数
+  let remainingMonths = 0;
+  if (loan.commercialStartDate && loan.commercialEndDate) {
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.commercialStartDate, loan.commercialEndDate);
+  } else if (loan.commercialEndDate) {
+    // 向后兼容：如果没有开始日期，使用旧逻辑
+    remainingMonths = calculateRemainingMonths(loan.commercialEndDate);
+  }
+  
   const paymentMethod = loan.commercialPaymentMethod || 'equal-payment';
 
   return calculateSingleLoanMonthlyPayment(principalWan, rate, paymentMethod, remainingMonths);
@@ -198,7 +260,15 @@ export const calculateProvidentLoanPayment = (loan: MortgageLoanInfo): number =>
   let rate = parseFloat(loan.providentRate || '');
   rate = (isFinite(rate) && rate > 0) ? rate / 100 : LPR_RATES.FIVE_YEAR / 100;
 
-  const remainingMonths = calculateRemainingMonths(loan.providentEndDate || '');
+  // 使用新的计算方式：从最近还款日计算剩余期数
+  let remainingMonths = 0;
+  if (loan.providentStartDate && loan.providentEndDate) {
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.providentStartDate, loan.providentEndDate);
+  } else if (loan.providentEndDate) {
+    // 向后兼容：如果没有开始日期，使用旧逻辑
+    remainingMonths = calculateRemainingMonths(loan.providentEndDate);
+  }
+  
   const paymentMethod = loan.providentPaymentMethod || 'equal-payment';
 
   return calculateSingleLoanMonthlyPayment(principalWan, rate, paymentMethod, remainingMonths);
@@ -226,7 +296,15 @@ export const calculateNonCombinationLoanPayment = (loan: MortgageLoanInfo): numb
     rate = baseLPR / 100 + adjustment;
   }
 
-  const remainingMonths = calculateRemainingMonths(loan.loanEndDate || '');
+  // 使用新的计算方式：从最近还款日计算剩余期数
+  let remainingMonths = 0;
+  if (loan.loanStartDate && loan.loanEndDate) {
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.loanStartDate, loan.loanEndDate);
+  } else if (loan.loanEndDate) {
+    // 向后兼容：如果没有开始日期，使用旧逻辑
+    remainingMonths = calculateRemainingMonths(loan.loanEndDate);
+  }
+  
   const paymentMethod = loan.paymentMethod || 'equal-payment';
 
   return calculateSingleLoanMonthlyPayment(principalWan, rate, paymentMethod, remainingMonths);

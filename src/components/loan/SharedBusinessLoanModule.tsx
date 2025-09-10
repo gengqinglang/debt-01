@@ -11,7 +11,7 @@ import { BusinessLoanInfo } from '@/hooks/useBusinessLoanData';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
-import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, calculateRemainingDays, formatAmount, normalizeWan } from '@/lib/loanCalculations';
+import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, calculateRemainingMonthsFromLastRepayment, calculateRemainingDays, formatAmount, normalizeWan } from '@/lib/loanCalculations';
 
 interface BusinessLoanCardProps {
   businessLoan: BusinessLoanInfo;
@@ -48,8 +48,8 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
 
     const principal = principalWan * 10000;
     const annualRate = annualRatePct / 100;
-    // 使用从当前月份到贷款结束月份的剩余月数
-    const termMonths = calculateRemainingMonths(businessLoan.endDate);
+    // 使用新的计算方式：从最近还款日计算剩余期数
+    const termMonths = calculateRemainingMonthsFromLastRepayment(businessLoan.startDate, businessLoan.endDate);
     if (termMonths <= 0) return { requiredFilled, monthlyPayment: null };
     const monthly = businessLoan.repaymentMethod === 'equal-payment'
       ? calculateEqualPaymentMonthly(principal, annualRate, termMonths)
