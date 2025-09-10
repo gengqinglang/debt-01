@@ -34,7 +34,10 @@ const STORAGE_KEY = 'shared_loan_data';
 // 获取今天的日期
 const getTodayDate = () => {
   const today = new Date();
-  return today.toISOString().split('T')[0]; // 格式: yyyy-MM-dd
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`; // 格式: yyyy-MM-dd
 };
 
 // 规范化贷款对象，确保必填项有默认值（首次录入或旧数据缺失时）

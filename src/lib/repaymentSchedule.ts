@@ -59,6 +59,12 @@ const formatDateLocal = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+// Helper function to parse local date string, avoiding timezone issues
+const parseLocalDate = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
 // Helper function to determine due day based on repayment method
 const getDueDayByMethod = (repaymentMethod: string, startDate?: string, endDate?: string): number => {
   const defaultDay = 1;
@@ -180,7 +186,7 @@ const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => 
     const startDate = new Date(loan.startDate);
     const termYears = parseFloat(loan.loanTerm);
     const endDate = new Date(startDate.getFullYear() + termYears, startDate.getMonth(), startDate.getDate());
-    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.startDate, endDate.toISOString().split('T')[0]);
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.startDate, formatDateLocal(endDate));
   }
 
   if (remainingMonths <= 0) return 0;
@@ -232,7 +238,7 @@ const calculateBusinessLoanMonthlyPayment = (loan: BusinessLoanInfo): number => 
     const startDate = new Date(loan.startDate);
     const termYears = parseFloat(loan.loanTerm);
     const endDate = new Date(startDate.getFullYear() + termYears, startDate.getMonth(), startDate.getDate());
-    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.startDate, endDate.toISOString().split('T')[0]);
+    remainingMonths = calculateRemainingMonthsFromLastRepayment(loan.startDate, formatDateLocal(endDate));
   }
   
   if (remainingMonths <= 0) return 0;
@@ -772,7 +778,7 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             shouldSkip = true;
           } else {
             dueDay = getDueDayFromDate(
-              debt.carStartDate ? (typeof debt.carStartDate === 'string' ? debt.carStartDate : debt.carStartDate.toISOString().split('T')[0]) : undefined, 
+              debt.carStartDate ? (typeof debt.carStartDate === 'string' ? debt.carStartDate : formatDateLocal(debt.carStartDate)) : undefined, 
               25
             );
           }
@@ -906,7 +912,7 @@ export const calculateDateRepayments = (
   repaymentItems: RepaymentItem[],
   targetDate: Date
 ): RepaymentItem[] => {
-  const targetDateStr = targetDate.toISOString().split('T')[0];
+  const targetDateStr = formatDateLocal(targetDate);
   const targetDay = targetDate.getDate();
   
   return repaymentItems.filter(item => {
@@ -932,7 +938,7 @@ export const getMonthlyRepaymentDates = (
   repaymentItems.forEach(item => {
     // Handle one-time payments
     if (item.oneTimeDate) {
-      const oneTimeDate = new Date(item.oneTimeDate);
+      const oneTimeDate = parseLocalDate(item.oneTimeDate);
       oneTimeDate.setHours(0, 0, 0, 0);
       
       const today = new Date(fromDate);
@@ -962,13 +968,13 @@ export const getMonthlyRepaymentDates = (
     
     // Check recurring boundaries if they exist
     if (item.recurringStartDate) {
-      const startDate = new Date(item.recurringStartDate);
+      const startDate = parseLocalDate(item.recurringStartDate);
       startDate.setHours(0, 0, 0, 0);
       if (repaymentDate < startDate) return;
     }
     
     if (item.recurringEndDate) {
-      const endDate = new Date(item.recurringEndDate);
+      const endDate = parseLocalDate(item.recurringEndDate);
       endDate.setHours(0, 0, 0, 0);
       if (repaymentDate > endDate) return;
     }

@@ -6,6 +6,28 @@
 export type DayBasis = 360 | 365;
 
 /**
+ * 格式化日期为本地时间 YYYY-MM-DD 格式，避免时区问题
+ * @param date Date对象
+ * @returns YYYY-MM-DD格式的日期字符串
+ */
+export const formatDateLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * 解析本地日期字符串，避免时区问题
+ * @param dateStr YYYY-MM-DD格式的日期字符串
+ * @returns Date对象，使用本地时间
+ */
+export const parseLocalDate = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+/**
  * 计算两个日期之间的实际天数
  * @param fromDate 开始日期 (YYYY-MM-DD)
  * @param toDate 结束日期 (YYYY-MM-DD)
@@ -142,15 +164,15 @@ export const generateInterestFirstScheduleWithDay = (
   if (!startDate || !endDate || repaymentDayOfMonth < 1 || repaymentDayOfMonth > 28) return schedule;
   
   try {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = parseLocalDate(startDate);
+    const end = parseLocalDate(endDate);
     
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return schedule;
     
     let currentPeriodStart = new Date(start);
     
     while (currentPeriodStart < end) {
-      // 计算下一个还款日：设置为下一个月的指定日期
+      // 计算下一个还款日：设置为下一个月的指定日期  
       let nextPaymentDate = new Date(
         currentPeriodStart.getFullYear(),
         currentPeriodStart.getMonth() + 1,
@@ -162,14 +184,27 @@ export const generateInterestFirstScheduleWithDay = (
         nextPaymentDate = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth() + 1, 0);
       }
       
+      // 确保下一个还款日严格在当前期间开始之后（避免零天期间）
+      if (nextPaymentDate <= currentPeriodStart) {
+        nextPaymentDate = new Date(
+          currentPeriodStart.getFullYear(),
+          currentPeriodStart.getMonth() + 2,
+          repaymentDayOfMonth
+        );
+        // 再次处理月末日期对齐
+        if (nextPaymentDate.getDate() !== repaymentDayOfMonth) {
+          nextPaymentDate = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth() + 1, 0);
+        }
+      }
+      
       // 如果超过结束日期，调整为结束日期
       const isLastPayment = nextPaymentDate >= end;
       if (isLastPayment) {
-        nextPaymentDate = end;
+        nextPaymentDate = new Date(end);
       }
       
-      const fromDateStr = currentPeriodStart.toISOString().split('T')[0];
-      const toDateStr = nextPaymentDate.toISOString().split('T')[0];
+      const fromDateStr = formatDateLocal(currentPeriodStart);
+      const toDateStr = formatDateLocal(nextPaymentDate);
       const actualDays = calculateActualDays(fromDateStr, toDateStr);
       const interestPayment = calculateInterestFirstPayment(
         principal,
@@ -232,7 +267,7 @@ export const calculateNextPaymentInterest = (
   if (schedule.length === 0) return null;
   
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = formatDateLocal(today);
   
   // 找到下一个未到期的还款期
   const nextPayment = schedule.find(payment => payment.toDate >= todayStr);

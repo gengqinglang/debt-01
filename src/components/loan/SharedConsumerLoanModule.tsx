@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { calculateEqualPaymentMonthly, calculateEqualPrincipalFirstMonthly, calculateLoanTermMonths, calculateRemainingMonths, calculateRemainingMonthsFromLastRepayment, calculateRemainingDays, formatAmount, normalizeWan } from '@/lib/loanCalculations';
-import { calculateInterestFirstPayment, calculateNextPaymentInterest } from '@/lib/dailyInterestCalculations';
+import { calculateInterestFirstPayment, calculateNextPaymentInterest, formatDateLocal } from '@/lib/dailyInterestCalculations';
 
 interface ConsumerLoanCardProps {
   consumerLoan: ConsumerLoanInfo;
@@ -85,8 +85,8 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
       const nextPeriodInterest = calculateInterestFirstPayment(
         principalWan, 
         annualRatePct,
-        today.toISOString().split('T')[0],
-        new Date(year, month - 1, daysInCurrentMonth).toISOString().split('T')[0],
+        formatDateLocal(today),
+        formatDateLocal(new Date(year, month - 1, daysInCurrentMonth)),
         360 // 使用360天基础
       );
       

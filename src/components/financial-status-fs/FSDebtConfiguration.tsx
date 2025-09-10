@@ -19,6 +19,7 @@ import { useCarLoanData } from '@/hooks/useCarLoanData';
 import { SharedCarLoanModule } from '@/components/loan/SharedCarLoanModule';
 import { useConsumerLoanData } from '@/hooks/useConsumerLoanData';
 import { SharedConsumerLoanModule } from '@/components/loan/SharedConsumerLoanModule';
+import { formatDateLocal } from '@/lib/dailyInterestCalculations';
 import { useBusinessLoanData } from '@/hooks/useBusinessLoanData';
 import { SharedBusinessLoanModule } from '@/components/loan/SharedBusinessLoanModule';
 import { usePrivateLoanData } from '@/hooks/usePrivateLoanData';
@@ -143,7 +144,7 @@ const LoanFormCard: React.FC<{
                   贷款类型 <span className="text-red-500">*</span>
                 </Label>
                 <Select value={loan.loanType} onValueChange={(value) => {
-                  const today = new Date().toISOString().split('T')[0];
+                  const today = formatDateLocal(new Date());
                   if (value === 'combination') {
                     // 设置组合贷款的默认值
                     updateLoan(loan.id, 'loanType', value);
