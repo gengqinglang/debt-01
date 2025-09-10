@@ -190,7 +190,7 @@ const BusinessLoanCard: React.FC<BusinessLoanCardProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs font-medium">
-                  剩余贷款本金（万元） <span className="text-red-500">*</span>
+                  贷款本金（万元） <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   type="number"
