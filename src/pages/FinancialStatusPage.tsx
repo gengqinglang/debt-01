@@ -297,6 +297,15 @@ const FinancialStatusPage = () => {
         {/* 标题区域 */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#B3EBEF]/20 via-white/60 to-[#B3EBEF]/20 -mx-2">
             <div className="relative py-6 text-center flex flex-col justify-center" style={{ minHeight: '80px' }}>
+              {/* 返回按钮 */}
+              <Button
+                onClick={() => navigate(-1)}
+                variant="ghost"
+                size="sm"
+                className="absolute left-4 top-6 p-2 hover:bg-gray-100/50 rounded-lg"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              </Button>
               <h1 className="text-2xl font-bold text-gray-900 mb-4">家庭债务梳理</h1>
               {/* 债务汇总卡片 - 移动到header内部 */}
             <div className="px-3">
