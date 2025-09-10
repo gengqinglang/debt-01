@@ -162,7 +162,14 @@ export const usePrivateLoanData = (initialData?: PrivateLoanInfo[]) => {
       // 根据还款方式计算月供
       switch (loan.repaymentMethod) {
         case 'interest-first': // 先息后本
-          totalMonthlyPayment += principal * (annualRate / 12); // 只计算利息
+          // 使用实际天数计息：基于当前月份的实际天数
+          const today = new Date();
+          const year = today.getFullYear();
+          const month = today.getMonth() + 1;
+          const daysInCurrentMonth = new Date(year, month, 0).getDate();
+          // 日利率 = 年利率 / 360（银行常用）
+          const dailyRate = annualRate / 360;
+          totalMonthlyPayment += principal * dailyRate * daysInCurrentMonth;
           break;
         case 'lump-sum': // 一次性还本付息
           totalMonthlyPayment += 0; // 到期一次性还款，月供为0

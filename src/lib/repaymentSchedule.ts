@@ -146,10 +146,19 @@ const calculateConsumerLoanMonthlyPayment = (loan: ConsumerLoanInfo): number => 
 
   // Handle different repayment methods
   if (loan.repaymentMethod === 'interest-first') {
-    // Interest-only payment: use full loan amount for interest calculation
+    // Interest-only payment: use actual days calculation
     const principalWan = normalizeWan(loan.loanAmount || '0');
     if (principalWan <= 0 || annualRate <= 0) return 0;
-    return principalWan * 10000 * annualRate / 12;
+    
+    // 使用实际天数计息：基于当前月份的实际天数
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const daysInCurrentMonth = new Date(year, month, 0).getDate();
+    
+    // 日利率 = 年利率 / 360（银行常用）
+    const dailyRate = annualRate / 360;
+    return principalWan * 10000 * dailyRate * daysInCurrentMonth;
   } else if (loan.repaymentMethod === 'lump-sum') {
     // Lump sum at maturity: no monthly payment
     return 0;
@@ -189,10 +198,19 @@ const calculateBusinessLoanMonthlyPayment = (loan: BusinessLoanInfo): number => 
   
   // Handle different repayment methods
   if (loan.repaymentMethod === 'interest-first') {
-    // Interest-only payment: use full loan amount for interest calculation
+    // Interest-only payment: use actual days calculation
     const principalWan = normalizeWan(loan.loanAmount || '0');
     if (principalWan <= 0 || annualRate <= 0) return 0;
-    return principalWan * 10000 * annualRate / 12;
+    
+    // 使用实际天数计息：基于当前月份的实际天数
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const daysInCurrentMonth = new Date(year, month, 0).getDate();
+    
+    // 日利率 = 年利率 / 360（银行常用）
+    const dailyRate = annualRate / 360;
+    return principalWan * 10000 * dailyRate * daysInCurrentMonth;
   } else if (loan.repaymentMethod === 'lump-sum') {
     // Lump sum at maturity: no monthly payment
     return 0;
@@ -242,8 +260,15 @@ const calculatePrivateLoanMonthlyPayment = (loan: PrivateLoanInfo): number => {
     
     if (annualRate <= 0) return 0;
     
-    // Interest-only payment: principal × annual rate / 12
-    return principalWan * 10000 * annualRate / 12;
+    // 使用实际天数计息：基于当前月份的实际天数
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const daysInCurrentMonth = new Date(year, month, 0).getDate();
+    
+    // 日利率 = 年利率 / 360（银行常用）
+    const dailyRate = annualRate / 360;
+    return principalWan * 10000 * dailyRate * daysInCurrentMonth;
   } else if (loan.repaymentMethod === 'lump-sum') {
     // Lump sum at maturity: no monthly payment
     return 0;
