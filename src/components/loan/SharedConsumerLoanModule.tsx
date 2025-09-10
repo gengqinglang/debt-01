@@ -361,41 +361,36 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                     </div>
                      <div className="text-right" style={{ color: '#01BCD6' }}>
                        <div className="text-lg font-semibold">
-                         {(() => {
-                           // 检查必输项是否完整
-                           const requiredFilled = consumerLoan.loanAmount && 
-                                  consumerLoan.startDate &&
-                                  consumerLoan.endDate && 
-                                  consumerLoan.annualRate &&
-                                  consumerLoan.repaymentDayOfMonth;
-                           if (!requiredFilled) return '--';
-                           
-                           // 使用新的实际天数计算方法
-                           const principalWan = parseFloat(consumerLoan.loanAmount);
-                           const annualRatePct = parseFloat(consumerLoan.annualRate);
-                           const repaymentDay = parseInt(consumerLoan.repaymentDayOfMonth);
-                           
-                           if (isNaN(principalWan) || isNaN(annualRatePct) || isNaN(repaymentDay)) return '--';
-                           
-                           // 使用新的calculateNextPaymentInterest函数
-                           const nextInterest = (() => {
-                             try {
-                               const { calculateNextPaymentInterest } = require('@/lib/dailyInterestCalculations');
-                               return calculateNextPaymentInterest(
-                                 principalWan,
-                                 annualRatePct,
-                                 consumerLoan.startDate,
-                                 consumerLoan.endDate,
-                                 repaymentDay,
-                                 360
-                               );
-                             } catch {
-                               return null;
-                             }
-                           })();
-                           
-                           return nextInterest !== null ? `¥${Math.round(nextInterest).toLocaleString()}` : '--';
-                         })()}
+                          {(() => {
+                            // 检查必输项是否完整且有效
+                            const principalWan = parseFloat(consumerLoan.loanAmount || '');
+                            const annualRatePct = parseFloat(consumerLoan.annualRate || '');
+                            const repaymentDay = parseInt(consumerLoan.repaymentDayOfMonth || '');
+                            
+                            const requiredFilled = consumerLoan.loanAmount && 
+                                   consumerLoan.startDate &&
+                                   consumerLoan.endDate && 
+                                   consumerLoan.annualRate &&
+                                   consumerLoan.repaymentDayOfMonth &&
+                                   principalWan > 0 &&
+                                   annualRatePct > 0 &&
+                                   repaymentDay >= 1 && repaymentDay <= 28 &&
+                                   new Date(consumerLoan.endDate) > new Date(consumerLoan.startDate);
+                            
+                            if (!requiredFilled) return '--';
+                            
+                            // 直接使用已导入的calculateNextPaymentInterest函数
+                            const nextInterest = calculateNextPaymentInterest(
+                              principalWan,
+                              annualRatePct,
+                              consumerLoan.startDate,
+                              consumerLoan.endDate,
+                              repaymentDay,
+                              360
+                            );
+                            
+                            return nextInterest !== null ? `¥${Math.round(nextInterest).toLocaleString()}` : '--';
+                          })()}
                        </div>
                      </div>
                   </div>
