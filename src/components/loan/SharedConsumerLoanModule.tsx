@@ -366,22 +366,15 @@ const ConsumerLoanCard: React.FC<ConsumerLoanCardProps> = ({
                            
                            if (isNaN(principalWan) || isNaN(annualRatePct) || isNaN(repaymentDay)) return '--';
                            
-                           // 使用新的calculateNextPaymentInterest函数
-                           const nextInterest = (() => {
-                             try {
-                               const { calculateNextPaymentInterest } = require('@/lib/dailyInterestCalculations');
-                               return calculateNextPaymentInterest(
-                                 principalWan,
-                                 annualRatePct,
-                                 consumerLoan.startDate,
-                                 consumerLoan.endDate,
-                                 repaymentDay,
-                                 360
-                               );
-                             } catch {
-                               return null;
-                             }
-                           })();
+                            // 使用calculateNextPaymentInterest函数
+                            const nextInterest = calculateNextPaymentInterest(
+                              principalWan,
+                              annualRatePct,
+                              consumerLoan.startDate,
+                              consumerLoan.endDate,
+                              repaymentDay,
+                              360
+                            );
                            
                            return nextInterest !== null ? `¥${Math.round(nextInterest).toLocaleString()}` : '--';
                          })()}

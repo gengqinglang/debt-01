@@ -939,8 +939,7 @@ export const getMonthlyRepaymentDates = (
       today.setHours(0, 0, 0, 0);
       
       if (oneTimeDate.getFullYear() === year && 
-          oneTimeDate.getMonth() === month && 
-          oneTimeDate >= today) {
+          oneTimeDate.getMonth() === month) {
         const dateKey = item.oneTimeDate;
         
         if (!repaymentMap.has(dateKey)) {

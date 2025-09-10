@@ -150,12 +150,20 @@ export const generateInterestFirstScheduleWithDay = (
     let currentPeriodStart = new Date(start);
     
     while (currentPeriodStart < end) {
-      // 计算下一个还款日：设置为下一个月的指定日期
-      let nextPaymentDate = new Date(
-        currentPeriodStart.getFullYear(),
-        currentPeriodStart.getMonth() + 1,
-        repaymentDayOfMonth
-      );
+      // 计算下一个还款日
+      // 如果当前月的还款日还未过，则本月就有还款；否则是下个月
+      const currentMonth = currentPeriodStart.getMonth();
+      const currentYear = currentPeriodStart.getFullYear();
+      const currentDay = currentPeriodStart.getDate();
+      
+      let nextPaymentDate: Date;
+      if (currentDay <= repaymentDayOfMonth) {
+        // 本月还款日还未过，使用本月
+        nextPaymentDate = new Date(currentYear, currentMonth, repaymentDayOfMonth);
+      } else {
+        // 本月还款日已过，使用下个月
+        nextPaymentDate = new Date(currentYear, currentMonth + 1, repaymentDayOfMonth);
+      }
       
       // 处理月末日期对齐（如31号在某些月份不存在，使用该月最后一天）
       if (nextPaymentDate.getDate() !== repaymentDayOfMonth) {
