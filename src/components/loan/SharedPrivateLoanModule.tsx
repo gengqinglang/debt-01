@@ -301,6 +301,13 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
               </div>
             </div>
             
+            {/* 年化利率显示 */}
+            {privateLoan.annualRate && parseFloat(privateLoan.annualRate) > 0 && (
+              <div className="text-center p-2 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-600">年化利率：<span className="font-semibold text-gray-900">{privateLoan.annualRate}%</span></p>
+              </div>
+            )}
+            
             {/* 下一次应还利息栏位 */}
             <div className="mt-5">
               <div className="space-y-2">
@@ -460,106 +467,14 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
                 </div>
               </div>
             </div>
-          </>
-        )}
-                className="h-9 text-sm pr-8"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">分</span>
-            </div>
-          </div>
-          <div>
-            <Label className="text-xs font-medium">
-              利率-厘
-            </Label>
-            <div className="relative mt-1">
-              <Input
-                type="number"
-                inputMode="decimal"
-                pattern="[0-9]*\.?[0-9]*"
-                step="0.01"
-                min="0"
-                max="9"
-                placeholder="0"
-                value={privateLoan.rateLi}
-                onChange={(e) => updateRateLi(privateLoan.id, e.target.value)}
-                className="h-9 text-sm pr-8"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">厘</span>
-            </div>
-          </div>
-        </div>
-        
-        {/* 年化利率显示 */}
-        {privateLoan.annualRate && parseFloat(privateLoan.annualRate) > 0 && (
-          <div className="text-center p-2 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-600">年化利率：<span className="font-semibold text-gray-900">{privateLoan.annualRate}%</span></p>
-          </div>
-        )}
-        
-        {/* 待还利息/每月利息显示 */}
-        {privateLoan.repaymentMethod && (
-          <div className="mt-5">
-            <div className="space-y-2">
-              <div className="rounded-lg p-3 bg-white border border-cyan-500">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2" style={{ color: '#01BCD6' }}>
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#01BCD6' }}></div>
-                    <span className="text-sm font-medium">{privateLoan.repaymentMethod === 'interest-first' ? '下一次利息' : '待还利息'}</span>
-                  </div>
-                  <div className="text-right" style={{ color: '#01BCD6' }}>
-                    <div className="text-lg font-semibold">
-                      {(() => {
-                        // 检查必输项是否完整
-                        const requiredFilled = privateLoan.loanAmount && 
-                               privateLoan.endDate && 
-                               privateLoan.annualRate;
-                        
-                        if (!requiredFilled) return '--';
-                        
-                        const principalWan = parseFloat(privateLoan.loanAmount || '');
-                        const annualRatePct = parseFloat(privateLoan.annualRate || '');
-                        
-                        if (isNaN(principalWan) || principalWan <= 0 || isNaN(annualRatePct) || annualRatePct <= 0) return '--';
-                        
-                        const principal = principalWan * 10000;
-                        const annualRate = annualRatePct / 100;
-                        
-                         if (privateLoan.repaymentMethod === 'interest-first') {
-                           // 先息后本：下一次要支付的利息（基于实际天数）
-                           const today = new Date();
-                           const year = today.getFullYear();
-                           const month = today.getMonth() + 1;
-                           const daysInCurrentMonth = new Date(year, month, 0).getDate();
-                           
-                           // 计算下一期利息：使用当前月的实际天数
-                           const nextPeriodInterest = calculateInterestFirstPayment(
-                             principalWan, 
-                             annualRatePct,
-                             today.toISOString().split('T')[0],
-                             new Date(year, month - 1, daysInCurrentMonth).toISOString().split('T')[0],
-                             360 // 使用360天基础
-                           );
-                           
-                           return `¥${Math.round(nextPeriodInterest).toLocaleString()}`;
-                        } else if (privateLoan.repaymentMethod === 'lump-sum') {
-                          // 一次性还本付息：从今天到结束日期的利息
-                          const startDate = new Date(); // 从今天开始计算
-                          const endDate = new Date(privateLoan.endDate || '');
-                          const diffTime = endDate.getTime() - startDate.getTime();
-                          const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-                          const yearlyInterest = principal * annualRate;
-                          const totalInterest = (yearlyInterest * diffDays) / 365;
-                          return `¥${Math.round(totalInterest).toLocaleString()}`;
-                        }
-                        
-                        return '--';
-                      })()}
-                    </div>
-                  </div>
-                </div>
+            
+            {/* 年化利率显示 */}
+            {privateLoan.annualRate && parseFloat(privateLoan.annualRate) > 0 && (
+              <div className="text-center p-2 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-600">年化利率：<span className="font-semibold text-gray-900">{privateLoan.annualRate}%</span></p>
               </div>
-            </div>
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -568,7 +483,7 @@ const PrivateLoanCard: React.FC<PrivateLoanCardProps> = ({
 
 interface SharedPrivateLoanModuleProps {
   children: React.ReactNode;
-  existingData?: any;
+  existingData?: PrivateLoanInfo[];
   privateLoans: PrivateLoanInfo[];
   addPrivateLoan: () => void;
   removePrivateLoan: (id: string) => void;
@@ -579,8 +494,8 @@ interface SharedPrivateLoanModuleProps {
   updateRateLi: (id: string, value: string) => void;
 }
 
-export const SharedPrivateLoanModule: React.FC<SharedPrivateLoanModuleProps> = ({ 
-  children, 
+const SharedPrivateLoanModule: React.FC<SharedPrivateLoanModuleProps> = ({
+  children,
   existingData,
   privateLoans,
   addPrivateLoan,
@@ -589,24 +504,20 @@ export const SharedPrivateLoanModule: React.FC<SharedPrivateLoanModuleProps> = (
   updatePrivateLoan,
   isPrivateLoanComplete,
   updateRateFen,
-  updateRateLi
+  updateRateLi,
 }) => {
-  // 自动添加空白卡片
   useEffect(() => {
-    const hasExistingData = existingData && existingData.length > 0;
-    const hasCurrentData = privateLoans && privateLoans.length > 0;
-    
-    if (!hasExistingData && !hasCurrentData) {
+    if (privateLoans.length === 0) {
       addPrivateLoan();
     }
-  }, [existingData, addPrivateLoan]);
+  }, [privateLoans.length, addPrivateLoan]);
 
   return (
-    <>
-      {/* 民间借贷列表 */}
-      {privateLoans.map((privateLoan, index) => (
-        <div key={privateLoan.id} className="mb-4">
+    <div>
+      <div className="space-y-6">
+        {privateLoans.map((privateLoan, index) => (
           <PrivateLoanCard
+            key={privateLoan.id}
             privateLoan={privateLoan}
             index={index}
             updatePrivateLoan={updatePrivateLoan}
@@ -616,27 +527,26 @@ export const SharedPrivateLoanModule: React.FC<SharedPrivateLoanModuleProps> = (
             updateRateFen={updateRateFen}
             updateRateLi={updateRateLi}
           />
-        </div>
-      ))}
+        ))}
+      </div>
 
-      {/* 按钮区域 - 左侧"再录一笔" + 右侧确认按钮 */}
-      <div className="grid grid-cols-2 gap-3 mt-6 mb-3">
-        {/* 左侧：再录一笔（虚线边框，青色） */}
+      <div className="mt-6 flex justify-between items-center">
         <Button
-          onClick={addPrivateLoan}
+          type="button"
           variant="outline"
-          className="h-10 border-dashed text-sm"
-          style={{ borderColor: '#01BCD6', color: '#01BCD6' }}
+          onClick={addPrivateLoan}
+          className="flex items-center space-x-2"
         >
-          <Plus className="w-3 h-3 mr-2" />
-          再录一笔
+          <Plus className="h-4 w-4" />
+          <span>添加民间借贷</span>
         </Button>
-
-        {/* 右侧：确认民间借贷信息（传入的children） */}
-        <div className="w-full">
+        
+        <div>
           {children}
         </div>
       </div>
-    </>
+    </div>
   );
 };
+
+export default SharedPrivateLoanModule;

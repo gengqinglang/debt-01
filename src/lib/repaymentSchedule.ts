@@ -6,6 +6,7 @@ import {
   normalizeWan,
   type MortgageLoanInfo 
 } from '@/lib/loanCalculations';
+import { generateInterestFirstScheduleWithDay } from '@/lib/dailyInterestCalculations';
 
 // Helper to calculate remaining months between two dates
 const calculateRemainingMonths = (endDate: string, fromDate: Date = new Date()): number => {
@@ -403,6 +404,50 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             });
           }
           // Handle interest-first repayment method
+          else if (loan.repaymentMethod === 'interest-first' && loan.startDate && loan.endDate && loan.repaymentDayOfMonth) {
+            // Use new actual days calculation for interest-first loans
+            const principalWan = normalizeWan(loan.loanAmount || '0');
+            const annualRatePercent = parseFloat(loan.annualRate || '0');
+            const repaymentDay = parseInt(loan.repaymentDayOfMonth);
+            
+            if (principalWan > 0 && annualRatePercent > 0 && repaymentDay >= 1 && repaymentDay <= 31) {
+              // Generate the actual repayment schedule with varying interest amounts
+              const schedule = generateInterestFirstScheduleWithDay(
+                principalWan,
+                annualRatePercent,
+                loan.startDate,
+                loan.endDate,
+                repaymentDay,
+                360
+              );
+              
+              // Add each period as a separate repayment item
+              schedule.forEach((period, periodIdx) => {
+                if (period.isLastPayment) {
+                  // Final payment: principal + final interest
+                  repaymentItems.push({
+                    id: `${loan.id}_final`,
+                    type: '消费贷',
+                    name: `${loan.name || `消费贷${idx + 1}`}(本息)`,
+                    amount: Math.round(period.interestPayment + period.principalPayment),
+                    dueDay: repaymentDay,
+                    oneTimeDate: period.toDate
+                  });
+                } else {
+                  // Interest-only payment
+                  repaymentItems.push({
+                    id: `${loan.id}_${periodIdx}`,
+                    type: '消费贷',
+                    name: loan.name || `消费贷${idx + 1}`,
+                    amount: Math.round(period.interestPayment),
+                    dueDay: repaymentDay,
+                    oneTimeDate: period.toDate
+                  });
+                }
+              });
+            }
+          }
+          // Fallback for interest-first without proper fields (old behavior)
           else if (loan.repaymentMethod === 'interest-first' && amount > 0) {
             // For interest-first, only show monthly interest until the month before endDate
             // Then show combined principal + final interest on endDate
@@ -490,6 +535,50 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             });
           }
           // Handle interest-first repayment method
+          else if (loan.repaymentMethod === 'interest-first' && loan.startDate && loan.endDate && loan.repaymentDayOfMonth) {
+            // Use new actual days calculation for interest-first loans
+            const principalWan = normalizeWan(loan.loanAmount || '0');
+            const annualRatePercent = parseFloat(loan.annualRate || '0');
+            const repaymentDay = parseInt(loan.repaymentDayOfMonth);
+            
+            if (principalWan > 0 && annualRatePercent > 0 && repaymentDay >= 1 && repaymentDay <= 31) {
+              // Generate the actual repayment schedule with varying interest amounts
+              const schedule = generateInterestFirstScheduleWithDay(
+                principalWan,
+                annualRatePercent,
+                loan.startDate,
+                loan.endDate,
+                repaymentDay,
+                360
+              );
+              
+              // Add each period as a separate repayment item
+              schedule.forEach((period, periodIdx) => {
+                if (period.isLastPayment) {
+                  // Final payment: principal + final interest
+                  repaymentItems.push({
+                    id: `${loan.id}_final`,
+                    type: '经营贷',
+                    name: `${loan.name || `经营贷${idx + 1}`}(本息)`,
+                    amount: Math.round(period.interestPayment + period.principalPayment),
+                    dueDay: repaymentDay,
+                    oneTimeDate: period.toDate
+                  });
+                } else {
+                  // Interest-only payment
+                  repaymentItems.push({
+                    id: `${loan.id}_${periodIdx}`,
+                    type: '经营贷',
+                    name: loan.name || `经营贷${idx + 1}`,
+                    amount: Math.round(period.interestPayment),
+                    dueDay: repaymentDay,
+                    oneTimeDate: period.toDate
+                  });
+                }
+              });
+            }
+          }
+          // Fallback for interest-first without proper fields (old behavior)
           else if (loan.repaymentMethod === 'interest-first' && loan.endDate) {
             const principalWan = normalizeWan(loan.loanAmount || '0');
             const annualRate = parseFloat(loan.annualRate || '0') / 100;
@@ -556,6 +645,52 @@ export const buildRepaymentItems = (debts: DebtInfo[]): RepaymentItem[] => {
             });
           }
           // Handle interest-first repayment method
+          else if (loan.repaymentMethod === 'interest-first' && loan.startDate && loan.endDate && loan.repaymentDayOfMonth) {
+            // Use new actual days calculation for interest-first loans
+            const principalWan = parseFloat(loan.loanAmount || '0');
+            const fenValue = parseFloat(loan.rateFen || '0');
+            const liValue = parseFloat(loan.rateLi || '0');
+            const annualRatePercent = fenValue * 10 + liValue; // 1分 = 10%, 1厘 = 1%
+            const repaymentDay = parseInt(loan.repaymentDayOfMonth);
+            
+            if (principalWan > 0 && annualRatePercent > 0 && repaymentDay >= 1 && repaymentDay <= 31) {
+              // Generate the actual repayment schedule with varying interest amounts
+              const schedule = generateInterestFirstScheduleWithDay(
+                principalWan,
+                annualRatePercent,
+                loan.startDate,
+                loan.endDate,
+                repaymentDay,
+                360
+              );
+              
+              // Add each period as a separate repayment item
+              schedule.forEach((period, periodIdx) => {
+                if (period.isLastPayment) {
+                  // Final payment: principal + final interest
+                  repaymentItems.push({
+                    id: `${loan.id}_final`,
+                    type: '民间借贷',
+                    name: `${loan.name || `民间借贷${idx + 1}`}(本息)`,
+                    amount: Math.round(period.interestPayment + period.principalPayment),
+                    dueDay: repaymentDay,
+                    oneTimeDate: period.toDate
+                  });
+                } else {
+                  // Interest-only payment
+                  repaymentItems.push({
+                    id: `${loan.id}_${periodIdx}`,
+                    type: '民间借贷',
+                    name: loan.name || `民间借贷${idx + 1}`,
+                    amount: Math.round(period.interestPayment),
+                    dueDay: repaymentDay,
+                    oneTimeDate: period.toDate
+                  });
+                }
+              });
+            }
+          }
+          // Fallback for interest-first without proper fields (old behavior)
           else if (loan.repaymentMethod === 'interest-first' && amount > 0) {
             // For interest-first, only show monthly interest until the month before endDate
             // Then show combined principal + final interest on endDate

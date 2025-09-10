@@ -22,7 +22,7 @@ import { SharedConsumerLoanModule } from '@/components/loan/SharedConsumerLoanMo
 import { useBusinessLoanData } from '@/hooks/useBusinessLoanData';
 import { SharedBusinessLoanModule } from '@/components/loan/SharedBusinessLoanModule';
 import { usePrivateLoanData } from '@/hooks/usePrivateLoanData';
-import { SharedPrivateLoanModule } from '@/components/loan/SharedPrivateLoanModule';
+import SharedPrivateLoanModule from '@/components/loan/SharedPrivateLoanModule';
 import { useCreditCardData } from '@/hooks/useCreditCardData';
 import { SharedCreditCardModule } from '@/components/loan/SharedCreditCardModule';
 import { calculateRemainingMonthsFromLastRepayment, calculateRemainingMonths } from '@/lib/loanCalculations';
